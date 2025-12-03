@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { AccessTime as SlotTypeIcon } from '@mui/icons-material';
 import DataTable from '../../../components/Common/DataTable';
@@ -10,18 +10,74 @@ import ManagementFormDialog from '../../../components/Management/FormDialog';
 import ContentLoading from '../../../components/Common/ContentLoading';
 import useBaseCRUD from '../../../hooks/useBaseCRUD';
 import slotTypeService from '../../../services/slotType.service';
+import userService from '../../../services/user.service';
 import { createSlotTypeColumns } from '../../../definitions/slotType/tableColumns';
 import { createSlotTypeFormFields } from '../../../definitions/slotType/formFields';
 import { slotTypeSchema } from '../../../utils/validationSchemas/slotTypeSchemas';
 import { useApp } from '../../../contexts/AppContext';
+import { useAuth } from '../../../contexts/AuthContext';
 import styles from './SlotTypeManagement.module.css';
 
 const SlotTypeManagement = () => {
   const navigate = useNavigate();
-  const { currentUser } = useApp();
+  const { showGlobalError } = useApp();
+  const { user: authUser } = useAuth();
+  const [managerBranchId, setManagerBranchId] = useState(null);
 
   const columns = useMemo(() => createSlotTypeColumns(), []);
   const slotTypeFormFields = useMemo(() => createSlotTypeFormFields(false), []);
+
+  // Load manager's branch ID on mount
+  useEffect(() => {
+    const fetchManagerBranch = async () => {
+      try {
+        // Try to get branchId from auth context first
+        const branchIdFromAuth = 
+          authUser?.branchId ||
+          authUser?.managerProfile?.branchId ||
+          authUser?.managerBranchId;
+
+        if (branchIdFromAuth) {
+          setManagerBranchId(branchIdFromAuth);
+          return;
+        }
+
+        // If not available in auth context, fetch from API
+        const currentUser = await userService.getCurrentUser();
+        const managerBranchId = 
+          currentUser?.managerProfile?.branchId ||
+          currentUser?.branchId ||
+          currentUser?.managerBranchId ||
+          null;
+
+        if (managerBranchId) {
+          setManagerBranchId(managerBranchId);
+        } else {
+          console.warn('Manager không có chi nhánh được gán');
+        }
+      } catch (err) {
+        console.error('Error fetching manager branch:', err);
+        showGlobalError('Không thể xác định chi nhánh. Vui lòng đăng nhập lại.');
+      }
+    };
+
+    fetchManagerBranch();
+  }, [authUser, showGlobalError]);
+
+  // Create load function that always uses latest managerBranchId
+  const loadSlotTypesFunction = useCallback(async (params) => {
+    // If branchId not loaded yet, return empty result (will retry when branchId is loaded)
+    if (!managerBranchId) {
+      return { items: [], totalCount: 0, pageIndex: 1, pageSize: 10 };
+    }
+
+    return await slotTypeService.getSlotTypesPaged({
+      pageIndex: params.pageIndex || 1,
+      pageSize: params.pageSize || 10,
+      searchTerm: params.Keyword || params.searchTerm || '',
+      branchId: managerBranchId // Always filter by manager's branch
+    });
+  }, [managerBranchId]);
 
   const {
     data: slotTypes,
@@ -50,16 +106,20 @@ const SlotTypeManagement = () => {
     handlePageChange,
     handleRowsPerPageChange
   } = useBaseCRUD({
-    loadFunction: (params) => slotTypeService.getSlotTypesPaged({
-      ...params,
-      branchId: currentUser?.branchId || null
-    }),
+    loadFunction: loadSlotTypesFunction,
     createFunction: slotTypeService.createSlotType,
     updateFunction: slotTypeService.updateSlotType,
     deleteFunction: slotTypeService.deleteSlotType,
     minLoadingDuration: 300,
-    loadOnMount: true
+    loadOnMount: false // Don't auto-load, wait for branchId
   });
+
+  // Reload data when branchId is loaded
+  useEffect(() => {
+    if (managerBranchId) {
+      loadData(false);
+    }
+  }, [managerBranchId, loadData]);
 
   const handleViewDetail = (slotType) => {
     navigate(`/manager/slot-types/detail/${slotType.id}`);

@@ -1,18 +1,62 @@
 import React, { useImperativeHandle, useMemo, useRef, useState, useEffect } from 'react';
 import { Box, Typography, Autocomplete, TextField, Checkbox, ListItemText, CircularProgress } from '@mui/material';
 import slotTypeService from '../../../../services/slotType.service';
+import userService from '../../../../services/user.service';
+import { useAuth } from '../../../../contexts/AuthContext';
 import { toast } from 'react-toastify';
 
 const Step4AssignSlotTypes = React.forwardRef(
   ({ data, updateData, stepIndex, totalSteps }, ref) => {
+    const { user: authUser } = useAuth();
     const [loading, setLoading] = useState(true);
     const [options, setOptions] = useState([]);
     const [selected, setSelected] = useState([]);
+    const [managerBranchId, setManagerBranchId] = useState(null);
+
+    // Load manager's branch ID on mount
+    useEffect(() => {
+      const fetchManagerBranch = async () => {
+        try {
+          // Try to get branchId from auth context first
+          const branchIdFromAuth = 
+            authUser?.branchId ||
+            authUser?.managerProfile?.branchId ||
+            authUser?.managerBranchId;
+
+          if (branchIdFromAuth) {
+            setManagerBranchId(branchIdFromAuth);
+            return;
+          }
+
+          // If not available in auth context, fetch from API
+          const currentUser = await userService.getCurrentUser();
+          const managerBranchId = 
+            currentUser?.managerProfile?.branchId ||
+            currentUser?.branchId ||
+            currentUser?.managerBranchId ||
+            null;
+
+          if (managerBranchId) {
+            setManagerBranchId(managerBranchId);
+          }
+        } catch (err) {
+          console.error('Error fetching manager branch:', err);
+        }
+      };
+
+      fetchManagerBranch();
+    }, [authUser]);
 
     useEffect(() => {
       const load = async () => {
+        // Wait for branchId to be loaded before fetching slot types
+        if (!managerBranchId) {
+          return;
+        }
+
         try {
-          const slotTypes = await slotTypeService.getAllSlotTypes();
+          setLoading(true);
+          const slotTypes = await slotTypeService.getAllSlotTypes({ branchId: managerBranchId });
           setOptions(Array.isArray(slotTypes) ? slotTypes : []);
           
           // Load existing slot type IDs if available
@@ -30,7 +74,7 @@ const Step4AssignSlotTypes = React.forwardRef(
         }
       };
       load();
-    }, [data.slotTypeIds]);
+    }, [data.slotTypeIds, managerBranchId]);
 
     useImperativeHandle(ref, () => ({
       submit: async () => {
@@ -52,7 +96,7 @@ const Step4AssignSlotTypes = React.forwardRef(
         </Typography>
 
         <Box sx={{ flex: 1, overflow: 'hidden', display: 'flex', flexDirection: 'column', gap: 2 }}>
-          {loading ? (
+          {loading || !managerBranchId ? (
             <Box display="flex" justifyContent="center" py={4}>
               <CircularProgress />
             </Box>

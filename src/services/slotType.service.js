@@ -6,12 +6,28 @@ import axiosInstance from '../config/axios.config';
  */
 const slotTypeService = {
   /**
-   * Get all slot types
+   * Get all slot types with optional filter
+   * @param {Object} params - Optional filter parameters { branchId, studentLevelId }
    * @returns {Promise} List of all slot types
    */
-  getAllSlotTypes: async () => {
+  getAllSlotTypes: async (params = {}) => {
     try {
-      const response = await axiosInstance.get('/SlotType/all');
+      const { branchId = null, studentLevelId = null } = params;
+      
+      const queryParams = new URLSearchParams();
+      
+      if (branchId) {
+        queryParams.append('branchId', branchId);
+      }
+      
+      if (studentLevelId) {
+        queryParams.append('studentLevelId', studentLevelId);
+      }
+      
+      const queryString = queryParams.toString();
+      const url = queryString ? `/SlotType/all?${queryString}` : '/SlotType/all';
+      
+      const response = await axiosInstance.get(url);
       return response.data;
     } catch (error) {
       throw error.response?.data || error.message;
@@ -38,11 +54,11 @@ const slotTypeService = {
       });
 
       if (searchTerm) {
-        queryParams.append('filter.Name', searchTerm);
+        queryParams.append('Name', searchTerm);
       }
 
       if (branchId) {
-        queryParams.append('filter.branchId', branchId);
+        queryParams.append('branchId', branchId);
       }
 
       const response = await axiosInstance.get(`/SlotType/paged?${queryParams}`);
