@@ -11,6 +11,7 @@ import AssignBenefitsDialog from '../../../components/Management/AssignBenefitsD
 import AssignSchoolsDialog from '../../../components/Management/AssignSchoolsDialog';
 import AssignStudentLevelsDialog from '../../../components/Management/AssignStudentLevelsDialog';
 import branchService from '../../../services/branch.service';
+import benefitService from '../../../services/benefit.service';
 import useBaseCRUD from '../../../hooks/useBaseCRUD';
 import { useBranchExpandedRows } from '../../../hooks/useBranchExpandedRows';
 import { useAssignBenefits } from '../../../hooks/useAssignBenefits';
@@ -60,6 +61,40 @@ const BranchManagement = () => {
     deleteFunction: branchService.deleteBranch,
     loadOnMount: true
   });
+
+  // Map of benefit counts per branchId for table display
+  const [benefitsCountByBranchId, setBenefitsCountByBranchId] = React.useState({});
+
+  // Fetch benefits count for current page branches
+  useEffect(() => {
+    const fetchBenefitCounts = async () => {
+      if (!branches || branches.length === 0) {
+        setBenefitsCountByBranchId({});
+        return;
+      }
+      try {
+        const results = await Promise.all(
+          (branches || []).map(async (b) => {
+            try {
+              const assigned = await benefitService.getBenefitsByBranchId(b.id);
+              return { id: b.id, count: Array.isArray(assigned) ? assigned.length : 0 };
+            } catch (err) {
+              return { id: b.id, count: 0 };
+            }
+          })
+        );
+        const map = results.reduce((acc, cur) => {
+          acc[cur.id] = cur.count;
+          return acc;
+        }, {});
+        setBenefitsCountByBranchId(map);
+      } catch (err) {
+        // ignore
+      }
+    };
+    fetchBenefitCounts();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [branches]);
 
   // Expanded rows hook (for managing assigned items state)
   const {
@@ -125,7 +160,8 @@ const BranchManagement = () => {
     onAssignStudentLevels: assignStudentLevels.handleOpen,
     onViewBranch: handleViewDetail,
     onEditBranch: handleEditWithData,
-    onDeleteBranch: handleDelete
+    onDeleteBranch: handleDelete,
+    benefitsCountByBranchId
   });
 
   return (

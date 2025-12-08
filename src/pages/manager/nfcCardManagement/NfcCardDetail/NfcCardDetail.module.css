@@ -1,0 +1,21 @@
+.detailPage {
+  min-height: 100vh;
+  background-color: var(--bg-secondary);
+  padding: var(--spacing-6) 0;
+}
+
+.container {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 0 var(--spacing-6);
+}
+
+@media (max-width: 768px) {
+  .detailPage {
+    padding: var(--spacing-4) 0;
+  }
+
+  .container {
+    padding: 0 var(--spacing-4);
+  }
+}

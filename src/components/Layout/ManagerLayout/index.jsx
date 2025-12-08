@@ -17,7 +17,8 @@ import {
   BusinessCenter as FacilityServiceIcon,
   Person as ProfileIcon,
   Lock as LockIcon,
-  Category as SlotTypeIcon
+  Category as SlotTypeIcon,
+  CreditCard as NfcCardIcon
 } from '@mui/icons-material';
 
 const ManagerLayout = () => {
@@ -54,6 +55,11 @@ const ManagerLayout = () => {
       path: '/manager/students',
       label: 'Trẻ em',
       icon: StudentIcon
+        },
+        {
+          path: '/manager/nfc-cards',
+          label: 'Thẻ NFC',
+          icon: NfcCardIcon
         }
       ]
     },

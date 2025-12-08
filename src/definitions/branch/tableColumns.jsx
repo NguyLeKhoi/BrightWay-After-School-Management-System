@@ -8,7 +8,8 @@ import {
   Edit as EditIcon,
   Delete as DeleteIcon,
   Visibility as VisibilityIcon,
-  MoreVert as MoreVertIcon
+  MoreVert as MoreVertIcon,
+  LocalOffer as LocalOfferIcon
 } from '@mui/icons-material';
 
 export const createBranchColumns = ({
@@ -17,7 +18,8 @@ export const createBranchColumns = ({
   onAssignStudentLevels,
   onViewBranch,
   onEditBranch,
-  onDeleteBranch
+  onDeleteBranch,
+  benefitsCountByBranchId = {}
 }) => [
   {
     key: 'branchName',
@@ -54,6 +56,51 @@ export const createBranchColumns = ({
         {value}
       </Typography>
     )
+  },
+  {
+    key: 'schoolsCount',
+    header: 'Trường',
+    align: 'center',
+    render: (_, item) => {
+      const count = Array.isArray(item.schools)
+        ? item.schools.length
+        : (item.schoolCount ?? item.schoolsCount ?? item.SchoolsCount ?? 0);
+      return (
+        <Chip label={count} color="info" size="small" />
+      );
+    }
+  },
+  {
+    key: 'studentLevelsCount',
+    header: 'Cấp Độ HS',
+    align: 'center',
+    render: (_, item) => {
+      const count = Array.isArray(item.studentLevels)
+        ? item.studentLevels.length
+        : (item.studentLevelsCount ?? item.levelCount ?? item.LevelsCount ?? 0);
+      return (
+        <Chip label={count} color="warning" size="small" />
+      );
+    }
+  },
+  {
+    key: 'benefitsCount',
+    header: 'Lợi Ích',
+    align: 'center',
+    render: (_, item) => {
+      const countFromMap = benefitsCountByBranchId?.[item.id];
+      const count = typeof countFromMap === 'number'
+        ? countFromMap
+        : (Array.isArray(item.benefits) ? item.benefits.length : undefined);
+      return (
+        <Chip
+          icon={<LocalOfferIcon sx={{ fontSize: 16 }} />}
+          label={typeof count === 'number' ? count : '...'}
+          color="success"
+          size="small"
+        />
+      );
+    }
   },
   {
     key: 'status',

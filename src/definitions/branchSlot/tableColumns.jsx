@@ -123,7 +123,8 @@ export const createBranchSlotColumns = (styles) => [
     header: <Typography className={styles?.noWrap}>Phòng & Nhân viên</Typography>,
     render: (_, item) => {
       const roomCount = item?.roomSlots?.length || item?.rooms?.length || 0;
-      const staffCount = item?.staffSlots?.length || item?.staffs?.length || 0;
+      // Sử dụng amountStaff từ API response, fallback về đếm mảng nếu không có
+      const staffCount = item?.amountStaff ?? (item?.staffSlots?.length || item?.staffs?.length || item?.staff?.length || 0);
       
       return (
         <Box display="flex" flexDirection="column" gap={0.5}>

@@ -11,7 +11,10 @@ import {
   Chip,
   Grid,
   Card,
-  CardContent
+  CardContent,
+  Dialog,
+  DialogTitle,
+  DialogContent
 } from '@mui/material';
 import { 
   ArrowBack, 
@@ -72,6 +75,7 @@ const ChildScheduleDetail = () => {
     quantity: 1
   });
   const [isOrdering, setIsOrdering] = useState(false);
+  const [showWalletSelectionDialog, setShowWalletSelectionDialog] = useState(false);
   const [showConfirmOrderDialog, setShowConfirmOrderDialog] = useState(false);
   const [pendingOrderData, setPendingOrderData] = useState(null);
   const [selectedWalletTypeForOrder, setSelectedWalletTypeForOrder] = useState(null);
@@ -257,15 +261,20 @@ const ChildScheduleDetail = () => {
   const handleOrderSubmit = (data) => {
     if (!selectedService || !slot) return;
     
-    // Lưu thông tin đơn hàng và hiển thị dialog xác nhận
+    // Lưu thông tin đơn hàng và hiển thị dialog chọn ví
     setPendingOrderData({
       service: selectedService,
       quantity: data.quantity,
       totalAmount: selectedService.effectivePrice * data.quantity
     });
-    // Mặc định chọn ví trẻ em
-    setSelectedWalletTypeForOrder('Student');
+    setSelectedWalletTypeForOrder(null);
     setShowOrderDialog(false);
+    setShowWalletSelectionDialog(true);
+  };
+
+  const handleWalletSelected = (walletType) => {
+    setSelectedWalletTypeForOrder(walletType);
+    setShowWalletSelectionDialog(false);
     setShowConfirmOrderDialog(true);
   };
 
@@ -724,6 +733,27 @@ const ChildScheduleDetail = () => {
 
                 <Divider />
 
+                {/* Loại ca */}
+                <Box>
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
+                    <Note sx={{ fontSize: 20, color: 'var(--color-primary)' }} />
+                    <Typography variant="subtitle2" color="text.secondary" fontWeight="medium">
+                      Loại ca
+                    </Typography>
+                  </Box>
+                  <Box sx={{ pl: 4 }}>
+                    <Chip
+                      label={slot?.branchSlot?.slotType?.name || slot?.slotTypeName || 'Chưa xác định'}
+                      size="small"
+                      variant="outlined"
+                      color="primary"
+                      sx={{ fontWeight: 500 }}
+                    />
+                  </Box>
+                </Box>
+
+                <Divider />
+
                 {/* Phòng */}
                 <Box>
                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
@@ -819,6 +849,84 @@ const ChildScheduleDetail = () => {
 
           {/* Right Column - Services */}
           <Grid item xs={12} md={6}>
+            {/* Dịch vụ đã mua */}
+            {slot?.services && slot.services.length > 0 && (
+              <Paper 
+                elevation={0}
+                sx={{
+                  padding: 3,
+                  borderRadius: 'var(--radius-xl)',
+                  border: '1px solid var(--border-light)',
+                  backgroundColor: 'var(--bg-primary)',
+                  mb: 3
+                }}
+              >
+                <Typography 
+                  variant="h6" 
+                  sx={{ 
+                    mb: 3,
+                    fontFamily: 'var(--font-family-heading)',
+                    fontWeight: 'var(--font-weight-bold)',
+                    color: 'var(--text-primary)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 1
+                  }}
+                >
+                  <CheckCircle sx={{ color: 'var(--color-success)' }} />
+                  Dịch vụ đã mua
+                </Typography>
+
+                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                  {slot.services.map((service) => (
+                    <Card
+                      key={service.serviceId}
+                      elevation={0}
+                      sx={{
+                        border: '2px solid var(--color-success)',
+                        borderRadius: 'var(--radius-lg)',
+                        backgroundColor: 'rgba(76, 175, 80, 0.05)'
+                      }}
+                    >
+                      <CardContent>
+                        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 2 }}>
+                          <Box sx={{ flex: 1 }}>
+                            <Typography variant="h6" fontWeight="bold" sx={{ fontSize: '1rem', mb: 0.5 }}>
+                              {service.serviceName}
+                            </Typography>
+                            
+                            <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap', alignItems: 'center', mt: 1 }}>
+                              <Chip
+                                label={`Số lượng: ${service.quantity}`}
+                                size="small"
+                                sx={{
+                                  backgroundColor: 'var(--color-info)',
+                                  color: 'white',
+                                  fontWeight: 600,
+                                  fontSize: '0.8rem'
+                                }}
+                              />
+                              <Chip
+                                label={`Tổng: ${formatCurrency(service.totalPrice)}`}
+                                size="small"
+                                sx={{
+                                  backgroundColor: 'var(--color-primary)',
+                                  color: 'white',
+                                  fontWeight: 700,
+                                  fontSize: '0.85rem'
+                                }}
+                              />
+                            </Box>
+                          </Box>
+                        </Box>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </Box>
+              </Paper>
+            )}
+
+            {/* Dịch vụ bổ sung để mua */}
             <Paper 
               elevation={0}
               sx={{
@@ -1071,6 +1179,119 @@ const ChildScheduleDetail = () => {
           />
         </ManagementFormDialog>
 
+        {/* Wallet Selection Dialog */}
+        <Dialog
+          open={showWalletSelectionDialog}
+          onClose={() => {
+            setShowWalletSelectionDialog(false);
+            setPendingOrderData(null);
+            setSelectedWalletTypeForOrder(null);
+            if (selectedService) {
+              setShowOrderDialog(true);
+            }
+          }}
+          maxWidth="sm"
+          fullWidth
+          PaperProps={{
+            sx: {
+              borderRadius: 2,
+              p: 1
+            }
+          }}
+        >
+          <DialogTitle sx={{ 
+            display: 'flex', 
+            alignItems: 'center', 
+            gap: 1,
+            pb: 1
+          }}>
+            <PaymentIcon color="primary" />
+            <Typography variant="h6" component="span" sx={{ fontWeight: 600 }}>
+              Chọn ví thanh toán
+            </Typography>
+          </DialogTitle>
+          <DialogContent>
+            {pendingOrderData && (
+              <Box sx={{ mb: 3 }}>
+                <Box sx={{ 
+                  p: 2, 
+                  backgroundColor: 'rgba(0, 123, 255, 0.05)',
+                  borderRadius: 1,
+                  mb: 2
+                }}>
+                  <Typography variant="body2" color="text.secondary" gutterBottom>
+                    Dịch vụ: <strong>{pendingOrderData.service.name}</strong>
+                  </Typography>
+                  <Typography variant="body2" color="text.secondary" gutterBottom>
+                    Số lượng: <strong>{pendingOrderData.quantity}</strong>
+                  </Typography>
+                  <Typography variant="body1" sx={{ mt: 1, fontWeight: 600, color: 'primary.main' }}>
+                    Tổng tiền: {formatCurrency(pendingOrderData.totalAmount)}
+                  </Typography>
+                </Box>
+                
+                <Typography variant="body2" sx={{ mb: 2, color: 'text.secondary' }}>
+                  Vui lòng chọn ví để thanh toán:
+                </Typography>
+                
+                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                  <Button
+                    variant="outlined"
+                    fullWidth
+                    onClick={() => handleWalletSelected('Parent')}
+                    startIcon={<PaymentIcon />}
+                    sx={{ 
+                      py: 2,
+                      textTransform: 'none',
+                      justifyContent: 'flex-start',
+                      borderWidth: 2,
+                      '&:hover': {
+                        borderWidth: 2,
+                        backgroundColor: 'rgba(0, 123, 255, 0.05)'
+                      }
+                    }}
+                  >
+                    <Box sx={{ textAlign: 'left', ml: 1 }}>
+                      <Typography variant="body1" sx={{ fontWeight: 600 }}>
+                        Ví phụ huynh
+                      </Typography>
+                      <Typography variant="caption" color="text.secondary">
+                        Thanh toán từ ví chính của phụ huynh
+                      </Typography>
+                    </Box>
+                  </Button>
+                  
+                  <Button
+                    variant="outlined"
+                    fullWidth
+                    onClick={() => handleWalletSelected('Student')}
+                    startIcon={<PaymentIcon />}
+                    sx={{ 
+                      py: 2,
+                      textTransform: 'none',
+                      justifyContent: 'flex-start',
+                      borderWidth: 2,
+                      '&:hover': {
+                        borderWidth: 2,
+                        backgroundColor: 'rgba(0, 123, 255, 0.05)'
+                      }
+                    }}
+                  >
+                    <Box sx={{ textAlign: 'left', ml: 1 }}>
+                      <Typography variant="body1" sx={{ fontWeight: 600 }}>
+                        Ví trẻ em
+                      </Typography>
+                      <Typography variant="caption" color="text.secondary">
+                        Thanh toán từ ví của trẻ
+                      </Typography>
+                    </Box>
+                  </Button>
+                </Box>
+              </Box>
+            )}
+          </DialogContent>
+        </Dialog>
+
         {/* Confirm Order Dialog */}
         <ConfirmDialog
           open={showConfirmOrderDialog}
@@ -1085,104 +1306,10 @@ const ChildScheduleDetail = () => {
           }}
           onConfirm={handleConfirmOrder}
           title="Xác nhận mua dịch vụ"
-          message={
-            pendingOrderData && (
-              <Box>
-                <Typography variant="body1" sx={{ mb: 2, fontWeight: 600 }}>
-                  Bạn có chắc chắn muốn mua dịch vụ này?
-                </Typography>
-                <Divider sx={{ my: 2 }} />
-                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
-                  <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
-                    <Typography variant="body2" color="text.secondary">
-                      Tên dịch vụ:
-                    </Typography>
-                    <Typography variant="body2" fontWeight="medium">
-                      {pendingOrderData.service.name}
-                    </Typography>
-                  </Box>
-                  <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
-                    <Typography variant="body2" color="text.secondary">
-                      Số lượng:
-                    </Typography>
-                    <Typography variant="body2" fontWeight="medium">
-                      {pendingOrderData.quantity}
-                    </Typography>
-                  </Box>
-                  <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
-                    <Typography variant="body2" color="text.secondary">
-                      Đơn giá:
-                    </Typography>
-                    <Typography variant="body2" fontWeight="medium">
-                      {formatCurrency(pendingOrderData.service.effectivePrice)}
-                    </Typography>
-                  </Box>
-                  <Divider sx={{ my: 1 }} />
-                  <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
-                    <Typography variant="body1" fontWeight="bold">
-                      Tổng tiền:
-                    </Typography>
-                    <Typography variant="h6" color="primary" fontWeight="bold">
-                      {formatCurrency(pendingOrderData.totalAmount)}
-                    </Typography>
-                  </Box>
-                  
-                  <Divider sx={{ my: 2 }} />
-                  
-                  {/* Chọn ví để thanh toán */}
-                  <Box>
-                    <Typography variant="body2" fontWeight="medium" sx={{ mb: 1.5 }}>
-                      Chọn ví để thanh toán (tùy chọn):
-                    </Typography>
-                    <Box sx={{ display: 'flex', gap: 2, flexDirection: 'column' }}>
-                      <Button
-                        variant={selectedWalletTypeForOrder === 'Parent' ? 'contained' : 'outlined'}
-                        fullWidth
-                        onClick={() => setSelectedWalletTypeForOrder(selectedWalletTypeForOrder === 'Parent' ? null : 'Parent')}
-                        startIcon={<PaymentIcon />}
-                        sx={{ 
-                          textTransform: 'none', 
-                          py: 1.5,
-                          ...(selectedWalletTypeForOrder === 'Parent' && {
-                            background: 'linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-dark) 100%)',
-                            '&:hover': {
-                              background: 'linear-gradient(135deg, var(--color-primary-dark) 0%, var(--color-primary) 100%)'
-                            }
-                          })
-                        }}
-                        disabled={isOrdering}
-                      >
-                        Ví phụ huynh
-                      </Button>
-                      <Button
-                        variant={selectedWalletTypeForOrder === 'Student' ? 'contained' : 'outlined'}
-                        fullWidth
-                        onClick={() => setSelectedWalletTypeForOrder(selectedWalletTypeForOrder === 'Student' ? null : 'Student')}
-                        startIcon={<PaymentIcon />}
-                        sx={{ 
-                          textTransform: 'none', 
-                          py: 1.5,
-                          ...(selectedWalletTypeForOrder === 'Student' && {
-                            background: 'linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-dark) 100%)',
-                            '&:hover': {
-                              background: 'linear-gradient(135deg, var(--color-primary-dark) 0%, var(--color-primary) 100%)'
-                            }
-                          })
-                        }}
-                        disabled={isOrdering}
-                      >
-                        Ví trẻ em
-                      </Button>
-                    </Box>
-                    {selectedWalletTypeForOrder && (
-                      <Typography variant="caption" color="text.secondary" sx={{ mt: 1, display: 'block', fontStyle: 'italic' }}>
-                        Đơn hàng sẽ được thanh toán tự động sau khi tạo
-                      </Typography>
-                    )}
-                  </Box>
-                </Box>
-              </Box>
-            )
+          description={
+            pendingOrderData 
+              ? `Xác nhận mua dịch vụ "${pendingOrderData.service.name}" với số lượng ${pendingOrderData.quantity} (Tổng: ${formatCurrency(pendingOrderData.totalAmount)}). ${selectedWalletTypeForOrder ? `Thanh toán bằng ${selectedWalletTypeForOrder === 'Parent' ? 'Ví phụ huynh' : 'Ví trẻ em'}.` : ''}`
+              : ''
           }
           confirmText="Xác nhận mua"
           cancelText="Hủy"

@@ -30,7 +30,8 @@ const useBranchSlotDependencies = (branchId = null) => {
       // These endpoints automatically filter by the current manager's branch
       const fetchPromises = [
         timeframeService.getAllTimeframes(),
-        slotTypeService.getAllSlotTypes(),
+        // Only fetch slot types when branchId is known; otherwise, keep empty to avoid cross-branch leakage
+        branchId ? slotTypeService.getAllSlotTypes({ branchId }) : Promise.resolve([]),
         roomService.getRoomsInMyBranch(1, 1000), // Get rooms in manager's branch
         userService.getStaffInMyBranch({ 
           pageIndex: 1, 
@@ -39,7 +40,11 @@ const useBranchSlotDependencies = (branchId = null) => {
         studentLevelService.getAllStudentLevels(branchId) // Get student levels, optionally filtered by branch
       ];
 
-      const [timeframesData, slotTypesData, roomsResponse, staffResponse, studentLevelsData] = await Promise.all(fetchPromises);
+      const [timeframesData, slotTypesDataRaw, roomsResponse, staffResponse, studentLevelsData] = await Promise.all(fetchPromises);
+      // Normalize slot type list (trust BE filtering by branchId)
+      const slotTypesData = Array.isArray(slotTypesDataRaw?.items)
+        ? slotTypesDataRaw.items
+        : (Array.isArray(slotTypesDataRaw) ? slotTypesDataRaw : []);
       
       const roomsData = roomsResponse?.items || [];
       const staffData = staffResponse?.items || [];
@@ -52,6 +57,8 @@ const useBranchSlotDependencies = (branchId = null) => {
     } catch (err) {
       console.error('Error fetching branch slot dependencies:', err);
       setError(err.message || 'Có lỗi xảy ra khi tải dữ liệu');
+      // Clear slot types on error to avoid showing stale/all-branch data
+      setSlotTypes([]);
     } finally {
       setLoading(false);
     }

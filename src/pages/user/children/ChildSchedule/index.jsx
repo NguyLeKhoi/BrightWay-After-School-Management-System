@@ -5,7 +5,7 @@ import dayGridPlugin from '@fullcalendar/daygrid';
 import timeGridPlugin from '@fullcalendar/timegrid';
 import interactionPlugin from '@fullcalendar/interaction';
 import { Box, CircularProgress, Alert, Typography, Button, Paper, Chip, ToggleButton, ToggleButtonGroup } from '@mui/material';
-import { ArrowBack, Add, ViewList, CalendarMonth, CalendarToday, AccessTime, MeetingRoom, Business, Person, CheckCircle } from '@mui/icons-material';
+import { ArrowBack, Add, ViewList, CalendarMonth, CalendarToday, AccessTime, MeetingRoom, Business, Person, CheckCircle, Category } from '@mui/icons-material';
 import ContentLoading from '../../../../components/Common/ContentLoading';
 import DataTable from '../../../../components/Common/DataTable';
 import ConfirmDialog from '../../../../components/Common/ConfirmDialog';
@@ -39,7 +39,7 @@ const ChildSchedule = () => {
   });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [viewMode, setViewMode] = useState('card'); // 'card' or 'schedule'
+  const [viewMode, setViewMode] = useState('schedule'); // 'card' or 'schedule' - default to calendar
   const [cancelDialog, setCancelDialog] = useState({ open: false, slot: null });
   
   // Pagination states for each section
@@ -591,6 +591,27 @@ const ChildSchedule = () => {
         }
       },
       {
+        key: 'slotType',
+        header: (
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+            <Category fontSize="small" />
+            <span>Loại ca</span>
+          </Box>
+        ),
+        render: (value, item) => {
+          const slotTypeName = item.branchSlot?.slotType?.name || item.slotTypeName || 'Chưa xác định';
+          return (
+            <Chip
+              label={slotTypeName}
+              size="small"
+              variant="outlined"
+              color="primary"
+              sx={{ fontWeight: 500 }}
+            />
+          );
+        }
+      },
+      {
         key: 'room',
         header: (
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
@@ -804,13 +825,13 @@ const ChildSchedule = () => {
             aria-label="chế độ xem"
             size="small"
           >
-            <ToggleButton value="card" aria-label="xem danh sách">
-              <ViewList sx={{ mr: 1 }} />
-              Danh sách
-            </ToggleButton>
             <ToggleButton value="schedule" aria-label="xem lịch">
               <CalendarMonth sx={{ mr: 1 }} />
               Lịch
+            </ToggleButton>
+            <ToggleButton value="card" aria-label="xem danh sách">
+              <ViewList sx={{ mr: 1 }} />
+              Danh sách
             </ToggleButton>
           </ToggleButtonGroup>
         </Box>

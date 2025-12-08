@@ -31,6 +31,7 @@ import {
 } from '@mui/icons-material';
 import ContentLoading from '../../../../components/Common/ContentLoading';
 import branchService from '../../../../services/branch.service';
+import benefitService from '../../../../services/benefit.service';
 import { useApp } from '../../../../contexts/AppContext';
 import styles from './BranchDetail.module.css';
 
@@ -90,6 +91,8 @@ const BranchDetail = () => {
   const [branch, setBranch] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [benefits, setBenefits] = useState([]);
+  const [benefitsError, setBenefitsError] = useState(null);
   
   // Pagination states for Schools
   const [schoolsPage, setSchoolsPage] = useState(0);
@@ -98,6 +101,10 @@ const BranchDetail = () => {
   // Pagination states for Student Levels
   const [studentLevelsPage, setStudentLevelsPage] = useState(0);
   const [studentLevelsRowsPerPage, setStudentLevelsRowsPerPage] = useState(10);
+
+  // Pagination states for Benefits
+  const [benefitsPage, setBenefitsPage] = useState(0);
+  const [benefitsRowsPerPage, setBenefitsRowsPerPage] = useState(10);
 
 
   useEffect(() => {
@@ -112,8 +119,12 @@ const BranchDetail = () => {
         setLoading(true);
         setError(null);
 
-        const branchData = await branchService.getBranchById(id);
+        const [branchData, benefitsData] = await Promise.all([
+          branchService.getBranchById(id),
+          benefitService.getBenefitsByBranchId(id).catch(() => [])
+        ]);
         setBranch(branchData);
+        setBenefits(Array.isArray(benefitsData) ? benefitsData : []);
       } catch (err) {
         const errorMessage = err?.response?.data?.message || err?.message || 'Không thể tải thông tin chi nhánh';
         setError(errorMessage);
@@ -146,6 +157,14 @@ const BranchDetail = () => {
     return branch.studentLevels.slice(startIndex, endIndex);
   }, [branch?.studentLevels, studentLevelsPage, studentLevelsRowsPerPage]);
 
+  // Paginated benefits data
+  const paginatedBenefits = useMemo(() => {
+    if (!benefits || benefits.length === 0) return [];
+    const startIndex = benefitsPage * benefitsRowsPerPage;
+    const endIndex = startIndex + benefitsRowsPerPage;
+    return benefits.slice(startIndex, endIndex);
+  }, [benefits, benefitsPage, benefitsRowsPerPage]);
+
   const handleSchoolsPageChange = (event, newPage) => {
     setSchoolsPage(newPage);
   };
@@ -162,6 +181,15 @@ const BranchDetail = () => {
   const handleStudentLevelsRowsPerPageChange = (event) => {
     setStudentLevelsRowsPerPage(parseInt(event.target.value, 10));
     setStudentLevelsPage(0);
+  };
+
+  const handleBenefitsPageChange = (event, newPage) => {
+    setBenefitsPage(newPage);
+  };
+
+  const handleBenefitsRowsPerPageChange = (event) => {
+    setBenefitsRowsPerPage(parseInt(event.target.value, 10));
+    setBenefitsPage(0);
   };
 
 
@@ -473,6 +501,83 @@ const BranchDetail = () => {
                 ) : (
                   <Typography variant="body2" color="text.secondary" sx={{ py: 3, textAlign: 'center' }}>
                     Chưa có cấp độ học sinh nào được gán
+                  </Typography>
+                )}
+              </CardContent>
+            </Card>
+          </Grid>
+
+          {/* Benefits Table */}
+          <Grid item xs={12}>
+            <Card>
+              <CardContent>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
+                  <LocalOffer sx={{ fontSize: 24, color: 'success.main' }} />
+                  <Typography variant="h6" sx={{ fontWeight: 600 }}>
+                    Lợi Ích ({benefits?.length || 0})
+                  </Typography>
+                </Box>
+                {benefits && benefits.length > 0 ? (
+                  <>
+                    <TableContainer>
+                      <Table>
+                        <TableHead>
+                          <TableRow>
+                            <TableCell sx={{ fontWeight: 600 }}>STT</TableCell>
+                            <TableCell sx={{ fontWeight: 600 }}>Tên Lợi Ích</TableCell>
+                            <TableCell sx={{ fontWeight: 600 }}>Mô Tả</TableCell>
+                            <TableCell sx={{ fontWeight: 600 }}>Trạng Thái</TableCell>
+                          </TableRow>
+                        </TableHead>
+                        <TableBody>
+                          {paginatedBenefits.map((benefit, index) => (
+                            <TableRow key={benefit.id || index} hover>
+                              <TableCell>
+                                {benefitsPage * benefitsRowsPerPage + index + 1}
+                              </TableCell>
+                              <TableCell>
+                                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                                  <LocalOffer sx={{ fontSize: 18, color: 'success.main' }} />
+                                  <Typography variant="body2" fontWeight="medium">
+                                    {benefit.name || benefit.benefitName || 'N/A'}
+                                  </Typography>
+                                </Box>
+                              </TableCell>
+                              <TableCell>
+                                <Typography variant="body2" color="text.secondary">
+                                  {benefit.description || benefit.benefitDescription || 'N/A'}
+                                </Typography>
+                              </TableCell>
+                              <TableCell>
+                                <Chip
+                                  label={(benefit.status === true || benefit.isActive === true) ? 'Hoạt động' : 'Không hoạt động'}
+                                  color={(benefit.status === true || benefit.isActive === true) ? 'success' : 'default'}
+                                  size="small"
+                                  sx={{ width: 'fit-content' }}
+                                />
+                              </TableCell>
+                            </TableRow>
+                          ))}
+                        </TableBody>
+                      </Table>
+                    </TableContainer>
+                    <TablePagination
+                      component="div"
+                      count={benefits.length}
+                      page={benefitsPage}
+                      onPageChange={handleBenefitsPageChange}
+                      rowsPerPage={benefitsRowsPerPage}
+                      onRowsPerPageChange={handleBenefitsRowsPerPageChange}
+                      rowsPerPageOptions={[5, 10, 25, 50]}
+                      labelRowsPerPage="Số dòng mỗi trang:"
+                      labelDisplayedRows={({ from, to, count }) =>
+                        `${from}-${to} của ${count !== -1 ? count : `nhiều hơn ${to}`}`
+                      }
+                    />
+                  </>
+                ) : (
+                  <Typography variant="body2" color="text.secondary" sx={{ py: 3, textAlign: 'center' }}>
+                    Chưa có lợi ích nào được gán cho chi nhánh này
                   </Typography>
                 )}
               </CardContent>

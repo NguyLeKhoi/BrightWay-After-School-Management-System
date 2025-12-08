@@ -86,9 +86,6 @@ export const createPackageColumns = (styles) => [
           <Typography variant="subtitle2" fontWeight="medium" className={styles?.primaryText}>
             {item?.name}
           </Typography>
-          <Typography variant="body2" color="text.secondary">
-            {item?.desc || 'Không có mô tả'}
-          </Typography>
         </Box>
       </Box>
     )
@@ -131,6 +128,17 @@ export const createPackageColumns = (styles) => [
     )
   },
   {
+    key: 'studentLevel',
+    header: <Typography className={styles?.noWrap}>Cấp độ học sinh</Typography>,
+    render: (_, item) => (
+      <Box className={styles?.compactCell}>
+        <Typography variant="body2">
+          {item?.studentLevel?.name || item?.studentLevelName || 'N/A'}
+        </Typography>
+      </Box>
+    )
+  },
+  {
     key: 'packageContext',
     header: <Typography className={styles?.noWrap}>Phạm vi áp dụng</Typography>,
     render: (_, item) => (
@@ -154,9 +162,6 @@ export const createManagerPackageColumns = (styles) => [
         <Box>
           <Typography variant="subtitle2" fontWeight="medium" className={styles?.primaryText}>
             {item?.name}
-          </Typography>
-          <Typography variant="body2" color="text.secondary">
-            {item?.desc || 'Không có mô tả'}
           </Typography>
         </Box>
       </Box>
@@ -186,6 +191,15 @@ export const createManagerPackageColumns = (styles) => [
     render: (_, item) => (
       <Typography variant="body2" fontWeight="medium">
         {item?.durationInMonths || 0} tháng
+      </Typography>
+    )
+  },
+  {
+    key: 'studentLevel',
+    header: <Typography className={styles?.noWrap}>Cấp độ học sinh</Typography>,
+    render: (_, item) => (
+      <Typography variant="body2" fontWeight="medium">
+        {item?.studentLevel?.name || item?.studentLevelName || 'N/A'}
       </Typography>
     )
   },

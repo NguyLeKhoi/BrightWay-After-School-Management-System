@@ -98,7 +98,30 @@ const CreateChild = () => {
       
       // Basic info (required)
       formDataToSend.append('Name', finalData.name);
-      formDataToSend.append('DateOfBirth', finalData.dateOfBirth);
+      
+      // Format DateOfBirth to YYYY-MM-DD
+      let dateOfBirth;
+      if (finalData.dateOfBirth instanceof Date) {
+        const year = finalData.dateOfBirth.getFullYear();
+        const month = String(finalData.dateOfBirth.getMonth() + 1).padStart(2, '0');
+        const day = String(finalData.dateOfBirth.getDate()).padStart(2, '0');
+        dateOfBirth = `${year}-${month}-${day}`;
+      } else if (typeof finalData.dateOfBirth === 'string') {
+        // If already a string, extract date part only
+        dateOfBirth = finalData.dateOfBirth.split('T')[0];
+      } else if (finalData.dateOfBirth) {
+        // Fallback: try to parse as Date
+        const d = new Date(finalData.dateOfBirth);
+        const year = d.getFullYear();
+        const month = String(d.getMonth() + 1).padStart(2, '0');
+        const day = String(d.getDate()).padStart(2, '0');
+        dateOfBirth = `${year}-${month}-${day}`;
+      }
+      
+      console.log('DateOfBirth being sent:', dateOfBirth); // Debug log
+      if (dateOfBirth) {
+        formDataToSend.append('DateOfBirth', dateOfBirth);
+      }
       
       // Optional fields
       if (finalData.note) {

@@ -41,10 +41,12 @@ const PackageSelect = () => {
       setError(null);
       const response = await studentService.getMyChildren();
       const childrenArray = Array.isArray(response) ? response : (Array.isArray(response?.items) ? response.items : []);
-      setChildren(childrenArray);
+      // Chỉ hiển thị những đứa trẻ đã được duyệt
+      const approvedChildren = childrenArray.filter(child => child.status === true || child.status === 'active');
+      setChildren(approvedChildren);
       
-      if (childrenArray.length === 0) {
-        setError('Bạn chưa có con nào. Vui lòng thêm con trước.');
+      if (approvedChildren.length === 0) {
+        setError('Bạn chưa có con nào được duyệt. Vui lòng đợi quản trị viên duyệt hồ sơ.');
       }
     } catch (err) {
       const errorMessage = err?.response?.data?.message || err?.message || 'Không thể tải danh sách con';

@@ -25,15 +25,6 @@ export const createManagerRoomColumns = (styles) => [
     )
   },
   {
-    key: 'branchName',
-    header: 'Chi Nhánh',
-    render: (_, item) => (
-      <Typography variant="body2">
-        {item.branchName || 'N/A'}
-      </Typography>
-    )
-  },
-  {
     key: 'capacity',
     header: 'Sức Chứa',
     render: (value) => (
@@ -47,14 +38,13 @@ export const createManagerRoomColumns = (styles) => [
     header: 'Trạng Thái',
     align: 'center',
     render: (_, item) => {
-      // Map numeric status to string enum (same as branch)
+      // Backend returns Vietnamese/English mixed strings: "Active", "Inactive", "Đang bảo trì", "Đã đóng"
+      // Or numeric enum: 1=Active, 2=Inactive, 3=UnderMaintenance, 4=Closed
       const statusMap = {
-        0: 'Active',
         1: 'Active',
         2: 'Inactive',
         3: 'UnderMaintenance',
         4: 'Closed',
-        '0': 'Active',
         '1': 'Active',
         '2': 'Inactive',
         '3': 'UnderMaintenance',
@@ -62,6 +52,8 @@ export const createManagerRoomColumns = (styles) => [
         'Active': 'Active',
         'Inactive': 'Inactive',
         'UnderMaintenance': 'UnderMaintenance',
+          'Đang bảo trì': 'UnderMaintenance',
+          'Đã đóng': 'Closed',
         'Closed': 'Closed'
       };
       

@@ -12,12 +12,13 @@ const UpdateBranchSlot = () => {
   const navigate = useNavigate();
   const { id } = useParams(); // Get branch slot ID from URL
   
+  const [currentBranchId, setCurrentBranchId] = useState('');
   const {
     timeframeOptions,
     slotTypeOptions,
     loading: dependenciesLoading,
     fetchDependencies
-  } = useBranchSlotDependencies();
+  } = useBranchSlotDependencies(currentBranchId || null);
 
   const [loading, setLoading] = useState(false);
   const [initialLoading, setInitialLoading] = useState(true);
@@ -46,8 +47,6 @@ const UpdateBranchSlot = () => {
     const loadData = async () => {
       try {
         setInitialLoading(true);
-        await fetchDependencies();
-        
         // Lấy dữ liệu ca giữ trẻ
         if (id) {
           const slotData = await branchSlotService.getBranchSlotById(id);
@@ -64,6 +63,12 @@ const UpdateBranchSlot = () => {
           
           // Chỉ set dữ liệu cơ bản
           setFormData(basicInfo);
+          // Set branchId for filtered dependencies and refetch
+          if (basicInfo.branchId) {
+            setCurrentBranchId(basicInfo.branchId);
+            // Refetch dependencies using the branchId for correct slot types
+            await fetchDependencies();
+          }
         }
       } catch (err) {
         console.error('Error loading data:', err);

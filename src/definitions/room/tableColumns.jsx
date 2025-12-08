@@ -47,14 +47,13 @@ export const createRoomColumns = () => [
     header: 'Trạng Thái',
     align: 'center',
     render: (_, row) => {
-      // Map numeric status to string enum (same as branch)
+      // Backend returns Vietnamese/English mixed strings: "Active", "Inactive", "Đang bảo trì", "Đã đóng"
+      // Or numeric enum: 1=Active, 2=Inactive, 3=UnderMaintenance, 4=Closed
       const statusMap = {
-        0: 'Active',
         1: 'Active',
         2: 'Inactive',
         3: 'UnderMaintenance',
         4: 'Closed',
-        '0': 'Active',
         '1': 'Active',
         '2': 'Inactive',
         '3': 'UnderMaintenance',
@@ -62,6 +61,8 @@ export const createRoomColumns = () => [
         'Active': 'Active',
         'Inactive': 'Inactive',
         'UnderMaintenance': 'UnderMaintenance',
+        'Đang bảo trì': 'UnderMaintenance',
+        'Đã đóng': 'Closed',
         'Closed': 'Closed'
       };
       

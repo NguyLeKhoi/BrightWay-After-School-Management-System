@@ -9,7 +9,8 @@ import {
   Paper,
   Chip,
   Card,
-  CardContent
+  CardContent,
+  Avatar
 } from '@mui/material';
 import { 
   ArrowBack,
@@ -150,8 +151,20 @@ const StaffDetail = () => {
             </Typography>
             
             <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
-              <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 2 }}>
-                <Person sx={{ color: 'var(--text-secondary)', fontSize: 24, mt: 0.5 }} />
+              {/* Avatar and Name */}
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                <Avatar
+                  src={staff.profilePictureUrl && staff.profilePictureUrl !== 'string' ? staff.profilePictureUrl : undefined}
+                  sx={{
+                    width: 80,
+                    height: 80,
+                    bgcolor: 'primary.main',
+                    fontSize: '2rem',
+                    fontWeight: 'bold'
+                  }}
+                >
+                  {(staff.name || staff.fullName || 'S')?.charAt(0)?.toUpperCase()}
+                </Avatar>
                 <Box sx={{ flex: 1 }}>
                   <Typography variant="body2" color="text.secondary" sx={{ fontSize: '0.875rem', mb: 0.5 }}>
                     Tên

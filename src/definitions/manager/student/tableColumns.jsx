@@ -10,9 +10,12 @@ export const createManagerStudentColumns = () => [
   {
     key: 'name',
     header: 'Tên Học Sinh',
-    render: (value) => (
+    render: (value, item) => (
       <Box display="flex" alignItems="center" gap={1}>
-        <Avatar sx={{ width: 32, height: 32, bgcolor: 'primary.main' }}>
+        <Avatar 
+          src={item.image && item.image !== 'string' ? item.image : undefined}
+          sx={{ width: 32, height: 32, bgcolor: 'primary.main' }}
+        >
           {value?.charAt(0)?.toUpperCase() || 'H'}
         </Avatar>
         <Typography variant="subtitle2" fontWeight="medium">

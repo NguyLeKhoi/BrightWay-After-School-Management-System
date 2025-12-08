@@ -31,7 +31,18 @@ const ManagerRoomManagement = () => {
   const navigate = useNavigate();
   const [managerBranchId, setManagerBranchId] = useState(null);
 
-  
+
+  // Convert status enum string to numeric value for backend
+  const convertStatusToNumber = (status) => {
+    const statusMap = {
+      'Active': 1,
+      'Inactive': 2,
+      'UnderMaintenance': 3,
+      'Closed': 4
+    };
+    return statusMap[status] || 1; // Default to Active
+  };
+
   // Facility and Branch data
   const {
     facilities,
@@ -117,10 +128,18 @@ const ManagerRoomManagement = () => {
       if (managerBranchId) {
         data.branchId = managerBranchId;
       }
+      // Convert status string to numeric enum
+      if (data.status) {
+        data.status = convertStatusToNumber(data.status);
+      }
       return await roomService.createRoom(data);
     },
     updateFunction: async (roomId, data) => {
       // Ensure manager can only update rooms in their branch
+            // Convert status string to numeric enum
+            if (data.status) {
+              data.status = convertStatusToNumber(data.status);
+            }
       if (managerBranchId) {
         data.branchId = managerBranchId;
       }

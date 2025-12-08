@@ -25,7 +25,9 @@ const ConfirmDialog = ({
   cancelText = 'Hủy',
   confirmColor = 'error',
   showWarningIcon = true,
-  highlightText = null
+  highlightText = null,
+  children = null,
+  confirmDisabled = false
 }) => {
   const isDeleteAction = confirmColor === 'error' || title?.toLowerCase().includes('xóa');
   const IconComponent = isDeleteAction ? DeleteIcon : CheckCircleIcon;

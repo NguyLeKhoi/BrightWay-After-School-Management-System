@@ -26,13 +26,12 @@ import styles from './RoomDetail.module.css';
 
 // Convert numeric status to string enum
 const convertStatusToEnum = (status) => {
+  // Backend returns Vietnamese/English mixed strings or numeric enum (1-4)
   const statusMap = {
-    0: 'Active',
     1: 'Active',
     2: 'Inactive',
     3: 'UnderMaintenance',
     4: 'Closed',
-    '0': 'Active',
     '1': 'Active',
     '2': 'Inactive',
     '3': 'UnderMaintenance',
@@ -40,6 +39,8 @@ const convertStatusToEnum = (status) => {
     'Active': 'Active',
     'Inactive': 'Inactive',
     'UnderMaintenance': 'UnderMaintenance',
+    'Đang bảo trì': 'UnderMaintenance',
+    'Đã đóng': 'Closed',
     'Closed': 'Closed'
   };
   
