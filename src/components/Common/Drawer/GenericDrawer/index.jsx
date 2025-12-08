@@ -33,6 +33,7 @@ const GenericDrawer = ({
   title = "BRIGHTWAY",
   subtitle = "Portal",
   menuItems = [],
+  bottomMenuItems = [],
   onLogout = () => {},
   open: controlledOpen,
   onToggle,
@@ -538,6 +539,77 @@ const GenericDrawer = ({
                   </Tooltip>
                 </ListItem>
               )}
+            </Box>
+          )}
+
+          {/* Bottom Menu Items */}
+          {bottomMenuItems && bottomMenuItems.length > 0 && (
+            <Box sx={{ pt: 1 }}>
+              {bottomMenuItems.map((item, index) => {
+                const Icon = item.icon;
+                const isActive = location.pathname === item.path || location.pathname.startsWith(item.path + '/');
+                
+                return (
+                  <motion.div
+                    key={item.path}
+                    initial={{ opacity: 0, x: -20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: index * 0.05, duration: 0.3 }}
+                  >
+                    <ListItem disablePadding>
+                      <Tooltip title={!isOpen ? item.label : ''} placement="right">
+                        <ListItemButton
+                          onClick={() => handleNavigation(item.path)}
+                          component={motion.div}
+                          whileHover={isOpen ? { x: 4 } : { scale: 1.05 }}
+                          whileTap={{ scale: 0.98 }}
+                          sx={{
+                            mx: 1,
+                            my: 0.5,
+                            borderRadius: 2,
+                            backgroundColor: isActive 
+                              ? 'var(--color-primary-100)' 
+                              : 'transparent',
+                            color: isActive 
+                              ? 'var(--color-primary-dark)' 
+                              : 'var(--text-primary)',
+                            fontWeight: isActive ? 600 : 500,
+                            transition: 'all 0.2s ease',
+                            justifyContent: isOpen ? 'flex-start' : 'center',
+                            px: isOpen ? 2 : 1,
+                            '&:hover': {
+                              backgroundColor: isActive 
+                                ? 'var(--color-primary-100)' 
+                                : 'var(--bg-secondary)',
+                              transform: isOpen ? 'translateX(4px)' : 'scale(1.05)',
+                            },
+                          }}
+                        >
+                          <ListItemIcon sx={{ 
+                            color: isActive 
+                              ? 'var(--color-primary-dark)' 
+                              : 'var(--text-secondary)',
+                            minWidth: isOpen ? 40 : 'auto',
+                            justifyContent: isOpen ? 'flex-start' : 'center',
+                            mr: isOpen ? 0 : 0
+                          }}>
+                            <Icon />
+                          </ListItemIcon>
+                          {isOpen && (
+                            <ListItemText 
+                              primary={item.label}
+                              primaryTypographyProps={{
+                                fontSize: '0.95rem',
+                                fontWeight: isActive ? 600 : 500
+                              }}
+                            />
+                          )}
+                        </ListItemButton>
+                      </Tooltip>
+                    </ListItem>
+                  </motion.div>
+                );
+              })}
             </Box>
           )}
 

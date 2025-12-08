@@ -53,6 +53,7 @@ import BenefitManagement from '../pages/admin/benefitManagement';
 import BenefitDetail from '../pages/admin/benefitManagement/BenefitDetail';
 import StudentLevelManagement from '../pages/admin/studentLevelManagement';
 import StudentLevelDetail from '../pages/admin/studentLevelManagement/StudentLevelDetail';
+import SettingManagement from '../pages/admin/settingManagement';
 import PackageManagement from '../pages/admin/packageManagement';
 import PackageDetail from '../pages/admin/packageManagement/PackageDetail';
 import AdminCreateTemplate from '../pages/admin/packageManagement/CreateTemplate';
@@ -321,6 +322,10 @@ export const routes = createBrowserRouter([
       {
         path: 'student-levels/detail/:id',
         element: <StudentLevelDetail />,
+      },
+      {
+        path: 'settings',
+        element: <SettingManagement />,
       },
       {
         path: 'packages',

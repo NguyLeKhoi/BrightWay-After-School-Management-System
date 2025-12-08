@@ -12,7 +12,8 @@ import {
   DialogContent,
   DialogActions,
   Button,
-  TextField
+  TextField,
+  MenuItem
 } from '@mui/material';
 import {
   CreditCard as CardIcon,
@@ -31,6 +32,7 @@ import ContentLoading from '../../../components/Common/ContentLoading';
 import ConfirmDialog from '../../../components/Common/ConfirmDialog';
 import nfcCardService from '../../../services/nfcCard.service';
 import { getErrorMessage } from '../../../utils/errorHandler';
+import useAvailableStudentsForNfc from '../../../hooks/useAvailableStudentsForNfc';
 import styles from './NfcCardManagement.module.css';
 
 const NfcCardManagement = () => {
@@ -39,6 +41,7 @@ const NfcCardManagement = () => {
   const [loading, setLoading] = useState(true);
   const [keyword, setKeyword] = useState('');
   const [actionLoading, setActionLoading] = useState(false);
+  const { students: studentOptions, refetch: refetchStudents } = useAvailableStudentsForNfc();
 
   // Dialog states
   const [createDialog, setCreateDialog] = useState({
@@ -60,7 +63,8 @@ const NfcCardManagement = () => {
 
   useEffect(() => {
     loadData();
-  }, []);
+    refetchStudents();
+  }, [refetchStudents]);
 
   const loadData = async () => {
     try {
@@ -95,6 +99,7 @@ const NfcCardManagement = () => {
       toast.error(errorMessage);
     } finally {
       setLoading(false);
+      refetchStudents();
     }
   };
 
@@ -280,8 +285,8 @@ const NfcCardManagement = () => {
       <div className={styles.container}>
         <ManagementPageHeader
           title="Quản lý Thẻ NFC"
-          subtitle="Quản lý thẻ NFC của học sinh trong chi nhánh"
-          icon={CardIcon}
+          createButtonText="Tạo Thẻ NFC"
+          onCreateClick={handleCreateCard}
         />
 
         <ManagementSearchSection
@@ -313,37 +318,95 @@ const NfcCardManagement = () => {
         onClose={() => !actionLoading && setCreateDialog({ open: false, studentId: '', cardUid: '' })}
         maxWidth="sm"
         fullWidth
+        sx={{
+          '& .MuiDialog-paper': {
+            borderRadius: 'var(--radius-xl)',
+            overflow: 'hidden',
+            boxShadow: 'var(--shadow-2xl)'
+          }
+        }}
       >
-        <DialogTitle>
-          <Box display="flex" alignItems="center" gap={1}>
-            <CardIcon color="primary" />
-            Tạo thẻ NFC mới
+        <DialogTitle
+          sx={{
+            background: 'linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-dark) 100%)',
+            color: 'var(--bg-primary)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            padding: '20px 24px',
+            fontFamily: 'var(--font-family)',
+            fontWeight: 'var(--font-weight-semibold)',
+            fontSize: 'var(--font-size-xl)'
+          }}
+        >
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+            <CardIcon sx={{ fontSize: '24px' }} />
+            <span>Tạo thẻ NFC mới</span>
           </Box>
+          <Button
+            onClick={() => setCreateDialog({ open: false, studentId: '', cardUid: '' })}
+            disabled={actionLoading}
+            sx={{
+              color: 'var(--bg-primary)',
+              minWidth: 'auto',
+              padding: '8px',
+              borderRadius: 'var(--radius-md)',
+              transition: 'var(--transition-all)',
+              '&:hover': {
+                backgroundColor: 'rgba(255, 255, 255, 0.15)',
+                transform: 'scale(1.1)'
+              },
+              '&:disabled': {
+                opacity: 0.5
+              }
+            }}
+          >
+            ✕
+          </Button>
         </DialogTitle>
-        <DialogContent>
-          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, mt: 2 }}>
+        <DialogContent sx={{ 
+          padding: '28px !important',
+          backgroundColor: 'var(--bg-primary)',
+          fontFamily: 'var(--font-family)'
+        }}>
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
             <TextField
-              label="ID Học sinh"
+              select
+              label="Chọn Học sinh"
               value={createDialog.studentId}
               onChange={(e) => setCreateDialog(prev => ({ ...prev, studentId: e.target.value }))}
-              placeholder="Nhập ID học sinh"
               fullWidth
               disabled={actionLoading}
-            />
+              SelectProps={{
+                native: false
+              }}
+            >
+              <MenuItem value="">-- Chọn học sinh --</MenuItem>
+              {studentOptions.map((student) => (
+                <MenuItem key={student.id} value={student.id}>
+                  {student.name} {student.studentLevelName ? `(${student.studentLevelName})` : ''}
+                </MenuItem>
+              ))}
+            </TextField>
             <TextField
               label="Mã thẻ (UID)"
               value={createDialog.cardUid}
               onChange={(e) => setCreateDialog(prev => ({ ...prev, cardUid: e.target.value }))}
-              placeholder="Nhập mã thẻ NFC"
+              placeholder="Ví dụ: 04:5A:3F:2A:1B:6C:80"
               fullWidth
               disabled={actionLoading}
             />
           </Box>
         </DialogContent>
-        <DialogActions>
+        <DialogActions sx={{ padding: '16px 24px' }}>
           <Button
             onClick={() => setCreateDialog({ open: false, studentId: '', cardUid: '' })}
             disabled={actionLoading}
+            sx={{
+              textTransform: 'none',
+              borderRadius: 'var(--radius-md)',
+              padding: '8px 20px'
+            }}
           >
             Hủy
           </Button>
@@ -351,8 +414,18 @@ const NfcCardManagement = () => {
             onClick={handleCreateSubmit}
             variant="contained"
             disabled={actionLoading}
+            sx={{
+              textTransform: 'none',
+              borderRadius: 'var(--radius-md)',
+              padding: '8px 20px',
+              background: 'var(--color-secondary)',
+              fontWeight: 600,
+              '&:hover': {
+                background: 'var(--color-secondary-dark)'
+              }
+            }}
           >
-            {actionLoading ? 'Đang tạo...' : 'Tạo thẻ'}
+            {actionLoading ? 'Đang tạo...' : 'Tạo thẻ NFC'}
           </Button>
         </DialogActions>
       </Dialog>
@@ -363,15 +436,58 @@ const NfcCardManagement = () => {
         onClose={() => !actionLoading && setEditDialog({ open: false, card: null, newStatus: '' })}
         maxWidth="sm"
         fullWidth
+        sx={{
+          '& .MuiDialog-paper': {
+            borderRadius: 'var(--radius-xl)',
+            overflow: 'hidden',
+            boxShadow: 'var(--shadow-2xl)'
+          }
+        }}
       >
-        <DialogTitle>
-          <Box display="flex" alignItems="center" gap={1}>
-            <EditIcon color="primary" />
-            Cập nhật trạng thái thẻ NFC
+        <DialogTitle
+          sx={{
+            background: 'linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-dark) 100%)',
+            color: 'var(--bg-primary)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            padding: '20px 24px',
+            fontFamily: 'var(--font-family)',
+            fontWeight: 'var(--font-weight-semibold)',
+            fontSize: 'var(--font-size-xl)'
+          }}
+        >
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+            <EditIcon sx={{ fontSize: '24px' }} />
+            <span>Cập nhật trạng thái thẻ NFC</span>
           </Box>
+          <Button
+            onClick={() => setEditDialog({ open: false, card: null, newStatus: '' })}
+            disabled={actionLoading}
+            sx={{
+              color: 'var(--bg-primary)',
+              minWidth: 'auto',
+              padding: '8px',
+              borderRadius: 'var(--radius-md)',
+              transition: 'var(--transition-all)',
+              '&:hover': {
+                backgroundColor: 'rgba(255, 255, 255, 0.15)',
+                transform: 'scale(1.1)'
+              },
+              '&:disabled': {
+                opacity: 0.5
+              }
+            }}
+          >
+            ✕
+          </Button>
         </DialogTitle>
-        <DialogContent>
-          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, mt: 2 }}>
+        <DialogContent sx={{ 
+          padding: '28px !important',
+          backgroundColor: 'var(--bg-primary)',
+          fontFamily: 'var(--font-family)'
+        }}>
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
             <TextField
               label="Học sinh"
               value={editDialog.card?.studentName || ''}
@@ -401,10 +517,15 @@ const NfcCardManagement = () => {
             </TextField>
           </Box>
         </DialogContent>
-        <DialogActions>
+        <DialogActions sx={{ padding: '16px 24px' }}>
           <Button
             onClick={() => setEditDialog({ open: false, card: null, newStatus: '' })}
             disabled={actionLoading}
+            sx={{
+              textTransform: 'none',
+              borderRadius: 'var(--radius-md)',
+              padding: '8px 20px'
+            }}
           >
             Hủy
           </Button>
@@ -412,6 +533,16 @@ const NfcCardManagement = () => {
             onClick={handleEditSubmit}
             variant="contained"
             disabled={actionLoading}
+            sx={{
+              textTransform: 'none',
+              borderRadius: 'var(--radius-md)',
+              padding: '8px 20px',
+              background: 'var(--color-secondary)',
+              fontWeight: 600,
+              '&:hover': {
+                background: 'var(--color-secondary-dark)'
+              }
+            }}
           >
             {actionLoading ? 'Đang cập nhật...' : 'Cập nhật'}
           </Button>
