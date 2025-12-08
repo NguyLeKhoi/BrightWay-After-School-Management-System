@@ -8,9 +8,7 @@ import StaffLayout from '../components/Layout/StaffLayout';
 import ProtectedRoute from './ProtectedRoute';
 
 // Main Pages
-import Homepage from '../pages/main/Homepage';
-import PackageCatalog from '../pages/main/PackageCatalog';
-import FacilitiesAbout from '../pages/main/FacilitiesAbout';
+import CombinedLanding from '../pages/main/CombinedLanding';
 import Contact from '../pages/main/Contact';
 
 // Auth Pages
@@ -53,6 +51,7 @@ import BenefitManagement from '../pages/admin/benefitManagement';
 import BenefitDetail from '../pages/admin/benefitManagement/BenefitDetail';
 import StudentLevelManagement from '../pages/admin/studentLevelManagement';
 import StudentLevelDetail from '../pages/admin/studentLevelManagement/StudentLevelDetail';
+import SettingManagement from '../pages/admin/settingManagement';
 import PackageManagement from '../pages/admin/packageManagement';
 import PackageDetail from '../pages/admin/packageManagement/PackageDetail';
 import AdminCreateTemplate from '../pages/admin/packageManagement/CreateTemplate';
@@ -108,15 +107,15 @@ export const routes = createBrowserRouter([
     children: [
       {
         index: true,
-        element: <Homepage />,
+        element: <CombinedLanding />,
       },
       {
         path: 'packages',
-        element: <PackageCatalog />,
+        element: <CombinedLanding />,
       },
       {
         path: 'facilities',
-        element: <FacilitiesAbout />,
+        element: <CombinedLanding />,
       },
       {
         path: 'contact',
@@ -321,6 +320,10 @@ export const routes = createBrowserRouter([
       {
         path: 'student-levels/detail/:id',
         element: <StudentLevelDetail />,
+      },
+      {
+        path: 'settings',
+        element: <SettingManagement />,
       },
       {
         path: 'packages',

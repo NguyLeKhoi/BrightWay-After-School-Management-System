@@ -116,6 +116,14 @@ const AdminLayout = () => {
     }
   ];
 
+  const bottomMenuItems = [
+    {
+      path: '/admin/settings',
+      label: 'Cài Đặt Hệ Thống',
+      icon: SettingsIcon
+    }
+  ];
+
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', paddingTop: '64px' }}>
       {/* Header */}
@@ -127,6 +135,7 @@ const AdminLayout = () => {
           title="BRIGHTWAY"
           subtitle="Cổng Quản Trị"
           menuItems={menuItems}
+          bottomMenuItems={bottomMenuItems}
           onLogout={handleLogout}
         />
 
