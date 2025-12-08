@@ -156,7 +156,7 @@ const StudentManagement = () => {
         schoolId: params.schoolId || undefined,
         levelId: params.studentLevelId || params.levelId || undefined,
         userId: params.userId || undefined,
-        isApproved: true // Only load approved students
+        status: true // Chỉ lấy học sinh đã duyệt
       });
     },
     defaultFilters: {
@@ -419,8 +419,8 @@ const StudentManagement = () => {
         pageIndex: 1,
         pageSize: 1000, // Load nhiều để filter
         branchId: branchId,
-        isApproved: true,
-        IsApproved: true
+        status: true,
+        document: false // Chỉ lấy học sinh đã duyệt nhưng tài liệu chưa duyệt
       });
       
       const students = response?.items || response || [];

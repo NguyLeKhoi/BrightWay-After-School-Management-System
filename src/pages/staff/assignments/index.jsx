@@ -44,7 +44,7 @@ const StaffAssignments = () => {
   });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [viewMode, setViewMode] = useState('card'); // 'card' or 'schedule'
+  const [viewMode, setViewMode] = useState('schedule'); // 'card' or 'schedule' - default to calendar
 
   
   // Pagination states for each section
@@ -685,13 +685,13 @@ const StaffAssignments = () => {
             aria-label="chế độ xem"
             size="small"
           >
-            <ToggleButton value="card" aria-label="xem danh sách">
-              <ViewList sx={{ mr: 1 }} />
-              Danh sách
-            </ToggleButton>
             <ToggleButton value="schedule" aria-label="xem lịch">
               <CalendarMonth sx={{ mr: 1 }} />
               Lịch
+            </ToggleButton>
+            <ToggleButton value="card" aria-label="xem danh sách">
+              <ViewList sx={{ mr: 1 }} />
+              Danh sách
             </ToggleButton>
           </ToggleButtonGroup>
         </Box>
