@@ -8,9 +8,7 @@ import StaffLayout from '../components/Layout/StaffLayout';
 import ProtectedRoute from './ProtectedRoute';
 
 // Main Pages
-import Homepage from '../pages/main/Homepage';
-import PackageCatalog from '../pages/main/PackageCatalog';
-import FacilitiesAbout from '../pages/main/FacilitiesAbout';
+import CombinedLanding from '../pages/main/CombinedLanding';
 import Contact from '../pages/main/Contact';
 
 // Auth Pages
@@ -109,15 +107,15 @@ export const routes = createBrowserRouter([
     children: [
       {
         index: true,
-        element: <Homepage />,
+        element: <CombinedLanding />,
       },
       {
         path: 'packages',
-        element: <PackageCatalog />,
+        element: <CombinedLanding />,
       },
       {
         path: 'facilities',
-        element: <FacilitiesAbout />,
+        element: <CombinedLanding />,
       },
       {
         path: 'contact',
