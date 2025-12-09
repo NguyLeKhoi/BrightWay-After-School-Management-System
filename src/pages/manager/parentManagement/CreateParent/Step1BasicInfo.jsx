@@ -34,15 +34,7 @@ const Step1BasicInfo = React.forwardRef(
           type: 'tel',
           required: false,
           placeholder: 'Ví dụ: 0901234567',
-          gridSize: 6
-        },
-        {
-          name: 'password',
-          label: 'Mật khẩu',
-          type: 'password',
-          required: true,
-          placeholder: 'Nhập mật khẩu (tối thiểu 6 ký tự)',
-          gridSize: 6
+          gridSize: 12
         }
       ],
       []

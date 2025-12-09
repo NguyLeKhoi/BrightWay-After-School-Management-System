@@ -8,6 +8,7 @@ import styles from './Schedule.module.css';
 const Step3SelectRoom = forwardRef(({ data, updateData, stepIndex, totalSteps }, ref) => {
   const [rooms, setRooms] = useState([]);
   const [selectedRoomId, setSelectedRoomId] = useState(data?.roomId || '');
+  const [parentNote, setParentNote] = useState(data?.parentNote || '');
   const [isLoading, setIsLoading] = useState(false);
   const [loadingPackage, setLoadingPackage] = useState(false);
   const [error, setError] = useState(null);
@@ -29,7 +30,8 @@ const Step3SelectRoom = forwardRef(({ data, updateData, stepIndex, totalSteps },
         roomId: selectedRoomId || null,
         room: selectedRoom || null,
         subscriptionId: validPackage.id,
-        subscriptionName: validPackage.name
+        subscriptionName: validPackage.name,
+        parentNote: parentNote.trim()
       });
       return true;
     }
@@ -289,6 +291,48 @@ const Step3SelectRoom = forwardRef(({ data, updateData, stepIndex, totalSteps },
           </button>
         </div>
       )}
+
+      {/* Parent Note Section */}
+      <div className={styles.noteSection} style={{ marginTop: '24px' }}>
+        <label htmlFor="parentNote" className={styles.noteLabel}>
+          Ghi chú cho giáo viên (không bắt buộc)
+        </label>
+        <textarea
+          id="parentNote"
+          className={styles.noteTextarea}
+          placeholder="Nhập ghi chú về tình trạng sức khỏe, dị ứng, hoặc yêu cầu đặc biệt..."
+          value={parentNote}
+          onChange={(e) => {
+            setParentNote(e.target.value);
+            updateData({ parentNote: e.target.value });
+          }}
+          rows={4}
+          maxLength={500}
+          style={{
+            width: '100%',
+            padding: '12px',
+            borderRadius: '8px',
+            border: '1px solid #e0e0e0',
+            fontSize: '14px',
+            fontFamily: 'inherit',
+            resize: 'vertical',
+            outline: 'none',
+            transition: 'border-color 0.2s',
+          }}
+          onFocus={(e) => e.target.style.borderColor = 'var(--color-primary)'}
+          onBlur={(e) => e.target.style.borderColor = '#e0e0e0'}
+        />
+        <div style={{ 
+          display: 'flex', 
+          justifyContent: 'space-between', 
+          marginTop: '4px',
+          fontSize: '12px',
+          color: 'var(--text-secondary)'
+        }}>
+          <span>Ví dụ: Bé bị dị ứng hải sản, vui lòng lưu ý khi cho ăn</span>
+          <span>{parentNote.length}/500 ký tự</span>
+        </div>
+      </div>
     </div>
   );
 });

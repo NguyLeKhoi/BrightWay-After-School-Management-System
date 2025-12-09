@@ -18,6 +18,15 @@ export const createManagerFormFields = ({
         gridSize: 6
       },
       {
+        name: 'phoneNumber',
+        label: 'Số Điện Thoại',
+        type: 'text',
+        required: false,
+        placeholder: 'Ví dụ: 0123456789',
+        disabled: actionLoading,
+        gridSize: 6
+      },
+      {
         name: 'branchId',
         label: 'Chi Nhánh',
         type: 'select',
@@ -28,23 +37,14 @@ export const createManagerFormFields = ({
       },
       {
         section: 'Thông tin đăng nhập',
-        sectionDescription: 'Email và mật khẩu sẽ được dùng để đăng nhập hệ thống.',
+        sectionDescription: 'Email sẽ được dùng để đăng nhập. Mật khẩu sẽ được gửi qua email xác nhận.',
         name: 'email',
         label: 'Email',
         type: 'email',
         required: true,
         placeholder: 'Ví dụ: email@example.com',
         disabled: actionLoading,
-        gridSize: 6
-      },
-      {
-        name: 'password',
-        label: 'Mật Khẩu',
-        type: 'password',
-        required: true,
-        placeholder: 'Nhập mật khẩu cho người dùng',
-        disabled: actionLoading,
-        gridSize: 6
+        gridSize: 12
       }
     ];
   }

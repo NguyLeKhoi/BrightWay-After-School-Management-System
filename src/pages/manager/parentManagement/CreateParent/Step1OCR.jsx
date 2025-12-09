@@ -13,6 +13,7 @@ import {
   PhotoCamera as PhotoCameraIcon,
   CheckCircle as CheckCircleIcon
 } from '@mui/icons-material';
+import imageCompression from 'browser-image-compression';
 import ocrService from '../../../../services/ocr.service';
 
 const Step1OCR = React.forwardRef(
@@ -23,6 +24,16 @@ const Step1OCR = React.forwardRef(
     const [error, setError] = useState(null);
     const [hasSensitiveImageError, setHasSensitiveImageError] = useState(false);
     const fileInputRef = useRef(null);
+    const previewUrlRef = useRef(null);
+
+    // Cleanup preview URL on unmount
+    React.useEffect(() => {
+      return () => {
+        if (previewUrlRef.current) {
+          URL.revokeObjectURL(previewUrlRef.current);
+        }
+      };
+    }, []);
 
     const handleFileSelect = async (event) => {
       const file = event.target.files?.[0];
@@ -38,21 +49,42 @@ const Step1OCR = React.forwardRef(
         return;
       }
 
-      setSelectedFile(file);
       setError(null);
       setHasSensitiveImageError(false);
 
-      // Show preview
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setPreview(reader.result);
-      };
-      reader.readAsDataURL(file);
+      // Compress image before processing
+      let processedFile = file;
+      try {
+        const options = {
+          maxSizeMB: 1,
+          maxWidthOrHeight: 1920,
+          useWebWorker: true,
+          fileType: file.type,
+        };
+        
+        processedFile = await imageCompression(file, options);
+      } catch (err) {
+        console.error('Error compressing image:', err);
+        // If compression fails, use original file
+        processedFile = file;
+      }
+
+      setSelectedFile(processedFile);
+
+      // Cleanup old preview URL before creating new one
+      if (previewUrlRef.current) {
+        URL.revokeObjectURL(previewUrlRef.current);
+      }
+
+      // Show preview BEFORE starting OCR
+      const previewUrl = URL.createObjectURL(processedFile);
+      previewUrlRef.current = previewUrl;
+      setPreview(previewUrl);
 
       // Auto extract OCR immediately after file is selected
       setLoading(true);
       try {
-        const ocrData = await ocrService.extractAndStoreCCCD(file);
+        const ocrData = await ocrService.extractAndStoreCCCD(processedFile);
         
         // Reset sensitive image error if successful
         setHasSensitiveImageError(false);
@@ -123,6 +155,12 @@ const Step1OCR = React.forwardRef(
 
 
     const handleReset = () => {
+      // Cleanup preview URL
+      if (previewUrlRef.current) {
+        URL.revokeObjectURL(previewUrlRef.current);
+        previewUrlRef.current = null;
+      }
+      
       setSelectedFile(null);
       setPreview(null);
       setError(null);

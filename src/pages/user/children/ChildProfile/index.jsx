@@ -988,9 +988,10 @@ const ChildProfile = () => {
                         }
                       }
                       // Update updateFormData with new imageFile
+                      // Important: Destructure to remove imageFile field before spreading
+                      const { imageFile: _, ...otherFormValues } = currentFormValues;
                       setUpdateFormData({ 
-                        ...updateFormData,
-                        ...currentFormValues, // Preserve form values
+                        ...otherFormValues, // Use form values instead of old updateFormData
                         imageFile: file 
                       });
                       // Also update form value if formRef is available

@@ -13,6 +13,7 @@ import Contact from '../pages/main/Contact';
 
 // Auth Pages
 import Login from '../pages/auth/Login';
+import SetPassword from '../pages/auth/SetPassword';
 
 // user Pages
 import UserDashboard from '../pages/user/dashboard';
@@ -132,6 +133,18 @@ export const routes = createBrowserRouter([
       {
         index: true,
         element: <Login />,
+      },
+    ],
+  },
+
+  // Set Password Route (for new account activation)
+  {
+    path: '/set-password',
+    element: <AuthLayout />,
+    children: [
+      {
+        index: true,
+        element: <SetPassword />,
       },
     ],
   },

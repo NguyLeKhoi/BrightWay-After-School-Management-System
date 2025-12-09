@@ -15,11 +15,6 @@ export const createParentBasicInfoSchema = yup.object({
     .string()
     .optional()
     .matches(/^[0-9]{10,11}$/, 'Số điện thoại phải có 10-11 chữ số'),
-  password: yup
-    .string()
-    .required('Mật khẩu là bắt buộc')
-    .min(6, 'Mật khẩu phải có ít nhất 6 ký tự')
-    .max(50, 'Mật khẩu không được quá 50 ký tự'),
   avatarFile: yup
     .mixed()
     .nullable()
@@ -45,15 +40,6 @@ export const createParentCCCDInfoSchema = yup.object({
     .string()
     .optional()
     .email('Email không hợp lệ'),
-  password: yup
-    .string()
-    .optional()
-    .min(8, 'Mật khẩu phải có ít nhất 8 ký tự')
-    .max(128, 'Mật khẩu không được quá 128 ký tự')
-    .matches(
-      /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%?&])[A-Za-z\d@$!%?&]+$/,
-      'Mật khẩu phải chứa chữ hoa, chữ thường, số và ký tự đặc biệt (@$!%?&)'
-    ),
   phoneNumber: yup
     .string()
     .optional()
@@ -104,15 +90,6 @@ export const createParentCCCDInfoOCRSchema = yup.object({
     .required('Email là bắt buộc')
     .email('Email không hợp lệ')
     .max(256, 'Email không được quá 256 ký tự'),
-  password: yup
-    .string()
-    .required('Mật khẩu là bắt buộc')
-    .min(8, 'Mật khẩu phải có ít nhất 8 ký tự')
-    .max(128, 'Mật khẩu không được quá 128 ký tự')
-    .matches(
-      /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%?&])[A-Za-z\d@$!%?&]+$/,
-      'Mật khẩu phải chứa chữ hoa, chữ thường, số và ký tự đặc biệt (@$!%?&)'
-    ),
   phoneNumber: yup
     .string()
     .optional()
@@ -163,15 +140,6 @@ export const createParentWithCCCDSchema = yup.object({
     .required('Email là bắt buộc')
     .email('Email không hợp lệ')
     .max(256, 'Email không được quá 256 ký tự'),
-  password: yup
-    .string()
-    .required('Mật khẩu là bắt buộc')
-    .min(8, 'Mật khẩu phải có ít nhất 8 ký tự')
-    .max(128, 'Mật khẩu không được quá 128 ký tự')
-    .matches(
-      /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%?&])[A-Za-z\d@$!%?&]+$/,
-      'Mật khẩu phải chứa chữ hoa, chữ thường, số và ký tự đặc biệt (@$!%?&)'
-    ),
   identityCardNumber: yup
     .string()
     .optional(),
