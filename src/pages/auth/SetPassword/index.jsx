@@ -23,12 +23,17 @@ const SetPassword = () => {
 
   // Extract token and userId from URL parameters
   useEffect(() => {
-    const tokenParam = searchParams.get('token');
-    const userIdParam = searchParams.get('userId');
+    // Lấy token và userId từ URL
+    // Dùng cả searchParams và window.location để đảm bảo lấy đúng
+    const tokenParam = searchParams.get('token') || new URLSearchParams(window.location.search).get('token');
+    const userIdParam = searchParams.get('userId') || new URLSearchParams(window.location.search).get('userId');
     
     if (tokenParam) {
+      // searchParams.get() tự động decode URL-encoded values
+      // Token từ URL: "CfDJ8...%2bF6H..." -> "CfDJ8...+F6H..."
       setToken(tokenParam);
     }
+    
     if (userIdParam) {
       setUserId(userIdParam);
     }

@@ -213,9 +213,14 @@ const authService = {
    */
   setPassword: async (data) => {
     try {
+      // Token từ URL đã được decode bởi searchParams.get() (ví dụ: %2b -> +)
+      // Backend có thể cần token ở dạng encoded như trong URL gốc
+      // Encode lại token để đảm bảo format đúng như trong URL
+      const token = data.token ? encodeURIComponent(data.token) : '';
+      
       const response = await axiosInstance.post('/Auth/set-password', {
         userId: data.userId,
-        token: data.token,
+        token: token,  // Token được encode lại để giống format trong URL
         newPassword: data.password  // API expects 'newPassword' not 'password'
       });
       return response.data;
