@@ -23,12 +23,26 @@ const SetPassword = () => {
 
   // Extract token and userId from URL parameters
   useEffect(() => {
-    const tokenParam = searchParams.get('token');
-    const userIdParam = searchParams.get('userId');
+    // Lấy token và userId từ URL
+    // Dùng cả searchParams và window.location để đảm bảo lấy đúng
+    const tokenParam = searchParams.get('token') || new URLSearchParams(window.location.search).get('token');
+    const userIdParam = searchParams.get('userId') || new URLSearchParams(window.location.search).get('userId');
+    
+    console.log('🔍 [SetPassword] URL Params Debug:', {
+      'window.location.search': window.location.search,
+      'tokenParam (raw)': tokenParam,
+      'tokenParam length': tokenParam?.length,
+      'tokenParam first 50 chars': tokenParam?.substring(0, 50),
+      'tokenParam last 50 chars': tokenParam?.substring(tokenParam?.length - 50),
+      'userIdParam': userIdParam
+    });
     
     if (tokenParam) {
+      // searchParams.get() tự động decode URL-encoded values
+      // Token từ URL: "CfDJ8...%2bF6H..." -> "CfDJ8...+F6H..."
       setToken(tokenParam);
     }
+    
     if (userIdParam) {
       setUserId(userIdParam);
     }
@@ -48,6 +62,15 @@ const SetPassword = () => {
     showLoading();
 
     try {
+      console.log('🔍 [SetPassword] Before API call:', {
+        'userId': userId,
+        'token length': token?.length,
+        'token first 50 chars': token?.substring(0, 50),
+        'token last 50 chars': token?.substring(token?.length - 50),
+        'password length': data.password?.length,
+        'password (masked)': '*'.repeat(data.password?.length || 0)
+      });
+      
       // Call set password API với userId và token từ URL
       await authService.setPassword({
         userId: userId,
@@ -139,15 +162,8 @@ const SetPassword = () => {
                   type: 'password',
                   required: true,
                   placeholder: 'Nhập mật khẩu của bạn',
-                  autoComplete: 'new-password'
-                },
-                {
-                  name: 'confirmPassword',
-                  label: 'Xác nhận mật khẩu',
-                  type: 'password',
-                  required: true,
-                  placeholder: 'Nhập lại mật khẩu',
-                  autoComplete: 'new-password'
+                  autoComplete: 'new-password',
+                  helperText: 'Mật khẩu phải có ít nhất 8 ký tự, bao gồm chữ hoa, chữ thường và số'
                 }
               ]}
             />

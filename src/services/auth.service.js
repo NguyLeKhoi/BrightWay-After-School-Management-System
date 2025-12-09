@@ -213,13 +213,42 @@ const authService = {
    */
   setPassword: async (data) => {
     try {
-      const response = await axiosInstance.post('/Auth/set-password', {
+      // Token từ URL đã được decode bởi searchParams.get() (ví dụ: %2b -> +)
+      // Backend có thể cần token ở dạng encoded như trong URL gốc
+      // Encode lại token để đảm bảo format đúng như trong URL
+      const originalToken = data.token || '';
+      const token = originalToken ? encodeURIComponent(originalToken) : '';
+      
+      const payload = {
         userId: data.userId,
-        token: data.token,
+        token: token,  // Token được encode lại để giống format trong URL
         newPassword: data.password  // API expects 'newPassword' not 'password'
+      };
+      
+      console.log('🔍 [authService.setPassword] Request payload:', {
+        'userId': payload.userId,
+        'originalToken length': originalToken?.length,
+        'originalToken first 50': originalToken?.substring(0, 50),
+        'originalToken last 50': originalToken?.substring(originalToken?.length - 50),
+        'encodedToken length': token?.length,
+        'encodedToken first 50': token?.substring(0, 50),
+        'encodedToken last 50': token?.substring(token?.length - 50),
+        'newPassword length': payload.newPassword?.length,
+        'newPassword (masked)': '*'.repeat(payload.newPassword?.length || 0),
+        'full payload': payload
       });
+      
+      const response = await axiosInstance.post('/Auth/set-password', payload);
+      
+      console.log('✅ [authService.setPassword] Success:', response.data);
       return response.data;
     } catch (error) {
+      console.error('❌ [authService.setPassword] Error:', {
+        'error': error,
+        'error.response': error.response,
+        'error.response.data': error.response?.data,
+        'error.message': error.message
+      });
       throw error.response?.data || error.message;
     }
   },
