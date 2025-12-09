@@ -81,9 +81,5 @@ export const setPasswordSchema = yup.object({
     .matches(
       /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[a-zA-Z\d@$!%*?&]{8,}$/,
       'Mật khẩu phải có ít nhất 8 ký tự, bao gồm chữ hoa, chữ thường, số và chỉ chứa các ký tự hợp lệ (a-z, A-Z, 0-9, @$!%*?&)'
-    ),
-  confirmPassword: yup
-    .string()
-    .required('Xác nhận mật khẩu là bắt buộc')
-    .oneOf([yup.ref('password')], 'Mật khẩu xác nhận không khớp')
+    )
 });
