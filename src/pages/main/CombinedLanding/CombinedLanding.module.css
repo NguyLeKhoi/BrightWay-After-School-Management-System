@@ -237,6 +237,11 @@
   margin-top: 0;
 }
 
+.facilitiesGrid > div > * {
+  height: 150px;
+  min-height: 170px;
+}
+
 .cardGrid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
@@ -289,6 +294,11 @@
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
   gap: 15px;
+}
+
+.bestPackagesGrid > div > * {
+  height: 450px;
+  min-height: 450px;
 }
 
 /* Main Hero with Image */
