@@ -69,16 +69,10 @@ const MyPackages = () => {
     studentId: ''
   });
   const [isBuying, setIsBuying] = useState(false);
-  const [isRenewing, setIsRenewing] = useState(false);
   const [isUpgrading, setIsUpgrading] = useState(false);
   const [refundDialog, setRefundDialog] = useState({
     open: false,
     package: null
-  });
-  const [renewDialog, setRenewDialog] = useState({
-    open: false,
-    package: null,
-    studentId: null
   });
   const [upgradeDialog, setUpgradeDialog] = useState({
     open: false,
@@ -685,55 +679,7 @@ const MyPackages = () => {
     }
   };
 
-  const handleRenewClick = (pkg) => {
-    if (!pkg.studentId) {
-      addNotification({
-        message: 'Không tìm thấy thông tin học sinh.',
-        severity: 'error'
-      });
-      return;
-    }
 
-    setRenewDialog({
-      open: true,
-      package: pkg,
-      studentId: pkg.studentId
-    });
-  };
-
-  const handleConfirmRenew = async () => {
-    if (!renewDialog.package || !renewDialog.studentId) return;
-
-    setIsRenewing(true);
-    showLoading();
-
-    try {
-      await packageService.renewSubscription(renewDialog.studentId);
-
-      addNotification({
-        message: 'Gia hạn gói thành công!',
-        severity: 'success'
-      });
-
-      setRenewDialog({ open: false, package: null, studentId: null });
-      
-      // Reload purchased packages to update the list
-      await loadPurchasedPackages();
-    } catch (err) {
-      const errorMessage = typeof err === 'string'
-        ? err
-        : err?.message || err?.error || 'Không thể gia hạn gói';
-      
-      showGlobalError(errorMessage);
-      addNotification({
-        message: errorMessage,
-        severity: 'error'
-      });
-    } finally {
-      setIsRenewing(false);
-      hideLoading();
-    }
-  };
 
   const handleUpgradeClick = (pkg) => {
     const studentId = selectedStudentId || childId;
@@ -1267,131 +1213,92 @@ const MyPackages = () => {
                 </button>
               </div>
             ) : purchasedPackages.length > 0 ? (
-              <div className={styles.packagesGrid}>
-                {purchasedPackages.map((pkg) => {
-                  // Tạo một card tương tự như available packages nhưng có thêm nút "Hoàn tiền" nếu cần
-                  return (
-                    <div key={pkg.id} className={styles.packageCard}>
-                      <div className={styles.packageHeader}>
-                        <h3 className={styles.packageName}>{pkg.name}</h3>
+              <div className={styles.purchasedPackageInfo}>
+                {purchasedPackages.map((pkg) => (
+                  <div key={pkg.id} className={styles.packageInfoWrapper}>
+                    <div className={styles.packageInfoHeader}>
+                      <div className={styles.packageTitleRow}>
+                        <h2 className={styles.packageTitle}>{pkg.name}</h2>
                         <span className={`${styles.statusBadge} ${styles[pkg.status]}`}>
                           {pkg.status === 'active' ? 'Đang sử dụng' : 'Đã hết hạn'}
                         </span>
                       </div>
-
                       <div className={styles.packagePrice}>
-                        <span className={styles.priceLabel}>Giá:</span>
-                        <span className={styles.priceValue}>{formatCurrency(pkg.price)}</span>
+                        <span className={styles.priceAmount}>{formatCurrency(pkg.price)}</span>
                       </div>
+                    </div>
 
-                      <div className={styles.packageInfo}>
-                        <div className={styles.infoRow}>
-                          <span className={styles.infoLabel}>Thời hạn:</span>
-                          <span className={styles.infoValue}>{pkg.durationInMonths} tháng</span>
-                        </div>
-                        {pkg.usedSlots !== undefined && pkg.totalSlots !== undefined && (
-                          <div className={styles.infoRow}>
-                            <span className={styles.infoLabel}>Đã dùng:</span>
-                            <span className={styles.infoValue}>
-                              {pkg.usedSlots}/{pkg.totalSlots} slot
-                            </span>
-                          </div>
-                        )}
+                    <div className={styles.packageDetailsGrid}>
+                      <div className={styles.detailBox}>
+                        <div className={styles.detailLabel}>Thời hạn gói</div>
+                        <div className={styles.detailValue}>{pkg.durationInMonths} tháng</div>
                       </div>
-
-                      {/* Benefits - chỉ hiển thị 3 lợi ích đầu tiên */}
-                      {pkg.benefits && pkg.benefits.length > 0 && (
-                        <div className={styles.benefitsSection}>
-                          <ul className={styles.benefitsList}>
-                            {pkg.benefits.slice(0, 3).map((benefit, index) => (
-                              <li key={index} className={styles.benefitItem}>
-                                <span className={styles.benefitIcon}>✓</span>
-                                {benefit.name || benefit}
-                              </li>
-                            ))}
-                            {pkg.benefits.length > 3 && (
-                              <li className={styles.benefitItem} style={{ fontStyle: 'italic', color: 'var(--text-secondary)' }}>
-                                +{pkg.benefits.length - 3} lợi ích khác...
-                              </li>
-                            )}
-                          </ul>
+                      {pkg.usedSlots !== undefined && pkg.totalSlots !== undefined && (
+                        <div className={styles.detailBox}>
+                          <div className={styles.detailLabel}>Slot sử dụng</div>
+                          <div className={styles.detailValue}>{pkg.usedSlots}/{pkg.totalSlots}</div>
                         </div>
                       )}
+                      {pkg.expiryDate && (
+                        <div className={styles.detailBox}>
+                          <div className={styles.detailLabel}>Ngày hết hạn</div>
+                          <div className={styles.detailValue}>
+                            {new Date(pkg.expiryDate).toLocaleDateString('vi-VN', {
+                              day: '2-digit',
+                              month: '2-digit',
+                              year: 'numeric'
+                            })}
+                          </div>
+                        </div>
+                      )}
+                    </div>
 
-                      <div className={styles.packageActions}>
+                    <div className={styles.packageActions}>
+                      <Button
+                        variant="contained"
+                        onClick={() => navigate(`/user/packages/detail/${pkg.id}?type=purchased`, {
+                          state: { packageData: pkg, childId: selectedStudentId || childId }
+                        })}
+                        sx={{
+                          textTransform: 'none',
+                          fontFamily: 'var(--font-family)',
+                          fontSize: 'var(--font-size-base)',
+                          fontWeight: 'var(--font-weight-semibold)',
+                          background: 'var(--color-primary)',
+                          color: 'white',
+                          padding: '12px 32px',
+                          '&:hover': {
+                            background: 'var(--color-primary-dark)'
+                          }
+                        }}
+                      >
+                        Xem chi tiết gói
+                      </Button>
+                      {pkg.status === 'active' && pkg.usedSlots === 0 && (
                         <Button
                           variant="outlined"
-                          onClick={() => navigate(`/user/packages/detail/${pkg.id}?type=purchased`, {
-                            state: { packageData: pkg, childId: selectedStudentId || childId }
-                          })}
+                          onClick={() => handleRefundClick(pkg)}
                           sx={{
-                            flex: 1,
                             textTransform: 'none',
                             fontFamily: 'var(--font-family)',
-                            fontSize: 'var(--font-size-sm)',
+                            fontSize: 'var(--font-size-base)',
                             fontWeight: 'var(--font-weight-semibold)',
-                            borderColor: 'var(--border-medium)',
-                            color: 'var(--text-primary)',
+                            borderColor: 'var(--color-warning)',
+                            color: 'var(--color-warning)',
+                            padding: '12px 32px',
                             '&:hover': {
-                              borderColor: 'var(--color-primary)',
-                              backgroundColor: 'var(--color-primary-50)',
-                              color: 'var(--color-primary)'
+                              borderColor: 'var(--color-warning-dark)',
+                              backgroundColor: 'var(--color-warning-light)',
+                              color: 'var(--color-warning-dark)'
                             }
                           }}
                         >
-                          Xem chi tiết
+                          Yêu cầu hoàn tiền
                         </Button>
-                        {pkg.status === 'active' && (
-                          <>
-                            <Button
-                              variant="contained"
-                              onClick={() => handleRenewClick(pkg)}
-                              sx={{
-                                flex: 1,
-                                textTransform: 'none',
-                                fontFamily: 'var(--font-family)',
-                                fontSize: 'var(--font-size-sm)',
-                                fontWeight: 'var(--font-weight-semibold)',
-                                background: 'var(--color-primary)',
-                                color: 'white',
-                                boxShadow: 'var(--shadow-sm)',
-                                '&:hover': {
-                                  background: 'var(--color-primary-dark)',
-                                  transform: 'translateY(-2px)',
-                                  boxShadow: 'var(--shadow-md)'
-                                }
-                              }}
-                            >
-                              Gia hạn
-                            </Button>
-                            {pkg.usedSlots === 0 && (
-                              <Button
-                                variant="outlined"
-                                onClick={() => handleRefundClick(pkg)}
-                                sx={{
-                                  flex: 1,
-                                  textTransform: 'none',
-                                  fontFamily: 'var(--font-family)',
-                                  fontSize: 'var(--font-size-sm)',
-                                  fontWeight: 'var(--font-weight-semibold)',
-                                  borderColor: 'var(--color-warning)',
-                                  color: 'var(--color-warning)',
-                                  '&:hover': {
-                                    borderColor: 'var(--color-warning-dark)',
-                                    backgroundColor: 'var(--color-warning-light)',
-                                    color: 'var(--color-warning-dark)'
-                                  }
-                                }}
-                              >
-                                Hoàn tiền
-                              </Button>
-                            )}
-                          </>
-                        )}
-                      </div>
+                      )}
                     </div>
-                  );
-                })}
+                  </div>
+                ))}
               </div>
             ) : (
               <div className={styles.emptyState}>
@@ -1547,19 +1454,7 @@ const MyPackages = () => {
           highlightText={refundDialog.package?.name}
         />
 
-        {/* Renew Confirm Dialog */}
-        <ConfirmDialog
-          open={renewDialog.open}
-          onClose={() => setRenewDialog({ open: false, package: null, studentId: null })}
-          onConfirm={handleConfirmRenew}
-          title="Xác nhận gia hạn gói"
-          description={renewDialog.package 
-            ? `Bạn có chắc chắn muốn gia hạn gói "${renewDialog.package.name}"? Gói sẽ được gia hạn thêm ${renewDialog.package.durationInMonths || 0} tháng.`
-            : ''}
-          confirmText="Gia hạn"
-          confirmColor="primary"
-          highlightText={renewDialog.package?.name}
-        />
+
 
         {/* Upgrade Confirm Dialog */}
         <ConfirmDialog
