@@ -78,6 +78,8 @@ const StaffAccountForm = ({
         defaultValues={{}}
         fields={[
           { 
+            section: 'Thông tin cá nhân',
+            sectionDescription: 'Thông tin hiển thị của nhân viên.',
             name: 'name', 
             label: 'Họ và Tên', 
             type: 'text', 
@@ -87,20 +89,35 @@ const StaffAccountForm = ({
             gridSize: 6
           },
           { 
+            name: 'phoneNumber', 
+            label: 'Số Điện Thoại', 
+            type: 'text', 
+            required: false, 
+            placeholder: 'Ví dụ: 0123456789',
+            disabled: isSubmitting,
+            gridSize: 6
+          },
+          { 
+            name: 'gender', 
+            label: 'Giới Tính', 
+            type: 'select', 
+            required: false,
+            options: [
+              { value: 'Male', label: 'Nam' },
+              { value: 'Female', label: 'Nữ' },
+              { value: 'Other', label: 'Khác' }
+            ],
+            disabled: isSubmitting,
+            gridSize: 12
+          },
+          { 
+            section: 'Thông tin đăng nhập',
+            sectionDescription: 'Email sẽ được dùng để đăng nhập. Mật khẩu sẽ được gửi qua email xác nhận.',
             name: 'email', 
             label: 'Email', 
             type: 'email', 
             required: true, 
             placeholder: 'Ví dụ: email@example.com',
-            disabled: isSubmitting,
-            gridSize: 6
-          },
-          { 
-            name: 'password', 
-            label: 'Mật Khẩu', 
-            type: 'password', 
-            required: true, 
-            placeholder: 'Nhập mật khẩu cho người dùng',
             disabled: isSubmitting,
             gridSize: 12
           }
@@ -167,6 +184,28 @@ const StaffAccountForm = ({
                   </Typography>
                 </Box>
                 
+                {confirmDialog.userData.phoneNumber && (
+                  <Box>
+                    <Typography variant="subtitle2" color="text.secondary">
+                      Số Điện Thoại:
+                    </Typography>
+                    <Typography variant="body1" fontWeight="medium">
+                      {confirmDialog.userData.phoneNumber}
+                    </Typography>
+                  </Box>
+                )}
+                
+                {confirmDialog.userData.gender && (
+                  <Box>
+                    <Typography variant="subtitle2" color="text.secondary">
+                      Giới Tính:
+                    </Typography>
+                    <Typography variant="body1" fontWeight="medium">
+                      {confirmDialog.userData.gender === 'Male' ? 'Nam' : confirmDialog.userData.gender === 'Female' ? 'Nữ' : 'Khác'}
+                    </Typography>
+                  </Box>
+                )}
+                
                 <Box>
                   <Typography variant="subtitle2" color="text.secondary">
                     Vai Trò:
@@ -179,15 +218,6 @@ const StaffAccountForm = ({
                     icon={<RoleIcon fontSize="small" />}
                   />
                 </Box>
-              </div>
-              
-              <div style={{ marginTop: '16px' }}>
-                <Typography variant="subtitle2" color="text.secondary">
-                  Mật Khẩu:
-                </Typography>
-                <Typography variant="body1" fontWeight="medium">
-                  {'•'.repeat(confirmDialog.userData.password?.length || 0)}
-                </Typography>
               </div>
             </Paper>
           )}

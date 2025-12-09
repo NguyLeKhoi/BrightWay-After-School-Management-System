@@ -54,17 +54,26 @@ const userService = {
 
    /**
     * Create new staff account
-    * @param {Object} userData - User data { name, email, password }
+    * @param {Object} userData - User data { name, email, phoneNumber?, gender? }
     * @returns {Promise} Created staff user
+    * @description Password will be set via email confirmation link sent to the user
     */
    createStaff: async (userData) => {
      try {
-       // Backend expects { name, email, password }
+       // Backend expects { name, email, phoneNumber, gender } - password set via email confirmation
        const payload = {
          name: userData.fullName || userData.name,
-         email: userData.email,
-         password: userData.password
+         email: userData.email
        };
+       
+       // Add optional fields if provided
+       if (userData.phoneNumber) {
+         payload.phoneNumber = userData.phoneNumber;
+       }
+       if (userData.gender) {
+         payload.gender = userData.gender;
+       }
+       
        const response = await axiosInstance.post('/User/staff', payload);
        return response.data;
      } catch (error) {
@@ -92,7 +101,6 @@ const userService = {
        // Otherwise, create FormData from object
        const formData = new FormData();
        formData.append('Email', userData.email);
-       formData.append('Password', userData.password);
        formData.append('Name', userData.name || userData.fullName);
        if (userData.branchId) {
          formData.append('BranchId', userData.branchId);
@@ -129,7 +137,6 @@ const userService = {
        // Otherwise, create FormData from object
        const formData = new FormData();
        formData.append('Email', userData.email);
-       formData.append('Password', userData.password);
        formData.append('Name', userData.name || userData.fullName);
        
        if (userData.identityCardNumber) {
@@ -167,19 +174,25 @@ const userService = {
 
    /**
     * Create new manager account
-    * @param {Object} userData - User data { name, email, password, branchId? }
+    * @param {Object} userData - User data { name, email, phoneNumber?, gender?, branchId? }
     * @returns {Promise} Created manager user
+    * @description Password will be set via email confirmation link sent to the user
     */
    createManager: async (userData) => {
      try {
-       // Backend expects { name, email, password, branchId }
+       // Backend expects { name, email, phoneNumber, gender, branchId } - password set via email confirmation
        const payload = {
          name: userData.name,
-         email: userData.email,
-         password: userData.password
+         email: userData.email
        };
        
-       // Add branchId if provided
+       // Add optional fields if provided
+       if (userData.phoneNumber) {
+         payload.phoneNumber = userData.phoneNumber;
+       }
+       if (userData.gender) {
+         payload.gender = userData.gender;
+       }
        if (userData.branchId) {
          payload.branchId = userData.branchId;
        }

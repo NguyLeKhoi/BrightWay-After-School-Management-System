@@ -125,9 +125,17 @@ const ManagerManagement = () => {
       const submitData = {
         name: formData.name,
         email: formData.email,
-        password: formData.password,
         branchId: formData.branchId || ''
       };
+      
+      // Add optional fields if provided
+      if (formData.phoneNumber) {
+        submitData.phoneNumber = formData.phoneNumber;
+      }
+      if (formData.gender) {
+        submitData.gender = formData.gender;
+      }
+      
       await baseHandleFormSubmit(submitData);
     } else {
       // Allow updating name, branchId, and isActive
@@ -264,7 +272,6 @@ const ManagerManagement = () => {
               ? {
                   name: selectedUser?.name || '',
                   email: selectedUser?.email || '',
-                  password: '',
                   branchId: selectedUser?.branchId || '',
                   isActive: selectedUser?.isActive !== undefined ? selectedUser.isActive : true
                 }
