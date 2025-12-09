@@ -4,13 +4,15 @@ import {
   Typography,
   Button,
   Paper,
-  Stack
+  Stack,
+  CircularProgress
 } from '@mui/material';
 import {
   CloudUpload as CloudUploadIcon,
   PhotoCamera as PhotoCameraIcon,
   CheckCircle as CheckCircleIcon
 } from '@mui/icons-material';
+import imageCompression from 'browser-image-compression';
 
 const ImageUpload = ({
   value = null,
@@ -21,27 +23,52 @@ const ImageUpload = ({
   maxSize = 10 * 1024 * 1024, // 10MB
   disabled = false,
   error = false,
-  required = false
+  required = false,
+  maxSizeMB = 1, // Max size after compression (1MB)
+  maxWidthOrHeight = 1920 // Max width/height
 }) => {
   const [preview, setPreview] = useState(null);
   const [dragActive, setDragActive] = useState(false);
+  const [isCompressing, setIsCompressing] = useState(false);
   const fileInputRef = useRef(null);
+  const previewUrlRef = useRef(null);
+  const currentFileRef = useRef(null);
 
   useEffect(() => {
-    if (value instanceof File) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setPreview(reader.result);
-      };
-      reader.readAsDataURL(value);
-    } else if (value) {
-      setPreview(value);
-    } else {
+    // Cleanup previous preview URL if it was created with createObjectURL
+    return () => {
+      if (previewUrlRef.current) {
+        URL.revokeObjectURL(previewUrlRef.current);
+        previewUrlRef.current = null;
+      }
+    };
+  }, [preview]);
+
+  useEffect(() => {
+    // Handle no value - clear everything
+    if (!value) {
       setPreview(null);
+      currentFileRef.current = null;
+      return;
+    }
+    
+    // Handle string URL (from server)
+    if (typeof value === 'string') {
+      setPreview(value);
+      currentFileRef.current = null;
+      return;
+    }
+    
+    // Handle File object - DO NOT create preview here, let handleFileSelect do it
+    // This useEffect only runs when value changes from parent
+    // If we already have the same file, keep the preview
+    if (value instanceof File && currentFileRef.current === value) {
+      // Same file reference, keep current preview
+      return;
     }
   }, [value]);
 
-  const handleFileSelect = (file) => {
+  const handleFileSelect = async (file) => {
     if (!file) return;
 
     if (!file.type.startsWith('image/')) {
@@ -54,7 +81,33 @@ const ImageUpload = ({
       return;
     }
 
-    onChange(file);
+    // Always compress images
+    try {
+      setIsCompressing(true);
+      
+      const options = {
+        maxSizeMB: maxSizeMB,
+        maxWidthOrHeight: maxWidthOrHeight,
+        useWebWorker: true,
+        fileType: file.type,
+      };
+      
+      const compressedFile = await imageCompression(file, options);
+      
+      // Create preview immediately after compression
+      const previewUrl = URL.createObjectURL(compressedFile);
+      previewUrlRef.current = previewUrl;
+      currentFileRef.current = compressedFile;
+      setPreview(previewUrl);
+      
+      // Call onChange to pass compressed file to parent
+      onChange(compressedFile);
+    } catch (error) {
+      console.error('Error compressing image:', error);
+      alert('Lỗi khi nén ảnh. Vui lòng thử lại.');
+    } finally {
+      setIsCompressing(false);
+    }
   };
 
   const handleFileInputChange = (event) => {
@@ -68,7 +121,17 @@ const ImageUpload = ({
 
   const handleRemove = (e) => {
     e.stopPropagation();
+    
+    // Cleanup preview URL
+    if (previewUrlRef.current) {
+      URL.revokeObjectURL(previewUrlRef.current);
+      previewUrlRef.current = null;
+    }
+    
+    setPreview(null);
+    currentFileRef.current = null;
     onChange(null);
+    
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
     }
@@ -155,7 +218,14 @@ const ImageUpload = ({
         />
 
         <Stack spacing={2} alignItems="center">
-          {!preview ? (
+          {isCompressing ? (
+            <>
+              <CircularProgress size={60} />
+              <Typography variant="body2" color="text.secondary">
+                Đang nén ảnh...
+              </Typography>
+            </>
+          ) : !preview ? (
             <>
               <Box
                 sx={{

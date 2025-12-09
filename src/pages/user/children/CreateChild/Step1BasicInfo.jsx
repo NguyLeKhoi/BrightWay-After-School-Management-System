@@ -98,10 +98,11 @@ const Step1BasicInfo = React.forwardRef(
                   onChange={(file) => {
                     // Get current form values to preserve them
                     const currentFormValues = formRef.current?.getValues ? formRef.current.getValues() : {};
-                    // Merge current form values with new image
+                    // Important: Destructure to remove image field before spreading
+                    const { image: _, ...otherFormValues } = currentFormValues;
+                    // Update data with new image, preserving all other form values
                     updateData({ 
-                      ...data, 
-                      ...currentFormValues, // Preserve form values
+                      ...otherFormValues, // Use form values instead of old data
                       image: file 
                     });
                     // Also update form value

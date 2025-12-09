@@ -206,6 +206,24 @@ const authService = {
     }
   },
 
+  /**
+   * Set password for new account (first time setup after email confirmation)
+   * @param {Object} data - { userId, token, password }
+   * @returns {Promise} Response indicating success
+   */
+  setPassword: async (data) => {
+    try {
+      const response = await axiosInstance.post('/Auth/set-password', {
+        userId: data.userId,
+        token: data.token,
+        password: data.password
+      });
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || error.message;
+    }
+  },
+
 };
 
 export default authService;

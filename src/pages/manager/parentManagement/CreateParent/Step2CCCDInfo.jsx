@@ -7,6 +7,7 @@ import { createParentCCCDInfoSchema, createParentCCCDInfoOCRSchema } from '../..
 const Step2CCCDInfo = React.forwardRef(
   ({ data, updateData, stepIndex, totalSteps, mode = 'manual' }, ref) => {
     const formRef = React.useRef(null);
+    const dataRef = React.useRef({ avatarFile: data.avatarFile });
 
     const fields = useMemo(
       () => {
@@ -25,14 +26,6 @@ const Step2CCCDInfo = React.forwardRef(
             type: 'email',
             required: true,
             placeholder: 'Ví dụ: email@example.com',
-            gridSize: 6
-          },
-          {
-            name: 'password',
-            label: 'Mật khẩu',
-            type: 'password',
-            required: true,
-            placeholder: 'Nhập mật khẩu (tối thiểu 6 ký tự)',
             gridSize: 6
           },
           {
@@ -150,7 +143,6 @@ const Step2CCCDInfo = React.forwardRef(
           ...(mode === 'ocr' ? {
             name: data.name || '',
             email: data.email || '',
-            password: data.password || '',
             phoneNumber: data.phoneNumber || '',
             avatarFile: data.avatarFile || null
           } : {}),
@@ -179,7 +171,8 @@ const Step2CCCDInfo = React.forwardRef(
       const convertedValues = {
         ...formValues,
         dateOfBirth: convertDDMMYYYYToYYYYMMDD(formValues.dateOfBirth),
-        issuedDate: convertDDMMYYYYToYYYYMMDD(formValues.issuedDate)
+        issuedDate: convertDDMMYYYYToYYYYMMDD(formValues.issuedDate),
+        avatarFile: dataRef.current.avatarFile // Get from ref instead
       };
 
       updateData(convertedValues);
@@ -230,16 +223,10 @@ const Step2CCCDInfo = React.forwardRef(
               <Grid container spacing={2}>
                 <Grid item xs={12}>
                   <ImageUpload
-                    value={data.avatarFile || null}
+                    value={data.avatarFile instanceof File ? data.avatarFile : null}
                     onChange={(file) => {
-                      // Get current form values to preserve them
-                      const currentFormValues = formRef.current?.getValues ? formRef.current.getValues() : {};
-                      // Merge current form values with new avatarFile
-                      updateData({ 
-                        ...data, 
-                        ...currentFormValues, // Preserve form values
-                        avatarFile: file 
-                      });
+                      // Just store in ref, don't call updateData yet to avoid re-render
+                      dataRef.current.avatarFile = file;
                       // Also update form value
                       if (formRef.current?.setValue) {
                         formRef.current.setValue('avatarFile', file, { shouldValidate: false });

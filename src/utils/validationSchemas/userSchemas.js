@@ -1,6 +1,7 @@
 import * as yup from 'yup';
 
 // Schema for Admin creating Manager (POST /User/manager)
+// Password is no longer required - users will set password via email confirmation
 export const createManagerSchema = yup.object({
   name: yup
     .string()
@@ -12,17 +13,17 @@ export const createManagerSchema = yup.object({
     .string()
     .required('Email là bắt buộc')
     .email('Email không hợp lệ'),
-  password: yup
+  phoneNumber: yup
     .string()
-    .required('Mật khẩu là bắt buộc')
-    .min(6, 'Mật khẩu phải có ít nhất 6 ký tự')
-    .max(50, 'Mật khẩu không được quá 50 ký tự'),
+    .optional()
+    .matches(/^[0-9]{10}$/, 'Số điện thoại phải có 10 chữ số'),
   branchId: yup
     .string()
     .optional()
 });
 
 // Schema for Manager creating Staff (POST /User/staff)
+// Password is no longer required - users will set password via email confirmation
 export const createStaffSchema = yup.object({
   name: yup
     .string()
@@ -34,11 +35,13 @@ export const createStaffSchema = yup.object({
     .string()
     .required('Email là bắt buộc')
     .email('Email không hợp lệ'),
-  password: yup
+  phoneNumber: yup
     .string()
-    .required('Mật khẩu là bắt buộc')
-    .min(6, 'Mật khẩu phải có ít nhất 6 ký tự')
-    .max(50, 'Mật khẩu không được quá 50 ký tự')
+    .optional()
+    .matches(/^[0-9]{10}$/, 'Số điện thoại phải có 10 chữ số'),
+  gender: yup
+    .string()
+    .optional()
 });
 
 // Schema for updating user (Admin updates Manager, Manager updates Staff)
