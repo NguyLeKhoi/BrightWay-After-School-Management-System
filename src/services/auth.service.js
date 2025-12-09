@@ -216,7 +216,7 @@ const authService = {
       const response = await axiosInstance.post('/Auth/set-password', {
         userId: data.userId,
         token: data.token,
-        password: data.password
+        newPassword: data.password  // API expects 'newPassword' not 'password'
       });
       return response.data;
     } catch (error) {

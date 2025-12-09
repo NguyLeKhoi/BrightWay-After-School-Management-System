@@ -40,6 +40,11 @@ const SetPassword = () => {
       return;
     }
 
+    if (!data.password) {
+      showGlobalError('Vui lòng nhập mật khẩu.');
+      return;
+    }
+
     showLoading();
 
     try {
