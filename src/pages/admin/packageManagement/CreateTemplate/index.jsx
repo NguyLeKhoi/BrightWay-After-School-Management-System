@@ -52,10 +52,10 @@ const Step1TemplateBasic = forwardRef(({ data, updateData }, ref) => {
       return true;
   };
 
-  // Use only basic fields
+  // Use basic fields including status
   const fields = useMemo(() => {
     const all = createTemplateFormFields({ templateActionLoading: false });
-    const keep = new Set(['name', 'desc']);
+    const keep = new Set(['name', 'isActive', 'desc']);
     return all.filter(f => keep.has(f.name));
   }, []);
 
@@ -65,7 +65,7 @@ const Step1TemplateBasic = forwardRef(({ data, updateData }, ref) => {
         ref={formRef}
         key={`create-template-step`}
         schema={packageTemplateBasicSchema}
-        defaultValues={data.templateForm || {}}
+        defaultValues={{ isActive: true, ...(data.templateForm || {}) }}
         onSubmit={handleSubmit}
         hideSubmitButton
         loading={false}
@@ -171,18 +171,17 @@ const Step3Slots = forwardRef(({ data, updateData }, ref) => {
       const templateForm = data.templateForm || {};
       const allData = { ...templateForm, ...slotsPayload };
       
-      // If template not created yet, create it with all data
+      // If template not created yet, create it with all data (including status)
       if (!data?.createdTemplateId) {
-        const { isActive, ...createPayload } = allData;
-        const created = await packageTemplateService.createTemplate(createPayload);
+        const created = await packageTemplateService.createTemplate(allData);
         updateData({ 
           createdTemplateId: created.id, 
           templateForm: allData 
         });
         toast.success('Tạo mẫu gói thành công');
       } else {
-        // Update existing template with slots data
-        await packageTemplateService.updateTemplate(data.createdTemplateId, slotsPayload);
+        // Update existing template with slots data; keep isActive from form
+        await packageTemplateService.updateTemplate(data.createdTemplateId, allData);
         updateData({ templateForm: allData });
         toast.success('Cập nhật mẫu gói thành công');
       }

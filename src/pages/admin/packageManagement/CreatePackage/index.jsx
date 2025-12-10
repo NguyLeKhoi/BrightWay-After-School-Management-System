@@ -1,6 +1,6 @@
 import React, { useMemo, useState, useCallback, forwardRef, useImperativeHandle, useEffect } from 'react';
-import { Box, Typography, Autocomplete, TextField, Checkbox, ListItemText, CircularProgress, Button } from '@mui/material';
-import { ShoppingCart as PackageIcon } from '@mui/icons-material';
+import { Box, Typography, Autocomplete, TextField, Checkbox, ListItemText, CircularProgress, Button, Alert } from '@mui/material';
+import { ShoppingCart as PackageIcon, Info as InfoIcon } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 import StepperForm from '../../../../components/Common/StepperForm';
 import benefitService from '../../../../services/benefit.service';
@@ -88,13 +88,19 @@ const Step1PackageBasic = forwardRef(({ data, updateData }, ref) => {
     }
   };
 
+  const defaultValues = useMemo(() => ({
+    ...(data.packageForm || {}),
+    // default to active if not set
+    isActive: data.packageForm?.isActive ?? true
+  }), [data.packageForm]);
+
   return (
     <Box>
       <Form
         ref={formRef}
         key={`create-package-step`}
         schema={packageStep1BasicSchema}
-        defaultValues={data.packageForm || {}}
+        defaultValues={defaultValues}
         onSubmit={handleSubmit}
         hideSubmitButton
         loading={loading || dependenciesLoading || loadingTemplates}
@@ -185,7 +191,25 @@ const Step2Associations = forwardRef(({ data, updateData }, ref) => {
 // Step 3: Pricing & Slots (create package here)
 const Step3PricingSlots = forwardRef(({ data, updateData }, ref) => {
   const [loading, setLoading] = useState(false);
+  const [selectedTemplate, setSelectedTemplate] = useState(null);
   const formRef = React.useRef(null);
+  
+  // Fetch template details when component mounts
+  useEffect(() => {
+    const fetchTemplate = async () => {
+      const templateId = data?.packageForm?.packageTemplateId;
+      if (templateId) {
+        try {
+          const template = await packageTemplateService.getTemplateById(templateId);
+          setSelectedTemplate(template);
+        } catch (err) {
+          console.error('Error fetching template:', err);
+        }
+      }
+    };
+    fetchTemplate();
+  }, [data?.packageForm?.packageTemplateId]);
+  
   useImperativeHandle(ref, () => ({
     async submit() {
       if (formRef.current?.submit) {
@@ -196,7 +220,7 @@ const Step3PricingSlots = forwardRef(({ data, updateData }, ref) => {
   }));
 
   const fields = useMemo(() => {
-    return createPackageFormFields({
+    const baseFields = createPackageFormFields({
       packageActionLoading: loading,
       dependenciesLoading: false,
       loadingTemplates: false,
@@ -205,7 +229,33 @@ const Step3PricingSlots = forwardRef(({ data, updateData }, ref) => {
       studentLevelSelectOptions: [],
       benefitSelectOptions: []
     }).filter(f => ['price', 'durationInMonths', 'totalSlots'].includes(f.name));
-  }, [loading]);
+    
+    // Add helperText showing allowed ranges if template is selected
+    if (selectedTemplate) {
+      return baseFields.map(field => {
+        if (field.name === 'price') {
+          return {
+            ...field,
+            helperText: `Khoảng cho phép: ${selectedTemplate.minPrice?.toLocaleString('vi-VN') ?? '-'} - ${selectedTemplate.maxPrice?.toLocaleString('vi-VN') ?? '-'} VNĐ`
+          };
+        }
+        if (field.name === 'durationInMonths') {
+          return {
+            ...field,
+            helperText: `Khoảng cho phép: ${selectedTemplate.minDurationInMonths ?? '-'} - ${selectedTemplate.maxDurationInMonths ?? '-'} tháng`
+          };
+        }
+        if (field.name === 'totalSlots') {
+          return {
+            ...field,
+            helperText: `Khoảng cho phép: ${selectedTemplate.minSlots ?? '-'} - ${selectedTemplate.maxSlots ?? '-'} slot`
+          };
+        }
+        return field;
+      });
+    }
+    return baseFields;
+  }, [loading, selectedTemplate]);
 
   const handleSubmit = async (values) => {
     try {
@@ -221,13 +271,54 @@ const Step3PricingSlots = forwardRef(({ data, updateData }, ref) => {
     }
   };
 
+  // Set default values from template when template is loaded
+  const defaultValues = useMemo(() => {
+    const formValues = data.packageForm || {};
+    if (selectedTemplate) {
+      return {
+        price: formValues.price ?? selectedTemplate.defaultPrice ?? '',
+        durationInMonths: formValues.durationInMonths ?? selectedTemplate.defaultDurationInMonths ?? '',
+        totalSlots: formValues.totalSlots ?? selectedTemplate.defaultTotalSlots ?? ''
+      };
+    }
+    return formValues;
+  }, [data.packageForm, selectedTemplate]);
+
   return (
     <Box>
+      {selectedTemplate && (
+        <Alert 
+          severity="info" 
+          icon={<InfoIcon />}
+          sx={{ mb: 2 }}
+        >
+          <Typography variant="body2" fontWeight={600} sx={{ mb: 0.5 }}>
+            Khoảng giá trị cho phép theo mẫu gói "{selectedTemplate.name}":
+          </Typography>
+          <Box component="ul" sx={{ m: 0, pl: 2 }}>
+            <li>
+              <Typography variant="body2">
+                <strong>Giá:</strong> {selectedTemplate.minPrice?.toLocaleString('vi-VN') ?? '-'} - {selectedTemplate.maxPrice?.toLocaleString('vi-VN') ?? '-'} VNĐ
+              </Typography>
+            </li>
+            <li>
+              <Typography variant="body2">
+                <strong>Thời hạn:</strong> {selectedTemplate.minDurationInMonths ?? '-'} - {selectedTemplate.maxDurationInMonths ?? '-'} tháng
+              </Typography>
+            </li>
+            <li>
+              <Typography variant="body2">
+                <strong>Số slot:</strong> {selectedTemplate.minSlots ?? '-'} - {selectedTemplate.maxSlots ?? '-'} slot
+              </Typography>
+            </li>
+          </Box>
+        </Alert>
+      )}
       <Form
         ref={formRef}
-        key={`package-pricing`}
+        key={`package-pricing-${selectedTemplate?.id || 'default'}`}
         schema={packageStep3PricingSchema}
-        defaultValues={data.packageForm || {}}
+        defaultValues={defaultValues}
         onSubmit={handleSubmit}
         hideSubmitButton
         loading={loading}

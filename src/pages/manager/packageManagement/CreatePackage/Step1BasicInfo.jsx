@@ -26,7 +26,7 @@ const Step1BasicInfo = React.forwardRef(
     }, [data.packageTemplateId, currentTemplateId]);
 
     const selectedTemplate = useMemo(
-      () => templates.find((template) => template.id === currentTemplateId) || null,
+      () => templates.find((template) => String(template.id) === String(currentTemplateId)) || null,
       [templates, currentTemplateId]
     );
 
@@ -70,7 +70,7 @@ const Step1BasicInfo = React.forwardRef(
           <Autocomplete
             disableClearable
             options={templateOptions}
-            value={templateOptions.find((option) => option.value === currentTemplateId) || null}
+            value={templateOptions.find((option) => String(option.value) === String(currentTemplateId)) || null}
             onChange={handleTemplateChange}
             loading={dependenciesLoading}
             disabled={isTemplatePreSelected && currentTemplateId}
