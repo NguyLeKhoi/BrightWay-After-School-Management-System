@@ -90,14 +90,13 @@ const PackageManagement = () => {
       return packageTemplateService.getTemplatesPaged({
         pageIndex: params.pageIndex,
         pageSize: params.pageSize,
-        searchTerm: params.searchTerm || params.Keyword || '',
-        status: params.status === '' ? null : params.status === 'true'
+        searchTerm: params.searchTerm || params.Keyword || ''
       });
     },
     createFunction: packageTemplateService.createTemplate,
     updateFunction: packageTemplateService.updateTemplate,
     deleteFunction: packageTemplateService.deleteTemplate,
-    defaultFilters: { status: '' },
+    defaultFilters: {},
     loadOnMount: true
   });
 
@@ -501,16 +500,11 @@ const PackageManagement = () => {
             keyword={templateSearchTerm}
             onKeywordChange={templateHandleKeywordChange}
             onSearch={templateHandleKeywordSearch}
-        onClear={() => {
+            onClear={() => {
               templateHandleClearSearch();
-              templateUpdateFilter('status', '');
             }}
             placeholder="Tìm kiếm theo tên mẫu gói..."
-          >
-            {renderStatusFilter(templateFilters.status || '', (e) =>
-              templateUpdateFilter('status', e.target.value)
-            )}
-          </ManagementSearchSection>
+          />
 
           {templateError && (
             <Alert severity="error" className={styles.errorAlert}>

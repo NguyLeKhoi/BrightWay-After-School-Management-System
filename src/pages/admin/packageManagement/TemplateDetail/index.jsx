@@ -170,22 +170,6 @@ const TemplateDetail = () => {
                     </Box>
                   </Grid>
 
-                  <Grid item xs={12} md={6}>
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                      <Box sx={{ flex: 1 }}>
-                        <Typography variant="body2" color="text.secondary" sx={{ fontSize: '0.875rem', mb: 0.5 }}>
-                          Trạng Thái
-                        </Typography>
-                        <Chip
-                          label={template.isActive !== false ? 'Hoạt động' : 'Không hoạt động'}
-                          color={template.isActive !== false ? 'success' : 'default'}
-                          size="small"
-                          sx={{ width: 'fit-content' }}
-                        />
-                      </Box>
-                    </Box>
-                  </Grid>
-
                   <Grid item xs={12}>
                     <Divider />
                   </Grid>
