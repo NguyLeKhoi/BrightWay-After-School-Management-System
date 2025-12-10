@@ -48,13 +48,13 @@ const CreatePackage = () => {
   }, [fetchDependencies]);
 
   const selectedTemplate = useMemo(
-    () => templates.find((template) => template.id === selectedTemplateId) || null,
+    () => templates.find((template) => String(template.id) === String(selectedTemplateId)) || null,
     [templates, selectedTemplateId]
   );
 
   useEffect(() => {
     if (templateParam && templates.length > 0 && !selectedTemplateId) {
-      const exists = templates.find((template) => template.id === templateParam);
+      const exists = templates.find((template) => String(template.id) === String(templateParam));
       if (exists) {
         setSelectedTemplateId(templateParam);
         setFormData((prev) => ({ ...prev, packageTemplateId: templateParam }));
@@ -86,7 +86,7 @@ const CreatePackage = () => {
   const handleTemplateSelect = useCallback(
     (templateId) => {
       setSelectedTemplateId(templateId);
-      const template = templates.find((item) => item.id === templateId);
+      const template = templates.find((item) => String(item.id) === String(templateId));
       if (template) {
         const templateBenefitIds = normalizeBenefitIds(extractBenefitIds(template));
         setFormData((prev) => ({
