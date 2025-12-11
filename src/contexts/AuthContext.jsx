@@ -61,8 +61,19 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  const logout = () => {
+  const logout = async () => {
     try {
+      // Call logout API endpoint (BE expects a body object)
+      try {
+        const refreshToken = localStorage.getItem('refreshToken');
+        await api.post('/api/Auth/logout', {
+          refreshToken: refreshToken || null
+        });
+      } catch (apiError) {
+        // Continue with local logout even if API call fails
+        console.log('Logout API call completed (or failed):', apiError?.message);
+      }
+      
       // Clear localStorage
       localStorage.removeItem('accessToken');
       localStorage.removeItem('refreshToken');
@@ -74,11 +85,12 @@ export const AuthProvider = ({ children }) => {
       
       // Redirect to login
       window.location.href = '/login';
-    } catch {
+    } catch (error) {
       // Force logout even if error
       setUser(null);
       setIsAuthenticated(false);
       window.location.href = '/login';
+      throw error;
     }
   };
 

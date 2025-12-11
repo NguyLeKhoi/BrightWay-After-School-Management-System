@@ -118,8 +118,19 @@ const authService = {
    * Logout user
    * Clear local storage and redirect to login
    */
-  logout: () => {
+  logout: async () => {
     try {
+      // Call logout API endpoint (BE expects a body object)
+      try {
+        const refreshToken = localStorage.getItem('refreshToken');
+        await axiosInstance.post('/Auth/logout', {
+          refreshToken: refreshToken || null
+        });
+      } catch (apiError) {
+        // Continue with local logout even if API call fails
+        console.log('Logout API call completed (or failed):', apiError?.message);
+      }
+      
       // Clear all auth data from localStorage
       localStorage.removeItem('accessToken');
       localStorage.removeItem('refreshToken');
