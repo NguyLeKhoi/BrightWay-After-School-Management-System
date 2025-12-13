@@ -597,14 +597,14 @@ const StudentManagement = () => {
         throw new Error(result?.message || 'Không thể lấy URL ảnh tài liệu');
       }
 
-      setDocumentImageUrls((prev) => ({
-        ...prev,
-        [documentId]: imageUrl
-      }));
-
       setDocumentImageLoadErrors((prev) => ({
         ...prev,
         [documentId]: false
+      }));
+
+      setDocumentImageUrls((prev) => ({
+        ...prev,
+        [documentId]: imageUrl
       }));
     } catch (error) {
       const errorMessage = getErrorMessage(error) || 'Không thể lấy URL ảnh tài liệu';
@@ -1551,25 +1551,31 @@ const StudentManagement = () => {
                                 }}
                                 onClick={() => window.open(documentImageUrls[doc.id], '_blank')}
                               >
-                                {!documentImageLoadErrors[doc.id] ? (
-                                  <img
-                                    src={documentImageUrls[doc.id]}
-                                    alt={`${getDocumentTypeLabel(doc.type)} - ${doc.issuedBy || ''}`}
-                                    style={{
-                                      width: '100%',
-                                      height: 'auto',
-                                      maxHeight: 400,
-                                      objectFit: 'contain',
-                                      display: 'block'
-                                    }}
-                                    onError={() => {
-                                      setDocumentImageLoadErrors((prev) => ({
-                                        ...prev,
-                                        [doc.id]: true
-                                      }));
-                                    }}
-                                  />
-                                ) : (
+                                <img
+                                  src={documentImageUrls[doc.id]}
+                                  alt={`${getDocumentTypeLabel(doc.type)} - ${doc.issuedBy || ''}`}
+                                  style={{
+                                    width: '100%',
+                                    height: 'auto',
+                                    maxHeight: 400,
+                                    objectFit: 'contain',
+                                    display: documentImageLoadErrors[doc.id] ? 'none' : 'block'
+                                  }}
+                                  onLoad={() => {
+                                    setDocumentImageLoadErrors((prev) => ({
+                                      ...prev,
+                                      [doc.id]: false
+                                    }));
+                                  }}
+                                  onError={() => {
+                                    setDocumentImageLoadErrors((prev) => ({
+                                      ...prev,
+                                      [doc.id]: true
+                                    }));
+                                  }}
+                                />
+
+                                {documentImageLoadErrors[doc.id] && (
                                   <Typography
                                     variant="body2"
                                     sx={{
@@ -1579,7 +1585,7 @@ const StudentManagement = () => {
                                       textAlign: 'center'
                                     }}
                                   >
-                                    Không thể tải ảnh tài liệu (URL có thể đã hết hạn).\nBấm nút xem ảnh để lấy URL mới.
+                                    Không thể tải ảnh tài liệu. Bấm nút xem để thử lại.
                                   </Typography>
                                 )}
                               </Box>
@@ -1599,6 +1605,7 @@ const StudentManagement = () => {
             onClick={() => {
               setDetailDialog({ open: false, student: null, loading: false });
               setDocumentImageUrls({});
+              setDocumentImageLoadErrors({});
               setLoadingDocumentImageId(null);
             }}
           >
