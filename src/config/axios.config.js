@@ -185,7 +185,7 @@ axiosInstance.interceptors.response.use(
                 setTimeout(() => {
                   const stillNotOnLogin = window.location.pathname !== '/login' && !window.location.pathname.includes('/login');
                   if (stillNotOnLogin) {
-              window.location.href = '/login';
+                    window.location.href = '/login';
                   }
                 }, 500);
               }
@@ -206,7 +206,7 @@ axiosInstance.interceptors.response.use(
               setTimeout(() => {
                 const stillNotOnLogin = window.location.pathname !== '/login' && !window.location.pathname.includes('/login');
                 if (stillNotOnLogin) {
-            window.location.href = '/login';
+                  window.location.href = '/login';
                 }
               }, 500);
             }

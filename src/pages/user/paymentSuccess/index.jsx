@@ -81,10 +81,7 @@ const PaymentSuccess = () => {
         // Trigger webhook to sync payment status with backend
         // Backend will verify the payment with PayOS and update wallet balance
         await depositService.triggerPayosWebhook();
-        
-        // If we have orderCode, depositId, or code from PayOS redirect,
-        // we can consider it a valid payment redirect
-        // The webhook will update the deposit status on backend
+
         setIsValid(true);
         setPaymentInfo({
           orderCode: orderCode || 'N/A',

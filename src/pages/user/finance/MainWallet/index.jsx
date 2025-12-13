@@ -520,8 +520,8 @@ const MainWallet = () => {
 
     if (value && (isNaN(value) || Number(value) <= 0)) {
       setTopUpError('Vui lòng nhập số tiền hợp lệ lớn hơn 0');
-    } else if (value && Number(value) < 1000) {
-      setTopUpError('Số tiền tối thiểu là 1.000 VND');
+    } else if (value && Number(value) < 10000) {
+      setTopUpError('Số tiền tối thiểu là 10.000 VND');
     }
   };
 
@@ -538,8 +538,8 @@ const MainWallet = () => {
       return;
     }
 
-    if (amount < 1000) {
-      setTopUpError('Số tiền tối thiểu là 1.000 VND');
+    if (amount < 10000) {
+      setTopUpError('Số tiền tối thiểu là 10.000 VND');
       return;
     }
 
@@ -1048,7 +1048,11 @@ const MainWallet = () => {
                       value={topUpAmount}
                       onChange={handleTopUpAmountChange}
                       error={!!topUpError}
-                      helperText={topUpError || 'Số tiền tối thiểu: 1.000 VND'}
+                      helperText={topUpError || 'Số tiền tối thiểu: 10.000 VND'}
+                      inputProps={{
+                        min: 10000,
+                        step: 1000
+                      }}
                       InputProps={{
                         startAdornment: (
                           <InputAdornment position="start">

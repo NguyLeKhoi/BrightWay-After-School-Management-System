@@ -117,6 +117,11 @@ const StudentManagement = () => {
     document: null,
     student: null
   });
+
+  // Document image (signed URL) state
+  const [documentImageUrls, setDocumentImageUrls] = useState({});
+  const [loadingDocumentImageId, setLoadingDocumentImageId] = useState(null);
+  const [documentImageLoadErrors, setDocumentImageLoadErrors] = useState({});
   
   // Delete student state
   const [deletingStudentId, setDeletingStudentId] = useState(null);
@@ -579,6 +584,35 @@ const StudentManagement = () => {
       handleApproveDocument(rejectConfirmDialog.document.id, false);
     }
   }, [rejectConfirmDialog.document, handleApproveDocument]);
+
+  const handleViewDocumentImage = useCallback(async (documentId) => {
+    if (!documentId) return;
+
+    setLoadingDocumentImageId(documentId);
+    try {
+      const result = await studentService.getDocumentImageUrl(documentId);
+      const imageUrl = result?.imageUrl;
+
+      if (!imageUrl) {
+        throw new Error(result?.message || 'Không thể lấy URL ảnh tài liệu');
+      }
+
+      setDocumentImageLoadErrors((prev) => ({
+        ...prev,
+        [documentId]: false
+      }));
+
+      setDocumentImageUrls((prev) => ({
+        ...prev,
+        [documentId]: imageUrl
+      }));
+    } catch (error) {
+      const errorMessage = getErrorMessage(error) || 'Không thể lấy URL ảnh tài liệu';
+      toast.error(errorMessage);
+    } finally {
+      setLoadingDocumentImageId(null);
+    }
+  }, []);
   
   // Handle delete student
   const handleDeleteStudent = useCallback(async () => {
@@ -1170,7 +1204,11 @@ const StudentManagement = () => {
       {/* Detail Dialog */}
       <Dialog
         open={detailDialog.open}
-        onClose={() => setDetailDialog({ open: false, student: null, loading: false })}
+        onClose={() => {
+          setDetailDialog({ open: false, student: null, loading: false });
+          setDocumentImageUrls({});
+          setLoadingDocumentImageId(null);
+        }}
         maxWidth="md"
         fullWidth
       >
@@ -1181,7 +1219,11 @@ const StudentManagement = () => {
             </Typography>
             <IconButton
               size="small"
-              onClick={() => setDetailDialog({ open: false, student: null, loading: false })}
+              onClick={() => {
+                setDetailDialog({ open: false, student: null, loading: false });
+                setDocumentImageUrls({});
+                setLoadingDocumentImageId(null);
+              }}
             >
               ×
             </IconButton>
@@ -1409,20 +1451,44 @@ const StudentManagement = () => {
                             </Box>
                             
                               <Box display="flex" gap={1} alignItems="center">
-                            {doc.documentImageUrl && doc.documentImageUrl !== 'string' && (
+                                {!!doc.id && (
+                                  <Tooltip title="Xem ảnh tài liệu">
+                                    <span>
+                                      <IconButton
+                                        size="small"
+                                        onClick={() => handleViewDocumentImage(doc.id)}
+                                        disabled={loadingDocumentImageId === doc.id}
+                                        sx={{
+                                          color: 'primary.main',
+                                          '&:hover': {
+                                            bgcolor: 'primary.50'
+                                          }
+                                        }}
+                                      >
+                                        {loadingDocumentImageId === doc.id ? (
+                                          <CircularProgress size={18} />
+                                        ) : (
+                                          <ViewIcon fontSize="small" />
+                                        )}
+                                      </IconButton>
+                                    </span>
+                                  </Tooltip>
+                                )}
+
+                                {!!doc.id && !!documentImageUrls[doc.id] && (
                                   <Tooltip title="Mở ảnh trong tab mới">
-                              <IconButton
-                                size="small"
-                                onClick={() => window.open(doc.documentImageUrl, '_blank')}
-                                sx={{ 
-                                  color: 'primary.main',
-                                  '&:hover': {
-                                    bgcolor: 'primary.50'
-                                  }
-                                }}
-                              >
-                                <OpenInNewIcon fontSize="small" />
-                              </IconButton>
+                                    <IconButton
+                                      size="small"
+                                      onClick={() => window.open(documentImageUrls[doc.id], '_blank')}
+                                      sx={{
+                                        color: 'primary.main',
+                                        '&:hover': {
+                                          bgcolor: 'primary.50'
+                                        }
+                                      }}
+                                    >
+                                      <OpenInNewIcon fontSize="small" />
+                                    </IconButton>
                                   </Tooltip>
                                 )}
                                 
@@ -1465,7 +1531,7 @@ const StudentManagement = () => {
                             </Box>
                             
                             {/* Display document image */}
-                            {doc.documentImageUrl && doc.documentImageUrl !== 'string' && (
+                            {!!doc.id && !!documentImageUrls[doc.id] && (
                               <Box
                                 sx={{
                                   mt: 2,
@@ -1483,34 +1549,45 @@ const StudentManagement = () => {
                                     boxShadow: 2
                                   }
                                 }}
-                                onClick={() => window.open(doc.documentImageUrl, '_blank')}
+                                onClick={() => window.open(documentImageUrls[doc.id], '_blank')}
                               >
                                 <img
-                                  src={doc.documentImageUrl}
+                                  src={documentImageUrls[doc.id]}
                                   alt={`${getDocumentTypeLabel(doc.type)} - ${doc.issuedBy || ''}`}
                                   style={{
                                     width: '100%',
                                     height: 'auto',
                                     maxHeight: 400,
                                     objectFit: 'contain',
-                                    display: 'block'
+                                    display: documentImageLoadErrors[doc.id] ? 'none' : 'block'
                                   }}
-                                  onError={(e) => {
-                                    e.target.style.display = 'none';
+                                  onLoad={() => {
+                                    setDocumentImageLoadErrors((prev) => ({
+                                      ...prev,
+                                      [doc.id]: false
+                                    }));
+                                  }}
+                                  onError={() => {
+                                    setDocumentImageLoadErrors((prev) => ({
+                                      ...prev,
+                                      [doc.id]: true
+                                    }));
                                   }}
                                 />
-                                <Typography
-                                  variant="body2"
-                                  sx={{
-                                    display: 'none',
-                                    position: 'absolute',
-                                    color: 'text.secondary',
-                                    p: 2
-                                  }}
-                                  id={`error-${doc.id || index}`}
-                                >
-                                  Không thể tải ảnh tài liệu
-                                </Typography>
+
+                                {documentImageLoadErrors[doc.id] && (
+                                  <Typography
+                                    variant="body2"
+                                    sx={{
+                                      position: 'absolute',
+                                      color: 'text.secondary',
+                                      p: 2,
+                                      textAlign: 'center'
+                                    }}
+                                  >
+                                    Không thể tải ảnh tài liệu. Bấm nút xem để thử lại.
+                                  </Typography>
+                                )}
                               </Box>
                             )}
                           </Box>
@@ -1525,7 +1602,12 @@ const StudentManagement = () => {
         </DialogContent>
         <DialogActions>
           <Button
-            onClick={() => setDetailDialog({ open: false, student: null, loading: false })}
+            onClick={() => {
+              setDetailDialog({ open: false, student: null, loading: false });
+              setDocumentImageUrls({});
+              setDocumentImageLoadErrors({});
+              setLoadingDocumentImageId(null);
+            }}
           >
             Đóng
           </Button>
