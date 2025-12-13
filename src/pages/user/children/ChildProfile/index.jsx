@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { Box, Avatar, Chip, CircularProgress, Alert, Typography, Button, Paper, IconButton, Grid, Pagination } from '@mui/material';
 import ContentLoading from '../../../../components/Common/ContentLoading';
@@ -77,6 +77,9 @@ const ChildProfile = () => {
   const isInitialMount = useRef(true);
   const { showGlobalError } = useApp();
 
+  // Signed document image url state (fetched on-demand)
+  const [loadingDocumentImageId, setLoadingDocumentImageId] = useState(null);
+
 
   const [child, setChild] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -132,6 +135,28 @@ const ChildProfile = () => {
         setLoading(false);
       }
   };
+
+  const handleViewDocumentImage = useCallback(async (documentId) => {
+    if (!documentId) return;
+
+    setLoadingDocumentImageId(documentId);
+    try {
+      const result = await studentService.getDocumentImageUrl(documentId);
+      const imageUrl = result?.imageUrl;
+
+      if (!imageUrl) {
+        throw new Error(result?.message || 'Không thể lấy URL ảnh tài liệu');
+      }
+
+      window.open(imageUrl, '_blank');
+    } catch (error) {
+      const errorMessage = error?.response?.data?.message || error?.message || 'Không thể lấy URL ảnh tài liệu';
+      toast.error(errorMessage);
+      showGlobalError?.(errorMessage);
+    } finally {
+      setLoadingDocumentImageId(null);
+    }
+  }, [showGlobalError]);
 
   useEffect(() => {
     fetchChild();
@@ -869,11 +894,12 @@ const ChildProfile = () => {
                             </Box>
                           </Box>
                           
-                          {doc.documentImageUrl && doc.documentImageUrl !== 'string' && (
+                          {!!doc.id && (
                             <IconButton
                               size="small"
-                              onClick={() => window.open(doc.documentImageUrl, '_blank')}
-                              sx={{ 
+                              onClick={() => handleViewDocumentImage(doc.id)}
+                              disabled={loadingDocumentImageId === doc.id}
+                              sx={{
                                 ml: 1,
                                 color: 'primary.main',
                                 '&:hover': {
@@ -882,7 +908,11 @@ const ChildProfile = () => {
                               }}
                               title="Xem tài liệu"
                             >
-                              <OpenInNewIcon fontSize="small" />
+                              {loadingDocumentImageId === doc.id ? (
+                                <CircularProgress size={18} />
+                              ) : (
+                                <OpenInNewIcon fontSize="small" />
+                              )}
                             </IconButton>
                           )}
                         </Box>
