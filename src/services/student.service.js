@@ -221,6 +221,20 @@ const approveDocument = async (documentId, approve = true) => {
 };
 
 /**
+ * Get a signed URL to view a student's document image
+ * @param {string} documentId - Document ID
+ * @returns {Promise<{imageUrl: string, expiresInMinutes?: number, message?: string}>}
+ */
+const getDocumentImageUrl = async (documentId) => {
+  try {
+    const response = await axiosInstance.get(`${STUDENT_BASE_PATH}/documents/${documentId}/image`);
+    return response.data;
+  } catch (error) {
+    throw error.response?.data || error.message;
+  }
+};
+
+/**
  * Update student basic information by parent (name, dateOfBirth, note, imageFile)
  * @param {string} studentId - Student ID
  * @param {FormData|Object} studentData - Student data { name, dateOfBirth, note, imageFile }
@@ -302,6 +316,7 @@ const studentService = {
   getUnverifiedStudents,
   approveStudent,
   approveDocument,
+  getDocumentImageUrl,
   parentUpdateStudent,
   deleteStudent
 };

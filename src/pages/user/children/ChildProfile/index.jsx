@@ -87,6 +87,7 @@ const ChildProfile = () => {
   const [openAddDocumentDialog, setOpenAddDocumentDialog] = useState(false);
   const [openUpdateDialog, setOpenUpdateDialog] = useState(false);
   const [openDeleteDialog, setOpenDeleteDialog] = useState(false);
+  const [loadingDocumentImageId, setLoadingDocumentImageId] = useState(null);
 
   const fetchChild = async () => {
       if (!childId) {
@@ -246,6 +247,24 @@ const ChildProfile = () => {
       }
     };
     fetchChild();
+  };
+
+  const handleViewDocumentImage = async (documentId) => {
+    if (!documentId) return;
+    setLoadingDocumentImageId(documentId);
+    try {
+      const result = await studentService.getDocumentImageUrl(documentId);
+      const imageUrl = result?.imageUrl;
+      if (!imageUrl) {
+        throw new Error(result?.message || 'Không thể lấy URL ảnh tài liệu');
+      }
+      window.open(imageUrl, '_blank');
+    } catch (err) {
+      const errorMessage = err?.response?.data?.message || err?.message || 'Không thể xem ảnh tài liệu';
+      toast.error(errorMessage, { position: 'top-right', autoClose: 3000 });
+    } finally {
+      setLoadingDocumentImageId(null);
+    }
   };
 
   const [actionLoading, setActionLoading] = useState(false);
@@ -869,11 +888,12 @@ const ChildProfile = () => {
                             </Box>
                           </Box>
                           
-                          {doc.documentImageUrl && doc.documentImageUrl !== 'string' && (
+                          {!!doc.id && (
                             <IconButton
                               size="small"
-                              onClick={() => window.open(doc.documentImageUrl, '_blank')}
-                              sx={{ 
+                              onClick={() => handleViewDocumentImage(doc.id)}
+                              disabled={loadingDocumentImageId === doc.id}
+                              sx={{
                                 ml: 1,
                                 color: 'primary.main',
                                 '&:hover': {
@@ -882,7 +902,11 @@ const ChildProfile = () => {
                               }}
                               title="Xem tài liệu"
                             >
-                              <OpenInNewIcon fontSize="small" />
+                              {loadingDocumentImageId === doc.id ? (
+                                <CircularProgress size={18} />
+                              ) : (
+                                <OpenInNewIcon fontSize="small" />
+                              )}
                             </IconButton>
                           )}
                         </Box>
