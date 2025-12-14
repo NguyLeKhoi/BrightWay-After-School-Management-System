@@ -92,7 +92,11 @@ const ImageUpload = ({
         fileType: file.type,
       };
       
-      const compressedFile = await imageCompression(file, options);
+      let compressedBlob = await imageCompression(file, options);
+      // Ensure we pass a File, not just a Blob, so downstream `instanceof File` checks succeed
+      const compressedFile = compressedBlob instanceof File
+        ? compressedBlob
+        : new File([compressedBlob], file.name, { type: compressedBlob.type || file.type });
       
       // Create preview immediately after compression
       const previewUrl = URL.createObjectURL(compressedFile);

@@ -60,7 +60,9 @@ const Card = ({
       {avatar && (
         <div className={styles.cardAvatar}>
           {typeof avatar === 'string' && (avatar.startsWith('http') || avatar.startsWith('/')) ? (
-            <img src={avatar} alt={title || 'Avatar'} className={styles.avatarImage} />
+            <img src={`${avatar}${avatar.includes('?') ? '&' : '?'}cb=${Date.now()}`}
+                 alt={title || 'Avatar'}
+                 className={styles.avatarImage} />
           ) : (
             <span>{avatar}</span>
           )}

@@ -31,6 +31,12 @@ const maskEmail = (email) => {
   return `${visiblePart}***@${domain}`;
 };
 
+const withCacheBuster = (url) => {
+  if (!url) return '';
+  const separator = url.includes('?') ? '&' : '?';
+  return `${url}${separator}cb=${Date.now()}`;
+};
+
 const familyProfileSchema = yup.object().shape({
   Name: yup.string().required('Tên là bắt buộc'),
   Phone: yup.string().nullable(),
@@ -234,7 +240,7 @@ const UserProfile = () => {
         fullName: currentUser.fullName || currentUser.name || '',
         email: currentUser.email || '',
         phoneNumber: currentUser.phoneNumber || '',
-        profilePictureUrl: currentUser.profilePictureUrl || '',
+        profilePictureUrl: withCacheBuster(currentUser.profilePictureUrl || ''),
         id: currentUser.id || ''
       };
       
@@ -301,7 +307,7 @@ const UserProfile = () => {
         fullName: freshUserData.fullName || freshUserData.name || editForm.fullName,
         email: freshUserData.email || editForm.email,
         phoneNumber: freshUserData.phoneNumber || editForm.phoneNumber || '',
-        profilePictureUrl: freshUserData.profilePictureUrl || '',
+        profilePictureUrl: withCacheBuster(freshUserData.profilePictureUrl || ''),
         id: freshUserData.id || userData.id
       };
       
