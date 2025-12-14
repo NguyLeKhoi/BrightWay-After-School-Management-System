@@ -155,7 +155,7 @@ const ManagerDetail = () => {
               {/* Avatar and Name */}
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
                 <Avatar
-                  src={manager.profilePictureUrl && manager.profilePictureUrl !== 'string' ? manager.profilePictureUrl : undefined}
+                  src={manager.profilePictureUrl && manager.profilePictureUrl !== 'string' ? `${manager.profilePictureUrl}${manager.profilePictureUrl.includes('?') ? '&' : '?'}cb=${Date.now()}` : undefined}
                   sx={{
                     width: 80,
                     height: 80,

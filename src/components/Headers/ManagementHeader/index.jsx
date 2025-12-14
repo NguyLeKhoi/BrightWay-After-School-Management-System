@@ -13,6 +13,12 @@ import {
 } from '@mui/icons-material';
 import userService from '../../../services/user.service.js';
 
+const withCacheBuster = (url) => {
+  if (!url) return '';
+  const separator = url.includes('?') ? '&' : '?';
+  return `${url}${separator}cb=${Date.now()}`;
+};
+
 const ManagerStaffHeader = () => {
   const navigate = useNavigate();
   const [userInfo, setUserInfo] = useState(null);
@@ -22,7 +28,10 @@ const ManagerStaffHeader = () => {
     const fetchCurrentUser = async () => {
       try {
         const user = await userService.getCurrentUser();
-        setUserInfo(user);
+        setUserInfo({
+          ...user,
+          profilePictureUrl: withCacheBuster(user?.profilePictureUrl || '')
+        });
       } catch (error) {
         console.error('Error fetching current user:', error);
         setUserInfo(null);

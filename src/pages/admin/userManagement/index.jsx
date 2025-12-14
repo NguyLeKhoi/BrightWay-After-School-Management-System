@@ -29,7 +29,7 @@ const createUserColumns = () => [
     render: (value, item) => (
       <Box display="flex" alignItems="center" gap={1.5}>
         <Avatar
-          src={item.profilePictureUrl && item.profilePictureUrl !== 'string' ? item.profilePictureUrl : undefined}
+          src={item.profilePictureUrl && item.profilePictureUrl !== 'string' ? `${item.profilePictureUrl}${item.profilePictureUrl.includes('?') ? '&' : '?'}cb=${Date.now()}` : undefined}
           sx={{ width: 40, height: 40, bgcolor: 'primary.main' }}
         >
           {value?.charAt(0)?.toUpperCase() || 'U'}

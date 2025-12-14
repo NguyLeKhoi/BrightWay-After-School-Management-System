@@ -154,7 +154,7 @@ const StaffDetail = () => {
               {/* Avatar and Name */}
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
                 <Avatar
-                  src={staff.profilePictureUrl && staff.profilePictureUrl !== 'string' ? staff.profilePictureUrl : undefined}
+                  src={staff.profilePictureUrl && staff.profilePictureUrl !== 'string' ? `${staff.profilePictureUrl}${staff.profilePictureUrl.includes('?') ? '&' : '?'}cb=${Date.now()}` : undefined}
                   sx={{
                     width: 80,
                     height: 80,
