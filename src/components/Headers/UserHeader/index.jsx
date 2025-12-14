@@ -15,6 +15,12 @@ import { useNavigate } from 'react-router-dom';
 import userService from '../../../services/user.service.js';
 import { useApp } from '../../../contexts/AppContext';
 
+const withCacheBuster = (url) => {
+  if (!url) return '';
+  const separator = url.includes('?') ? '&' : '?';
+  return `${url}${separator}cb=${Date.now()}`;
+};
+
 const UserHeader = () => {
   const [userInfo, setUserInfo] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -25,7 +31,10 @@ const UserHeader = () => {
     const fetchCurrentUser = async () => {
       try {
         const user = await userService.getCurrentUser();
-        setUserInfo(user);
+        setUserInfo({
+          ...user,
+          profilePictureUrl: withCacheBuster(user?.profilePictureUrl || '')
+        });
       } catch (error) {
         console.error('Error fetching current user:', error);
         showGlobalError('Không thể tải thông tin người dùng.');

@@ -36,6 +36,12 @@ const maskEmail = (email) => {
   return `${visiblePart}***@${domain}`;
 };
 
+const withCacheBuster = (url) => {
+  if (!url) return '';
+  const separator = url.includes('?') ? '&' : '?';
+  return `${url}${separator}cb=${Date.now()}`;
+};
+
 const StaffProfile = () => {
   const navigate = useNavigate();
   const { user, updateUser } = useAuth();
@@ -67,7 +73,7 @@ const StaffProfile = () => {
         fullName: currentUser.fullName || currentUser.name || '',
         email: currentUser.email || '',
         phoneNumber: currentUser.phoneNumber || '',
-        profilePictureUrl: currentUser.profilePictureUrl || '',
+        profilePictureUrl: withCacheBuster(currentUser.profilePictureUrl || ''),
         id: currentUser.id || ''
       };
       
@@ -127,7 +133,7 @@ const StaffProfile = () => {
         fullName: freshUserData.fullName || freshUserData.name || editForm.fullName,
         email: freshUserData.email || userData.email,
         phoneNumber: freshUserData.phoneNumber || editForm.phoneNumber || '',
-        profilePictureUrl: freshUserData.profilePictureUrl || '',
+        profilePictureUrl: withCacheBuster(freshUserData.profilePictureUrl || ''),
         id: freshUserData.id || userData.id
       };
       

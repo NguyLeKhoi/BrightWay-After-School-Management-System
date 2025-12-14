@@ -16,6 +16,12 @@ export const AuthProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
 
+  const withCacheBuster = (url) => {
+    if (!url) return url;
+    const separator = url.includes('?') ? '&' : '?';
+    return `${url}${separator}cb=${Date.now()}`;
+  };
+
   // Load user from localStorage on mount
   useEffect(() => {
     const loadUser = () => {
@@ -25,7 +31,11 @@ export const AuthProvider = ({ children }) => {
         const refreshToken = localStorage.getItem('refreshToken');
         
         if (userStr && accessToken && refreshToken) {
-          const userData = JSON.parse(userStr);
+          const rawUser = JSON.parse(userStr);
+          const userData = {
+            ...rawUser,
+            profilePictureUrl: rawUser?.profilePictureUrl ? withCacheBuster(rawUser.profilePictureUrl) : rawUser?.profilePictureUrl
+          };
           setUser(userData);
           setIsAuthenticated(true);
         }
@@ -95,8 +105,15 @@ export const AuthProvider = ({ children }) => {
   };
 
   const updateUser = (userData) => {
-    setUser(prev => ({ ...prev, ...userData }));
-    localStorage.setItem('user', JSON.stringify({ ...user, ...userData }));
+    const next = {
+      ...user,
+      ...userData,
+    };
+    if (userData && userData.profilePictureUrl) {
+      next.profilePictureUrl = withCacheBuster(userData.profilePictureUrl);
+    }
+    setUser(next);
+    localStorage.setItem('user', JSON.stringify(next));
   };
 
   const refreshToken = async () => {

@@ -154,7 +154,7 @@ const UserDetail = () => {
               {/* Avatar and Name */}
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
                 <Avatar
-                  src={user.profilePictureUrl && user.profilePictureUrl !== 'string' ? user.profilePictureUrl : undefined}
+                  src={user.profilePictureUrl && user.profilePictureUrl !== 'string' ? `${user.profilePictureUrl}${user.profilePictureUrl.includes('?') ? '&' : '?'}cb=${Date.now()}` : undefined}
                   sx={{
                     width: 80,
                     height: 80,
