@@ -12,6 +12,7 @@ const MainHeader = () => {
     { path: '/facilities', label: 'Cơ Sở Vật Chất', section: 'facilities' },
     { path: '/packages', label: 'Gói Dịch Vụ', section: 'packages' },
     { path: '/', label: 'Ứng Dụng Di Động', section: 'mobile-app' },
+    { path: '/faq', label: 'FAQs' },
     { path: '/contact', label: 'Liên Hệ' }
   ];
 

@@ -24,6 +24,7 @@ const CreateBranchSlot = () => {
     slotTypeOptions,
     roomOptions,
     studentLevelOptions,
+    staffOptions,
     loading: dependenciesLoading,
     fetchDependencies
   } = useBranchSlotDependencies(managerBranchId || null);
@@ -41,6 +42,7 @@ const CreateBranchSlot = () => {
       date: null,
       status: 'Available',
       roomIds: [],
+      staffAssignments: [],
       branchSlotId: '',
       branchId: ''
     };
@@ -216,15 +218,8 @@ const CreateBranchSlot = () => {
   const handleStep2Complete = useCallback(
     async (data) => {
       const mergedRooms = Array.isArray(data.roomIds) ? data.roomIds : [];
-      updateFormData({ roomIds: mergedRooms });
-
-      if (!mergedRooms.length) {
-        toast.info('Bạn có thể gán phòng sau.', {
-          position: 'top-right',
-          autoClose: 2500
-        });
-        return true;
-      }
+      const mergedStaffAssignments = Array.isArray(data.staffAssignments) ? data.staffAssignments : [];
+      updateFormData({ roomIds: mergedRooms, staffAssignments: mergedStaffAssignments });
 
       setActionLoading(true);
       try {
@@ -234,20 +229,51 @@ const CreateBranchSlot = () => {
           throw new Error('Không tìm thấy ID ca giữ trẻ');
         }
 
-        console.log('Assigning rooms:', { branchSlotId, roomIds: mergedRooms });
+        // Gán phòng nếu có
+        if (mergedRooms.length > 0) {
+          await branchSlotService.assignRooms({
+            branchSlotId,
+            roomIds: mergedRooms
+          });
+        }
 
-        await branchSlotService.assignRooms({
-          branchSlotId,
-          roomIds: mergedRooms
-        });
+        // Gán nhân viên nếu có
+        if (mergedStaffAssignments.length > 0) {
+          // Validate staff assignments
+          const validAssignments = mergedStaffAssignments.filter(
+            assignment => assignment.userId && assignment.userId !== ''
+          );
 
-        toast.success('Gán phòng thành công!', {
-          position: 'top-right',
-          autoClose: 2500
-        });
+          if (validAssignments.length > 0) {
+            // Gán từng nhân viên
+            const assignPromises = validAssignments.map(assignment =>
+              branchSlotService.assignStaff({
+                branchSlotId,
+                userId: assignment.userId,
+                roomId: assignment.roomId || null,
+                name: assignment.name || null
+              })
+            );
+
+            await Promise.all(assignPromises);
+          }
+        }
+
+        if (mergedRooms.length > 0 || mergedStaffAssignments.length > 0) {
+          toast.success('Gán phòng và nhân viên thành công!', {
+            position: 'top-right',
+            autoClose: 2500
+          });
+        } else {
+          toast.info('Bạn có thể gán phòng và nhân viên sau.', {
+            position: 'top-right',
+            autoClose: 2500
+          });
+        }
+
         return true;
       } catch (error) {
-        const errorMessage = error?.response?.data?.message || error.message || 'Không thể gán phòng';
+        const errorMessage = error?.response?.data?.message || error.message || 'Không thể gán phòng và nhân viên';
         toast.error(errorMessage, {
           position: 'top-right',
           autoClose: 4000
@@ -280,7 +306,7 @@ const CreateBranchSlot = () => {
         validation: handleStep1Complete
       },
       {
-        label: 'Gán phòng',
+        label: 'Gán phòng và nhân viên',
         component: Step2AssignRooms,
         validation: handleStep2Complete
       }
@@ -309,6 +335,7 @@ const CreateBranchSlot = () => {
           slotTypeOptions,
           studentLevelOptions,
           roomOptions,
+          staffOptions,
           dependenciesLoading,
           actionLoading
         }}

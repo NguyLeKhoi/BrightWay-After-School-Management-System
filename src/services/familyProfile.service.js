@@ -33,6 +33,20 @@ const familyProfileService = {
   },
 
   /**
+   * Get family profiles (guardians) by student ID
+   * @param {string} studentId - Student ID
+   * @returns {Promise} List of family profiles related to a student
+   */
+  getByStudentId: async (studentId) => {
+    try {
+      const response = await axiosInstance.get(`/FamilyProfile/student/${studentId}`);
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || error.message;
+    }
+  },
+
+  /**
    * Create new family profile
    * @param {FormData|Object} data - Family profile data
    * @param {string} data.Name - Name (required)

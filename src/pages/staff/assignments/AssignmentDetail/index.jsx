@@ -47,7 +47,11 @@ import {
   Close as CloseIcon,
   Search as SearchIcon,
   ExpandMore as ExpandMoreIcon,
-  Event as EventIcon
+  Event as EventIcon,
+  Phone as PhoneIcon,
+  AccountCircle as AccountCircleIcon,
+  School as SchoolIcon,
+  LocalOffer as ServiceIcon
 } from '@mui/icons-material';
 import { toast } from 'react-toastify';
 import ContentLoading from '../../../../components/Common/ContentLoading';
@@ -59,6 +63,9 @@ import activityService from '../../../../services/activity.service';
 import activityTypeService from '../../../../services/activityType.service';
 import imageService from '../../../../services/image.service';
 import userService from '../../../../services/user.service';
+import studentService from '../../../../services/student.service';
+import familyProfileService from '../../../../services/familyProfile.service';
+import serviceService from '../../../../services/service.service';
 import { useApp } from '../../../../contexts/AppContext';
 import { useAuth } from '../../../../contexts/AuthContext';
 import { formatDateOnlyUTC7, formatDateTimeUTC7 } from '../../../../utils/dateHelper';
@@ -115,6 +122,16 @@ const AssignmentDetail = () => {
   // Loading states
   const [submittingActivity, setSubmittingActivity] = useState(false);
   const [deletingActivity, setDeletingActivity] = useState(false);
+
+  // Student detail and guardian dialog state
+  const [studentDetailDialogOpen, setStudentDetailDialogOpen] = useState(false);
+  const [selectedStudent, setSelectedStudent] = useState(null);
+  const [loadingStudentDetail, setLoadingStudentDetail] = useState(false);
+  const [studentDetail, setStudentDetail] = useState(null);
+  const [guardians, setGuardians] = useState([]);
+  const [loadingGuardians, setLoadingGuardians] = useState(false);
+  const [services, setServices] = useState([]);
+  const [loadingServices, setLoadingServices] = useState(false);
 
 
   useEffect(() => {
@@ -320,6 +337,66 @@ const AssignmentDetail = () => {
     setActivityDialogOpen(true);
   }, []);
 
+  // Handle view student detail
+  const handleViewStudentDetail = useCallback(async (slot) => {
+    if (!slot.studentId) {
+      toast.error('Không tìm thấy ID học sinh', {
+        position: 'top-right',
+        autoClose: 4000
+      });
+      return;
+    }
+
+    setSelectedStudent(slot);
+    setStudentDetailDialogOpen(true);
+    setLoadingStudentDetail(false); // Không cần loading vì dùng data từ slot
+    setLoadingGuardians(true);
+    setLoadingServices(false); // Services chỉ lấy từ slot, không fetch API
+    
+    // Sử dụng thông tin từ slot thay vì fetch từ API (nhân viên không có quyền)
+    setStudentDetail({
+      name: slot.studentName,
+      dateOfBirth: null, // Không có trong slot
+      schoolName: null, // Không có trong slot
+      note: slot.parentNote || null
+    });
+    setGuardians([]);
+    
+    // Services chỉ lấy từ slot data (API có thể yêu cầu quyền mà nhân viên không có)
+    const servicesFromSlot = slot.services || slot.Services || slot.student?.services || slot.student?.Services || [];
+    setServices(Array.isArray(servicesFromSlot) ? servicesFromSlot : []);
+
+    try {
+      // Chỉ fetch guardians (API này đã biết thành công)
+      const guardiansData = await familyProfileService.getByStudentId(slot.studentId);
+      setGuardians(Array.isArray(guardiansData) ? guardiansData : []);
+    } catch (err) {
+      // Xử lý lỗi một cách an toàn, không trigger redirect
+      // Chỉ log warning, không throw error để tránh axios interceptor redirect
+      const errorStatus = err?.response?.status;
+      if (errorStatus === 401 || errorStatus === 403) {
+        // Nếu là lỗi quyền, chỉ set empty array, không throw
+        console.warn('Không có quyền truy cập thông tin người giám hộ');
+        setGuardians([]);
+      } else {
+        // Các lỗi khác cũng chỉ set empty array
+        console.warn('Không thể tải thông tin người giám hộ:', err?.message || err);
+        setGuardians([]);
+      }
+    } finally {
+      setLoadingGuardians(false);
+    }
+  }, []);
+
+  // Handle close student detail dialog
+  const handleCloseStudentDetailDialog = useCallback(() => {
+    setStudentDetailDialogOpen(false);
+    setSelectedStudent(null);
+    setStudentDetail(null);
+    setGuardians([]);
+    setServices([]);
+  }, []);
+
   // Check-in handler
   const handleCheckinToggle = useCallback(async (slot, checked) => {
     if (!slot.studentId) {
@@ -474,6 +551,18 @@ const AssignmentDetail = () => {
         
         return (
           <Box sx={{ display: 'flex', gap: 1, justifyContent: 'center', flexWrap: 'wrap', alignItems: 'center' }}>
+            <Tooltip title="Xem chi tiết học sinh">
+              <IconButton
+                size="small"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleViewStudentDetail(slot);
+                }}
+                color="info"
+              >
+                <VisibilityIcon fontSize="small" />
+              </IconButton>
+            </Tooltip>
             <Tooltip title="Tạo hoạt động">
               <IconButton
                 size="small"
@@ -503,7 +592,7 @@ const AssignmentDetail = () => {
         );
       }
     }
-  ], [checkedStudents, checkingIn, activitiesByStudent, loadingActivities, handleCheckinToggle, handleCreateActivity]);
+  ], [checkedStudents, checkingIn, activitiesByStudent, loadingActivities, handleCheckinToggle, handleCreateActivity, handleViewStudentDetail]);
 
   // Confirm delete check-in
   const handleConfirmDeleteCheckin = async () => {
@@ -1566,6 +1655,311 @@ const AssignmentDetail = () => {
           confirmColor="error"
           highlightText={checkinToDelete?.slot?.studentName}
         />
+
+        {/* Dialog xem chi tiết học sinh và người giám hộ */}
+        <Dialog 
+          open={studentDetailDialogOpen} 
+          onClose={handleCloseStudentDetailDialog}
+          maxWidth="md"
+          fullWidth
+          PaperProps={{
+            sx: {
+              borderRadius: 'var(--radius-xl)'
+            }
+          }}
+        >
+          <DialogTitle>
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <Typography variant="h6" component="div" sx={{ fontFamily: 'var(--font-family-heading)', fontWeight: 600 }}>
+                Chi tiết học sinh
+              </Typography>
+              <IconButton onClick={handleCloseStudentDetailDialog} size="small">
+                <CloseIcon />
+              </IconButton>
+            </Box>
+            {selectedStudent && (
+              <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
+                {selectedStudent.studentName || 'Chưa có tên'}
+              </Typography>
+            )}
+          </DialogTitle>
+          <DialogContent>
+            {selectedStudent ? (
+              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3, mt: 2 }}>
+                {/* Student Information */}
+                <Box>
+                  <Typography variant="h6" sx={{ mb: 2, fontWeight: 600, display: 'flex', alignItems: 'center', gap: 1 }}>
+                    <Person sx={{ fontSize: 24 }} />
+                    Thông tin học sinh
+                  </Typography>
+                  <Grid container spacing={2}>
+                    <Grid item xs={12} sm={6}>
+                      <Box mb={2}>
+                        <Typography variant="caption" color="text.secondary" display="block" mb={0.5}>
+                          <Person sx={{ fontSize: 16, mr: 0.5, verticalAlign: 'middle' }} />
+                          Tên học sinh
+                        </Typography>
+                        <Typography variant="body1" fontWeight="medium">
+                          {selectedStudent.studentName || studentDetail?.name || 'Chưa có tên'}
+                        </Typography>
+                      </Box>
+                    </Grid>
+                    {selectedStudent.parentName && (
+                      <Grid item xs={12} sm={6}>
+                        <Box mb={2}>
+                          <Typography variant="caption" color="text.secondary" display="block" mb={0.5}>
+                            <AccountCircleIcon sx={{ fontSize: 16, mr: 0.5, verticalAlign: 'middle' }} />
+                            Phụ huynh (từ đăng ký)
+                          </Typography>
+                          <Typography variant="body1">
+                            {selectedStudent.parentName}
+                          </Typography>
+                        </Box>
+                      </Grid>
+                    )}
+                    {studentDetail?.dateOfBirth && (
+                      <Grid item xs={12} sm={6}>
+                        <Box mb={2}>
+                          <Typography variant="caption" color="text.secondary" display="block" mb={0.5}>
+                            <CalendarToday sx={{ fontSize: 16, mr: 0.5, verticalAlign: 'middle' }} />
+                            Ngày sinh
+                          </Typography>
+                          <Typography variant="body1">
+                            {formatDateOnlyUTC7(studentDetail.dateOfBirth)}
+                          </Typography>
+                        </Box>
+                      </Grid>
+                    )}
+                    {studentDetail?.schoolName && (
+                      <Grid item xs={12} sm={6}>
+                        <Box mb={2}>
+                          <Typography variant="caption" color="text.secondary" display="block" mb={0.5}>
+                            <SchoolIcon sx={{ fontSize: 16, mr: 0.5, verticalAlign: 'middle' }} />
+                            Trường học
+                          </Typography>
+                          <Typography variant="body1">
+                            {studentDetail.schoolName || studentDetail.school?.name || 'Chưa có'}
+                          </Typography>
+                        </Box>
+                      </Grid>
+                    )}
+                    {(selectedStudent.parentNote || (studentDetail?.note && studentDetail.note !== 'string')) && (
+                      <Grid item xs={12}>
+                        <Box mb={2}>
+                          <Typography variant="caption" color="text.secondary" display="block" mb={0.5}>
+                            Ghi chú
+                          </Typography>
+                          <Typography variant="body1">
+                            {selectedStudent.parentNote || studentDetail?.note || 'Chưa có ghi chú'}
+                          </Typography>
+                        </Box>
+                      </Grid>
+                    )}
+                  </Grid>
+                </Box>
+
+                <Divider />
+
+                {/* Guardians Information */}
+                <Box>
+                  <Typography variant="h6" sx={{ mb: 2, fontWeight: 600, display: 'flex', alignItems: 'center', gap: 1 }}>
+                    <AccountCircleIcon sx={{ fontSize: 24 }} />
+                    Người giám hộ ({guardians.length})
+                  </Typography>
+                  {loadingGuardians ? (
+                    <Box sx={{ display: 'flex', justifyContent: 'center', py: 2 }}>
+                      <CircularProgress size={24} />
+                    </Box>
+                  ) : guardians.length === 0 ? (
+                    <Alert severity="info">
+                      Chưa có thông tin người giám hộ.
+                    </Alert>
+                  ) : (
+                    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                      {guardians.map((guardian, index) => (
+                        <Card 
+                          key={guardian.id || index}
+                          sx={{ 
+                            borderRadius: 'var(--radius-lg)', 
+                            border: '1px solid var(--border-light)', 
+                            backgroundColor: 'var(--bg-secondary)'
+                          }}
+                        >
+                          <CardContent sx={{ p: 2 }}>
+                            <Box sx={{ display: 'flex', gap: 2, alignItems: 'flex-start' }}>
+                              {guardian.avatar && (
+                                <Box
+                                  component="img"
+                                  src={guardian.avatar}
+                                  alt={guardian.name || 'Người giám hộ'}
+                                  sx={{
+                                    width: 60,
+                                    height: 60,
+                                    borderRadius: '50%',
+                                    objectFit: 'cover',
+                                    border: '2px solid',
+                                    borderColor: 'primary.light'
+                                  }}
+                                />
+                              )}
+                              <Box flex={1}>
+                                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
+                                  <Typography variant="h6" fontWeight="bold">
+                                    {guardian.name || 'Chưa có tên'}
+                                  </Typography>
+                                  {guardian.studentRela && (
+                                    <Chip
+                                      label={guardian.studentRela}
+                                      size="small"
+                                      color="primary"
+                                      variant="outlined"
+                                    />
+                                  )}
+                                </Box>
+                                {guardian.phone && (
+                                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 0.5 }}>
+                                    <PhoneIcon sx={{ fontSize: 16, color: 'text.secondary' }} />
+                                    <Typography variant="body2" color="text.secondary">
+                                      {guardian.phone}
+                                    </Typography>
+                                  </Box>
+                                )}
+                              </Box>
+                            </Box>
+                          </CardContent>
+                        </Card>
+                      ))}
+                    </Box>
+                  )}
+                </Box>
+
+                <Divider />
+
+                {/* Services Information */}
+                <Box>
+                  <Typography variant="h6" sx={{ mb: 2, fontWeight: 600, display: 'flex', alignItems: 'center', gap: 1 }}>
+                    <ServiceIcon sx={{ fontSize: 24 }} />
+                    Dịch vụ ({services.length})
+                  </Typography>
+                  {loadingServices ? (
+                    <Box sx={{ display: 'flex', justifyContent: 'center', py: 2 }}>
+                      <CircularProgress size={24} />
+                    </Box>
+                  ) : services.length === 0 ? (
+                    <Alert severity="info">
+                      Chưa có dịch vụ nào được đăng ký.
+                    </Alert>
+                  ) : (
+                    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                      {services.map((service, index) => {
+                        // Ưu tiên các field ảnh quen thuộc; nếu không có thì tự tìm field string là URL
+                        let serviceImage =
+                          service.imageUrl ||
+                          service.image ||
+                          service.iconUrl ||
+                          service.avatar ||
+                          service.thumbnail ||
+                          service.thumbnailUrl ||
+                          null;
+
+                        if (!serviceImage) {
+                          try {
+                            const stringValues = Object.values(service).filter(
+                              (v) => typeof v === 'string'
+                            );
+                            const urlCandidate = stringValues.find((v) =>
+                              /^https?:\/\//i.test(v)
+                            );
+                            if (urlCandidate) {
+                              serviceImage = urlCandidate;
+                            }
+                          } catch {
+                            // ignore parsing errors
+                          }
+                        }
+                        const quantity =
+                          service.quantity ??
+                          service.qty ??
+                          service.amount ??
+                          service.totalQuantity ??
+                          service.total ??
+                          null;
+                        
+                        return (
+                          <Card 
+                            key={service.serviceId || service.id || index}
+                            sx={{ 
+                              borderRadius: 'var(--radius-lg)', 
+                              border: '1px solid var(--border-light)', 
+                              backgroundColor: 'var(--bg-secondary)'
+                            }}
+                          >
+                            <CardContent sx={{ p: 2 }}>
+                              <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, justifyContent: 'space-between' }}>
+                                <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, flex: 1 }}>
+                                  {serviceImage ? (
+                                    <Box
+                                      component="img"
+                                      src={serviceImage}
+                                      alt={service.serviceName || service.name || 'Dịch vụ'}
+                                      sx={{
+                                        width: 48,
+                                        height: 48,
+                                        borderRadius: '12px',
+                                        objectFit: 'cover',
+                                        border: '1px solid',
+                                        borderColor: 'primary.light',
+                                        backgroundColor: 'white'
+                                      }}
+                                    />
+                                  ) : (
+                                    <ServiceIcon sx={{ fontSize: 32, color: 'primary.main' }} />
+                                  )}
+                                  <Box flex={1}>
+                                    <Typography variant="h6" fontWeight="bold" gutterBottom>
+                                      {service.serviceName || service.name || 'Dịch vụ không tên'}
+                                    </Typography>
+                                    {service.description && (
+                                      <Typography variant="body2" color="text.secondary" sx={{ mb: 0.5 }}>
+                                        {service.description}
+                                      </Typography>
+                                    )}
+                                    {service.price !== undefined && service.price !== null && (
+                                      <Typography variant="body2" color="primary.main" fontWeight="medium">
+                                        Giá: {new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(service.price)}
+                                      </Typography>
+                                    )}
+                                  </Box>
+                                </Box>
+                                {quantity !== null && quantity !== undefined && (
+                                  <Chip 
+                                    label={`x${quantity}`}
+                                    color="primary"
+                                    size="small"
+                                    sx={{ fontWeight: 600, ml: 2 }}
+                                  />
+                                )}
+                              </Box>
+                            </CardContent>
+                          </Card>
+                        );
+                      })}
+                    </Box>
+                  )}
+                </Box>
+              </Box>
+            ) : (
+              <Alert severity="info">
+                Không có thông tin học sinh.
+              </Alert>
+            )}
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={handleCloseStudentDetailDialog} variant="contained">
+              Đóng
+            </Button>
+          </DialogActions>
+        </Dialog>
       </div>
     </div>
   );
