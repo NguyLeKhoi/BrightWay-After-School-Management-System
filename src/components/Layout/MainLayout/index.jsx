@@ -10,11 +10,12 @@ import styles from './MainLayout.module.css';
 const MainLayout = ({ showHeader = true, showFooter = true }) => {
   const location = useLocation();
   
-  // Enable ScrollTrigger only for homepage, disable for contact, packages, and facilities
+  // Enable ScrollTrigger only for homepage, disable for contact, packages, facilities, and FAQ
   const isContactPage = location.pathname === '/contact';
   const isPackagesPage = location.pathname === '/packages';
   const isFacilitiesPage = location.pathname === '/facilities';
-  const enableScrollTrigger = !isContactPage && !isPackagesPage && !isFacilitiesPage;
+  const isFAQPage = location.pathname === '/faq';
+  const enableScrollTrigger = !isContactPage && !isPackagesPage && !isFacilitiesPage && !isFAQPage;
 
   return (
     <div className={styles.mainLayout}>

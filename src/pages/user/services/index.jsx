@@ -53,6 +53,25 @@ const UserServices = () => {
     loadChildren();
   }, []);
 
+  // Prefill child and slot from query params when navigating from schedule confirmation
+  useEffect(() => {
+    try {
+      const params = new URLSearchParams(location.search);
+      const childIdFromQuery = params.get('childId');
+      const slotIdFromQuery = params.get('slotId');
+
+      if (childIdFromQuery) {
+        setSelectedChildId(childIdFromQuery);
+      }
+      if (slotIdFromQuery) {
+        setSelectedSlotId(slotIdFromQuery);
+      }
+    } catch (e) {
+      // ignore invalid query params
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [location.search]);
+
   useEffect(() => {
     if (selectedChildId) {
       loadStudentSlots(selectedChildId);

@@ -13,6 +13,8 @@ import studentService from '../../../../../services/student.service';
 import packageService from '../../../../../services/package.service';
 import { useApp } from '../../../../../contexts/AppContext';
 import { formatDateToUTC7ISO, parseDateFromUTC7 } from '../../../../../utils/dateHelper';
+import ConfirmDialog from '../../../../../components/Common/ConfirmDialog';
+import ServiceSelectionDialog from '../../../../../components/Common/ServiceSelectionDialog';
 
 const WEEKDAY_LABELS = {
   0: 'Chủ nhật',
@@ -31,6 +33,14 @@ const MySchedule = () => {
   const [isBooking, setIsBooking] = useState(false);
   const [initialData, setInitialData] = useState({});
   const [isLoadingInitialData, setIsLoadingInitialData] = useState(false);
+  const [postBookingPrompt, setPostBookingPrompt] = useState({
+    open: false,
+    childId: null,
+    slotId: null
+  });
+  const [serviceDialogOpen, setServiceDialogOpen] = useState(false);
+  const [serviceDialogChildId, setServiceDialogChildId] = useState(null);
+  const [serviceDialogSlotId, setServiceDialogSlotId] = useState(null);
 
 
   // Load child data if childId is provided in URL
@@ -242,7 +252,7 @@ const MySchedule = () => {
         return;
       }
 
-      await studentSlotService.bookSlot({
+      const bookingResponse = await studentSlotService.bookSlot({
         studentId: formData.studentId,
         branchSlotId: formData.slotId,
         packageSubscriptionId: subscriptionId,
@@ -261,12 +271,14 @@ const MySchedule = () => {
         autoClose: 3000
       });
 
-      // Navigate back - if came from child schedule, go back there
-      if (childId) {
-        navigate(`/user/management/schedule/${childId}`);
-      } else {
-        navigate('/user/management/children');
-      }
+      // Sau khi đặt lịch thành công, hỏi phụ huynh có muốn mua thêm dịch vụ không
+      // Lấy studentSlotId từ bookingResponse (id của student slot vừa được tạo)
+      const studentSlotId = bookingResponse?.id || bookingResponse?.studentSlotId || null;
+      setPostBookingPrompt({
+        open: true,
+        childId: formData.studentId,
+        slotId: studentSlotId
+      });
     } catch (err) {
       const errorMessage = err?.response?.data?.message || err?.message || err?.error || 'Không thể đặt lịch giữ trẻ';
       addNotification({
@@ -356,14 +368,59 @@ const MySchedule = () => {
   }
 
   return (
-    <StepperForm
-      steps={steps}
-      onComplete={handleComplete}
-      onCancel={handleCancel}
-      initialData={initialData}
-      title={childId ? `Đăng ký ca chăm sóc cho ${initialData.studentName || 'con'}` : 'Đăng ký ca chăm sóc'}
-      icon={<ScheduleIcon />}
-    />
+    <>
+      <StepperForm
+        steps={steps}
+        onComplete={handleComplete}
+        onCancel={handleCancel}
+        initialData={initialData}
+        title={childId ? `Đăng ký ca chăm sóc cho ${initialData.studentName || 'con'}` : 'Đăng ký ca chăm sóc'}
+        icon={<ScheduleIcon />}
+      />
+
+      <ConfirmDialog
+        open={postBookingPrompt.open}
+        onClose={() => {
+          setPostBookingPrompt({ open: false, childId: null, slotId: null });
+          // Nếu phụ huynh không muốn mua thêm, quay lại trang lịch giữ trẻ/children như cũ
+          if (childId) {
+            navigate(`/user/management/schedule/${childId}`);
+          } else {
+            navigate('/user/management/children');
+          }
+        }}
+        onConfirm={() => {
+          const { childId: bookedChildId, slotId } = postBookingPrompt;
+          setPostBookingPrompt({ open: false, childId: null, slotId: null });
+          // Mở dialog dịch vụ thay vì navigate
+          setServiceDialogChildId(bookedChildId);
+          setServiceDialogSlotId(slotId);
+          setServiceDialogOpen(true);
+        }}
+        title="Mua thêm đồ ăn cho bé?"
+        description="Ba/Mẹ có muốn mua thêm đồ ăn cho bé trong slot này không?"
+        confirmText="Có, mua ngay"
+        cancelText="Không, cảm ơn"
+        confirmColor="primary"
+      />
+
+      <ServiceSelectionDialog
+        open={serviceDialogOpen}
+        onClose={() => {
+          setServiceDialogOpen(false);
+          setServiceDialogChildId(null);
+          setServiceDialogSlotId(null);
+          // Sau khi đóng dialog dịch vụ, quay lại trang lịch giữ trẻ/children
+          if (childId) {
+            navigate(`/user/management/schedule/${childId}`);
+          } else {
+            navigate('/user/management/children');
+          }
+        }}
+        childId={serviceDialogChildId}
+        slotId={serviceDialogSlotId}
+      />
+    </>
   );
 };
 

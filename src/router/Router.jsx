@@ -10,6 +10,7 @@ import ProtectedRoute from './ProtectedRoute';
 // Main Pages
 import CombinedLanding from '../pages/main/CombinedLanding';
 import Contact from '../pages/main/Contact';
+import FAQ from '../pages/main/FAQ';
 
 // Auth Pages
 import Login from '../pages/auth/Login';
@@ -121,6 +122,10 @@ export const routes = createBrowserRouter([
       {
         path: 'contact',
         element: <Contact />,
+      },
+      {
+        path: 'faq',
+        element: <FAQ />,
       },
     ],
   },
