@@ -1,7 +1,8 @@
-import React, { useMemo, useImperativeHandle, forwardRef } from 'react';
+import React, { useMemo, useImperativeHandle, forwardRef, useState } from 'react';
 import { Box, Typography, Checkbox, FormControlLabel, FormGroup, Alert } from '@mui/material';
 import { Add as AddIcon } from '@mui/icons-material';
 import Form from '../../../../components/Common/Form';
+import ConfirmDialog from '../../../../components/Common/ConfirmDialog';
 import { bulkCreateBranchSlotDateSchema } from '../../../../utils/validationSchemas/bulkCreateBranchSlotSchemas';
 
 const WEEK_DAYS = [
@@ -28,6 +29,8 @@ const Step1DateSelection = forwardRef(
     },
     ref
   ) => {
+    const [showWarningDialog, setShowWarningDialog] = useState(false);
+
     const timeframeSelectOptions = useMemo(
       () => [
         { value: '', label: 'Chọn khung giờ' },
@@ -140,6 +143,13 @@ const Step1DateSelection = forwardRef(
       return dates.length;
     }, [data.startDate, data.endDate, data.selectedWeekDays]);
 
+    const hasWeekdayMatch = useMemo(() => {
+      if (!data.startDate || !data.endDate || !data.selectedWeekDays || data.selectedWeekDays.length === 0) {
+        return true; // Only evaluate when all inputs are provided
+      }
+      return generateDates(data.startDate, data.endDate, data.selectedWeekDays).length > 0;
+    }, [data.startDate, data.endDate, data.selectedWeekDays]);
+
     const handleWeekDayToggle = (weekDay) => {
       const currentSelection = data.selectedWeekDays || [];
       const isSelected = currentSelection.includes(weekDay);
@@ -147,7 +157,27 @@ const Step1DateSelection = forwardRef(
         ? currentSelection.filter((d) => d !== weekDay)
         : [...currentSelection, weekDay];
 
+      // Check if new selection matches with date range
+      if (data.startDate && data.endDate && newSelection.length > 0) {
+        const matchedDates = generateDates(data.startDate, data.endDate, newSelection);
+        if (matchedDates.length === 0) {
+          setShowWarningDialog(true);
+          return; // Don't update if no match
+        }
+      }
+
       updateData({ selectedWeekDays: newSelection });
+    };
+
+    const handleFormFieldChange = (formValues) => {
+      // Auto-update data when form fields change
+      updateData({
+        timeframeId: formValues.timeframeId,
+        slotTypeId: formValues.slotTypeId,
+        startDate: formValues.startDate,
+        endDate: formValues.endDate,
+        status: formValues.status
+      });
     };
 
     const handleSubmit = async (formData) => {
@@ -157,6 +187,11 @@ const Step1DateSelection = forwardRef(
 
       if (new Date(formData.startDate) > new Date(formData.endDate)) {
         throw new Error('Ngày bắt đầu phải nhỏ hơn hoặc bằng ngày kết thúc');
+      }
+
+      const matchedDates = generateDates(formData.startDate, formData.endDate, data.selectedWeekDays);
+      if (matchedDates.length === 0) {
+        throw new Error('Các ngày trong tuần đã chọn không trùng với khoảng ngày đã chọn');
       }
 
       updateData({
@@ -187,6 +222,7 @@ const Step1DateSelection = forwardRef(
             schema={bulkCreateBranchSlotDateSchema}
             defaultValues={defaultValues}
             onSubmit={handleSubmit}
+            onFieldChange={handleFormFieldChange}
             fields={formFields}
             hideSubmitButton={true}
             disabled={dependenciesLoading || actionLoading}
@@ -218,6 +254,12 @@ const Step1DateSelection = forwardRef(
                 Vui lòng chọn ít nhất một ngày trong tuần
               </Typography>
             )}
+
+            {data.startDate && data.endDate && data.selectedWeekDays && data.selectedWeekDays.length > 0 && !hasWeekdayMatch && (
+              <Typography variant="caption" color="error" sx={{ mt: 0.5, display: 'block' }}>
+                Các ngày trong tuần đã chọn không trùng với khoảng ngày đã chọn
+              </Typography>
+            )}
           </Box>
 
           {estimatedSlots > 0 && (
@@ -228,6 +270,18 @@ const Step1DateSelection = forwardRef(
             </Alert>
           )}
         </Box>
+
+        {/* Warning Dialog */}
+        <ConfirmDialog
+          open={showWarningDialog}
+          onClose={() => setShowWarningDialog(false)}
+          onConfirm={() => setShowWarningDialog(false)}
+          title="Cảnh báo"
+          description={`Các ngày trong tuần đã chọn không trùng với khoảng ngày từ ngày bắt đầu đến ngày kết thúc. Vui lòng chọn ngày trong tuần khác hoặc thay đổi khoảng ngày.`}
+          confirmText="Hiểu rồi"
+          cancelText="Đóng"
+          confirmColor="warning"
+        />
       </Box>
     );
   }

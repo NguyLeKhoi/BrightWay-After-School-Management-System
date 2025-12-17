@@ -159,6 +159,28 @@ const studentSlotService = {
     } catch (error) {
       throw error.response?.data || error.message;
     }
+  },
+
+  /**
+   * Bulk book multiple slots for a student across a date range
+   * @param {Object} payload - Booking data
+   * @param {string} payload.studentId - Student ID (required)
+   * @param {string} payload.packageSubscriptionId - Active package subscription ID (required)
+   * @param {string} payload.branchSlotId - Branch slot ID to book (required)
+   * @param {string} payload.roomId - Room ID (optional, auto-assign if not provided)
+   * @param {string} payload.startDate - Start date (YYYY-MM-DD format, required)
+   * @param {string} payload.endDate - End date (YYYY-MM-DD format, required)
+   * @param {Array<number>} payload.weekDates - Array of weekdays: 0=Sunday, 1=Monday, ..., 6=Saturday (required)
+   * @param {string} payload.parentNote - Note for all bookings (optional, max 1000 characters)
+   * @returns {Promise} Array of StudentSlotDto for successfully booked slots
+   */
+  bulkBookSlots: async (payload) => {
+    try {
+      const response = await axiosInstance.post('/StudentSlot/bulk-book', payload);
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || error.message;
+    }
   }
 };
 

@@ -33,7 +33,7 @@ import studentSlotService from '../../services/studentSlot.service';
 import { useApp } from '../../contexts/AppContext';
 import * as yup from 'yup';
 
-const ServiceSelectionDialog = ({ open, onClose, childId, slotId }) => {
+const ServiceSelectionDialog = ({ open, onClose, childId, slotId, slotIds }) => {
   const { showGlobalError, addNotification } = useApp();
   const [services, setServices] = useState([]);
   const [isLoadingServices, setIsLoadingServices] = useState(false);
@@ -78,7 +78,7 @@ const ServiceSelectionDialog = ({ open, onClose, childId, slotId }) => {
         quantity: 1
       });
     }
-  }, [open, childId, slotId]);
+    }, [open, childId, slotId, slotIds]);
 
   const loadServices = async (studentId) => {
     if (!studentId) {

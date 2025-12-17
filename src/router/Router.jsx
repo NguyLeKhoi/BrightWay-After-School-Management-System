@@ -21,6 +21,7 @@ import UserDashboard from '../pages/user/dashboard';
 import UserProfile from '../pages/user/profile';
 import ChangePassword from '../pages/common/ChangePassword';
 import MySchedule from '../pages/user/children/ChildSchedule/schedule';
+import BulkSchedule from '../pages/user/children/ChildSchedule/schedule/BulkBooking/BulkSchedule';
 import ChildrenList from '../pages/user/children/AllChildren';
 import CreateChild from '../pages/user/children/CreateChild';
 import ChildProfile from '../pages/user/children/ChildProfile';
@@ -240,6 +241,10 @@ export const routes = createBrowserRouter([
         path: 'management/schedule/:childId/register',
         element: <MySchedule />,
       },
+       {
+         path: 'management/schedule/:childId/bulk-register',
+         element: <BulkSchedule />,
+       },
       {
         path: 'management/packages',
         element: <PackageSelect />,
