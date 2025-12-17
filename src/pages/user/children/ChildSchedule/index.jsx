@@ -817,6 +817,27 @@ const ChildSchedule = () => {
             >
               Đăng ký ca chăm sóc
             </Button>
+             <Button
+               startIcon={<Add />}
+               variant="outlined"
+               onClick={() => navigate(`/user/management/schedule/${childId}/bulk-register`)}
+               sx={{
+                 borderRadius: 'var(--radius-lg)',
+                 textTransform: 'none',
+                 fontFamily: 'var(--font-family)',
+                 borderColor: 'var(--color-secondary)',
+                 color: 'var(--color-secondary)',
+                 boxShadow: 'var(--shadow-sm)',
+                 '&:hover': {
+                   borderColor: 'var(--color-secondary-dark)',
+                   backgroundColor: 'rgba(var(--color-secondary-rgb), 0.04)',
+                   boxShadow: 'var(--shadow-md)',
+                   transform: 'translateY(-2px)'
+                 }
+               }}
+             >
+               Đăng ký theo tuần
+             </Button>
           </Box>
           <ToggleButtonGroup
             value={viewMode}

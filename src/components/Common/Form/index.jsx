@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useImperativeHandle, forwardRef } from 'react';
-import { useForm, Controller } from 'react-hook-form';
+import { useForm, Controller, useWatch } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { Grid, Switch, Box, Typography, TextField, Checkbox, InputAdornment, IconButton, ListItemText } from '@mui/material';
 import Autocomplete from '@mui/material/Autocomplete';
@@ -84,6 +84,7 @@ const Form = forwardRef(({
   schema,
   defaultValues = {},
   onSubmit,
+  onFieldChange,
   submitText = 'Submit',
   loading = false,
   fields = [],
@@ -109,6 +110,18 @@ const Form = forwardRef(({
   });
 
   const previousErrorMessages = useRef({});
+
+  // Watch all form values for changes
+  const formValues = useWatch({
+    control
+  });
+
+  // Call onFieldChange when form values change
+  useEffect(() => {
+    if (onFieldChange && formValues) {
+      onFieldChange(formValues);
+    }
+  }, [formValues, onFieldChange]);
 
   // Reset form when defaultValues change (for update scenarios)
   // Use a ref to track previous defaultValues to avoid unnecessary resets
@@ -323,14 +336,15 @@ const Form = forwardRef(({
                   );
                 }}
                 renderInput={(params) => {
-                  // Ưu tiên helperText của field, nếu không có thì hiển thị description của option đã chọn
-                  const displayHelperText = field.helperText || (selectedOption?.description || undefined);
+                  // Ưu tiên lỗi validation, sau đó helperText của field, cuối cùng là description của option đã chọn
+                  const displayHelperText = error?.message || field.helperText || (selectedOption?.description || undefined);
                   return (
                     <TextField
                       {...params}
                       placeholder={field.placeholder}
                       size="small"
                       disabled={field.disabled}
+                      error={!!error}
                       helperText={displayHelperText}
                       FormHelperTextProps={{
                         sx: {

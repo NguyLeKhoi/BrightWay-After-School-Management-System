@@ -64,35 +64,81 @@ const branchSlotService = {
 
   /**
    * Get available slots for a student (user side)
+   * @param {string} studentId - Student ID
+   * @param {Object} params - Query parameters
+   * @param {number} params.pageIndex - Page index (default: 1)
+   * @param {number} params.pageSize - Page size (default: 10)
+   * @param {Date|string} params.date - Single date filter (YYYY-MM-DD format, takes priority if provided)
+   * @param {Date|string} params.startDate - Start of date range (YYYY-MM-DD format)
+   * @param {Date|string} params.endDate - End of date range (YYYY-MM-DD format)
+   * @param {string} params.timeframeId - Filter by timeframe ID
+   * @param {string} params.slotTypeId - Filter by slot type ID
+   * @param {number} params.weekDate - Filter by weekday (0=Sunday, 1=Monday, ..., 6=Saturday)
+   * @returns {Promise} Paginated list of available slots
    */
   getAvailableSlotsForStudent: async (studentId, params = {}) => {
     try {
-      const { pageIndex = 1, pageSize = 10, date = null } = params;
+      const { 
+        pageIndex = 1, 
+        pageSize = 10, 
+        date = null,
+        startDate = null,
+        endDate = null,
+        timeframeId = null,
+        slotTypeId = null,
+        weekDate = null
+      } = params;
       const query = new URLSearchParams({
         pageIndex: pageIndex.toString(),
         pageSize: pageSize.toString()
       });
       
-      // Add date parameter if provided
-      if (date) {
-        // Convert date to UTC+7 ISO string if it's a Date object
-        // Use YYYY-MM-DD format for query params to avoid timezone issues
-        if (date instanceof Date) {
-          const dateStr = extractDateString(date);
-          if (dateStr) {
-            query.append('date', dateStr);
-          }
-        } else if (typeof date === 'string') {
-          // If it's already a string, try to extract date part
-          const dateStr = extractDateString(date);
-          if (dateStr) {
-            query.append('date', dateStr);
-          } else {
-            query.append('date', date);
-          }
-        } else {
-          query.append('date', date);
+      // Helper function to format date to YYYY-MM-DD
+      const formatDate = (dateValue) => {
+        if (!dateValue) return null;
+        if (dateValue instanceof Date) {
+          return extractDateString(dateValue);
+        } else if (typeof dateValue === 'string') {
+          const dateStr = extractDateString(dateValue);
+          return dateStr || dateValue;
         }
+        return dateValue;
+      };
+      
+      // Add date parameter if provided (takes priority)
+      if (date) {
+        const dateStr = formatDate(date);
+        if (dateStr) {
+          query.append('date', dateStr);
+        }
+      } else {
+        // Add date range parameters if date is not provided
+        if (startDate) {
+          const startDateStr = formatDate(startDate);
+          if (startDateStr) {
+            query.append('startDate', startDateStr);
+          }
+        }
+        
+        if (endDate) {
+          const endDateStr = formatDate(endDate);
+          if (endDateStr) {
+            query.append('endDate', endDateStr);
+          }
+        }
+      }
+      
+      // Add other optional filters
+      if (timeframeId !== null && timeframeId !== undefined && timeframeId !== '') {
+        query.append('timeframeId', timeframeId.toString());
+      }
+      
+      if (slotTypeId !== null && slotTypeId !== undefined && slotTypeId !== '') {
+        query.append('slotTypeId', slotTypeId.toString());
+      }
+      
+      if (weekDate !== null && weekDate !== undefined && weekDate !== '') {
+        query.append('weekDate', weekDate.toString());
       }
       
       const response = await axiosInstance.get(

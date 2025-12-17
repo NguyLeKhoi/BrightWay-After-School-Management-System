@@ -57,5 +57,9 @@ export const roomSchema = yup.object({
     .required('Sức chứa là bắt buộc')
     .min(1, 'Sức chứa phải lớn hơn 0')
     .max(1000, 'Sức chứa không được quá 1000')
-    .integer('Sức chứa phải là số nguyên')
+    .integer('Sức chứa phải là số nguyên'),
+  status: yup
+    .string()
+    .required('Trạng thái là bắt buộc')
+    .oneOf(['Active', 'Inactive', 'UnderMaintenance', 'Closed'], 'Trạng thái không hợp lệ')
 });
