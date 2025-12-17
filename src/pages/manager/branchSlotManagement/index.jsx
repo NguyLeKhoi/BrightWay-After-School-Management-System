@@ -148,6 +148,24 @@ const ManagerBranchSlotManagement = () => {
     []
   );
 
+  const roomSelectOptions = useMemo(
+    () =>
+      roomOptions.map((room) => ({
+        value: room.id,
+        label: room.name
+      })),
+    [roomOptions]
+  );
+
+  const staffSelectOptions = useMemo(
+    () =>
+      staffOptions.map((staff) => ({
+        value: staff.id,
+        label: staff.name
+      })),
+    [staffOptions]
+  );
+
 
   const branchSlotFormFields = useMemo(
     () =>
@@ -295,7 +313,20 @@ const ManagerBranchSlotManagement = () => {
         title="Quản lý Ca Giữ Trẻ"
         createButtonText="Thêm Ca Giữ Trẻ Mới"
         onCreateClick={handleCreate}
-      />
+      >
+        <Button
+          variant="outlined"
+          color="primary"
+          onClick={() => navigate('/manager/branch-slots/bulk-create')}
+          sx={{
+            textTransform: 'none',
+            borderRadius: 'var(--radius-lg)',
+            fontFamily: 'var(--font-family)'
+          }}
+        >
+          Tạo Nhiều Ca Cùng Lúc
+        </Button>
+      </ManagementPageHeader>
 
       {dependenciesError && (
         <Alert severity="warning" className={styles.errorAlert}>

@@ -30,8 +30,8 @@ const useBranchSlotDependencies = (branchId = null) => {
       // These endpoints automatically filter by the current manager's branch
       const fetchPromises = [
         timeframeService.getAllTimeframes(),
-        // Only fetch slot types when branchId is known; otherwise, keep empty to avoid cross-branch leakage
-        branchId ? slotTypeService.getAllSlotTypes({ branchId }) : Promise.resolve([]),
+        // Fetch slot types (API will filter by manager's branch automatically)
+        slotTypeService.getAllSlotTypes(branchId ? { branchId } : {}),
         roomService.getRoomsInMyBranch(1, 1000), // Get rooms in manager's branch
         userService.getStaffInMyBranch({ 
           pageIndex: 1, 
