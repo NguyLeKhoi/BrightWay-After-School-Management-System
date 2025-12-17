@@ -353,6 +353,144 @@ const branchSlotService = {
   },
 
   /**
+   * Bulk create branch slots across a date range with multiple weekdays
+   * @param {Object} bulkData - Bulk creation data
+   * Backend expects: { dto: { timeframeId, slotTypeId, startDate, endDate, status, roomAssignments }, weekDates: number[] }
+   * This method accepts both the backend shape above and legacy shapes used in older UI code.
+   * @returns {Promise} Bulk creation result
+   */
+  bulkCreateBranchSlots: async (bulkData) => {
+    try {
+      const formatLocalDateToUTC7Noon = (dateValue) => {
+        if (!dateValue) return null;
+        let dateObj;
+        if (dateValue instanceof Date) {
+          dateObj = dateValue;
+        } else if (typeof dateValue === 'string') {
+          const dateStr = dateValue.split('T')[0];
+          const [year, month, day] = dateStr.split('-').map(Number);
+          dateObj = new Date(year, month - 1, day);
+        } else {
+          dateObj = new Date(dateValue);
+        }
+        if (isNaN(dateObj.getTime())) return null;
+        const year = dateObj.getFullYear();
+        const month = String(dateObj.getMonth() + 1).padStart(2, '0');
+        const day = String(dateObj.getDate()).padStart(2, '0');
+        return `${year}-${month}-${day}T12:00:00.000+07:00`;
+      };
+
+      const normalizeWeekDatesToInts = (values) => {
+        if (!Array.isArray(values)) return [];
+        // If already numbers (0-6), keep them
+        if (values.every((v) => typeof v === 'number' && !Number.isNaN(v))) {
+          return values;
+        }
+        // If numeric strings
+        if (values.every((v) => typeof v === 'string' && v.trim() !== '' && !Number.isNaN(Number(v)))) {
+          return values.map((v) => Number(v));
+        }
+        // Legacy: ISO date strings -> map to weekday ints, unique
+        const weekdays = new Set();
+        values.forEach((v) => {
+          const d = new Date(v);
+          if (!isNaN(d.getTime())) {
+            weekdays.add(d.getDay());
+          }
+        });
+        return Array.from(weekdays);
+      };
+
+      const normalizeRequest = (input) => {
+        if (!input || typeof input !== 'object') {
+          return { dto: {}, weekDates: [] };
+        }
+        // Already in backend shape
+        if (input.dto && input.weekDates) {
+          const normalizedWeekDates = normalizeWeekDatesToInts(input.weekDates);
+          const dto = input.dto || {};
+          // Also include flat fields for compatibility
+          return {
+            dto,
+            weekDates: normalizedWeekDates,
+            ...dto,
+            weekDatesFlat: undefined
+          };
+        }
+
+        // Legacy shape: { timeframeId, slotTypeId, weekDates: [dateStrings], roomAssignments }
+        // Try to derive start/end from provided date list
+        if (Array.isArray(input.weekDates) && (input.timeframeId || input.slotTypeId)) {
+          const parsedDates = input.weekDates
+            .map((v) => new Date(v))
+            .filter((d) => !isNaN(d.getTime()));
+          parsedDates.sort((a, b) => a.getTime() - b.getTime());
+          const startDate = parsedDates[0] ? formatLocalDateToUTC7Noon(parsedDates[0]) : null;
+          const endDate = parsedDates[parsedDates.length - 1]
+            ? formatLocalDateToUTC7Noon(parsedDates[parsedDates.length - 1])
+            : null;
+
+          const dto = {
+            dto: {
+              timeframeId: input.timeframeId,
+              slotTypeId: input.slotTypeId,
+              startDate,
+              endDate,
+              status: input.status || 'Available',
+              roomAssignments: input.roomAssignments || []
+            }
+          };
+          const normalizedWeekDates = normalizeWeekDatesToInts(input.weekDates);
+          return {
+            ...dto,
+            weekDates: normalizedWeekDates,
+            ...dto.dto
+          };
+        }
+
+        // Another legacy shape: { timeframeId, slotTypeId, startDate, endDate, selectedWeekDays }
+        if (input.selectedWeekDays && (input.startDate || input.endDate)) {
+          const dto = {
+            timeframeId: input.timeframeId,
+            slotTypeId: input.slotTypeId,
+            startDate: formatLocalDateToUTC7Noon(input.startDate),
+            endDate: formatLocalDateToUTC7Noon(input.endDate),
+            status: input.status || 'Available',
+            roomAssignments: input.roomAssignments || []
+          };
+          return {
+            dto,
+            weekDates: normalizeWeekDatesToInts(input.selectedWeekDays),
+            ...dto
+          };
+        }
+
+        const dto = input.dto || {};
+        const normalizedWeekDates = normalizeWeekDatesToInts(input.weekDates);
+        return { dto, weekDates: normalizedWeekDates, ...dto };
+      };
+
+      const requestBody = normalizeRequest(bulkData);
+
+      // Remove accidental helper keys if any
+      if (requestBody.weekDatesFlat !== undefined) {
+        delete requestBody.weekDatesFlat;
+      }
+      console.log('bulkCreateBranchSlots API call:', {
+        url: '/BranchSlot/manager/bulk-create',
+        method: 'POST',
+        data: requestBody
+      });
+      const response = await axiosInstance.post('/BranchSlot/manager/bulk-create', requestBody);
+      console.log('bulkCreateBranchSlots API response:', response.data);
+      return response.data;
+    } catch (error) {
+      console.error('bulkCreateBranchSlots API error:', error.response?.data || error.message);
+      throw error.response?.data || error.message;
+    }
+  },
+
+  /**
    * Change the room assigned to a branch slot. Moves all students and staff from old room to new room
    * @param {string} branchSlotId - Branch slot ID
    * @param {string} oldRoomId - Old room ID
