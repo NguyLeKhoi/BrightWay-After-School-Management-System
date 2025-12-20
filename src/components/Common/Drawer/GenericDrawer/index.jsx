@@ -87,9 +87,17 @@ const GenericDrawer = ({
   }, [location.pathname]);
 
   const handleNavigation = (path) => {
-    navigate(path);
-    // Scroll to top when navigating
-    window.scrollTo(0, 0);
+    // Clear any stepper form data before navigation to prevent conflicts
+    Object.keys(sessionStorage).forEach(key => {
+      if (key.startsWith('stepperForm_')) {
+        sessionStorage.removeItem(key);
+      }
+    });
+
+    // Force full page reload to ensure clean navigation
+    setTimeout(() => {
+      window.location.href = path;
+    }, 50);
   };
 
   const handleLogout = () => {

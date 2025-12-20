@@ -3,7 +3,7 @@ import { Box, Typography, Checkbox, FormControlLabel, FormGroup, Alert } from '@
 import { Add as AddIcon } from '@mui/icons-material';
 import Form from '../../../../components/Common/Form';
 import ConfirmDialog from '../../../../components/Common/ConfirmDialog';
-import { bulkCreateBranchSlotDateSchema } from '../../../../utils/validationSchemas/bulkCreateBranchSlotSchemas';
+// Validation chỉ thực hiện ở bước 2 khi submit API
 
 const WEEK_DAYS = [
   { value: 1, label: 'Thứ 2' },
@@ -25,7 +25,8 @@ const Step1DateSelection = forwardRef(
       timeframeOptions = [],
       slotTypeOptions = [],
       dependenciesLoading = false,
-      actionLoading = false
+      actionLoading = false,
+      stepChanged // Prop để detect step change
     },
     ref
   ) => {
@@ -62,7 +63,7 @@ const Step1DateSelection = forwardRef(
           required: true,
           options: timeframeSelectOptions,
           gridSize: 6,
-          disabled: dependenciesLoading || actionLoading || timeframeSelectOptions.length === 0
+          disabled: false  // Bước 1 luôn enable
         },
         {
           name: 'slotTypeId',
@@ -71,7 +72,7 @@ const Step1DateSelection = forwardRef(
           required: true,
           options: slotTypeSelectOptions,
           gridSize: 6,
-          disabled: dependenciesLoading || actionLoading || slotTypeSelectOptions.length === 0
+          disabled: false  // Bước 1 luôn enable
         },
         {
           name: 'startDate',
@@ -79,7 +80,7 @@ const Step1DateSelection = forwardRef(
           type: 'date',
           required: true,
           gridSize: 6,
-          disabled: actionLoading
+          disabled: false  // Bước 1 luôn enable
         },
         {
           name: 'endDate',
@@ -87,7 +88,7 @@ const Step1DateSelection = forwardRef(
           type: 'date',
           required: true,
           gridSize: 6,
-          disabled: actionLoading
+          disabled: false  // Bước 1 luôn enable
         },
         {
           name: 'status',
@@ -100,24 +101,31 @@ const Step1DateSelection = forwardRef(
             { value: 'Cancelled', label: 'Đã hủy' }
           ],
           gridSize: 6,
-          disabled: actionLoading
+          disabled: false  // Bước 1 luôn enable
         }
       ],
-      [timeframeSelectOptions, slotTypeSelectOptions, dependenciesLoading, actionLoading]
+      [timeframeSelectOptions, slotTypeSelectOptions]
     );
 
-    const defaultValues = useMemo(
-      () => ({
-        timeframeId: data.timeframeId || '',
-        slotTypeId: data.slotTypeId || '',
-        startDate: data.startDate || '',
-        endDate: data.endDate || '',
-        status: data.status || 'Available'
-      }),
-      [data.timeframeId, data.slotTypeId, data.startDate, data.endDate, data.status]
-    );
+    // Khởi tạo defaultValues 1 lần duy nhất để tránh form reset liên tục
+    const [initialDefaultValues] = React.useState(() => ({
+      timeframeId: data.timeframeId || '',
+      slotTypeId: data.slotTypeId || '',
+      startDate: data.startDate || '',
+      endDate: data.endDate || '',
+      status: data.status || 'Available'
+    }));
 
     const formRef = React.useRef(null);
+
+  // Ở bước 1, form luôn sẵn sàng để edit, không cần reset phức tạp
+  React.useEffect(() => {
+    // Chỉ clear errors khi cần thiết
+    if (formRef.current?.clearErrors) {
+      formRef.current.clearErrors();
+    }
+    setShowWarningDialog(false);
+  }, [stepChanged]);
 
     const generateDates = (startDate, endDate, selectedWeekDays) => {
       if (!startDate || !endDate || selectedWeekDays.length === 0) {
@@ -137,6 +145,23 @@ const Step1DateSelection = forwardRef(
 
       return dates;
     };
+
+    // Tính các thứ có trong khoảng ngày
+    const getAvailableWeekDays = () => {
+      if (!data.startDate || !data.endDate) return new Set();
+      
+      const availableDays = new Set();
+      const start = new Date(data.startDate);
+      const end = new Date(data.endDate);
+      
+      for (let date = new Date(start); date <= end; date.setDate(date.getDate() + 1)) {
+        availableDays.add(date.getDay());
+      }
+      
+      return availableDays;
+    };
+
+    const availableWeekDays = useMemo(() => getAvailableWeekDays(), [data.startDate, data.endDate]);
 
     const estimatedSlots = useMemo(() => {
       const dates = generateDates(data.startDate, data.endDate, data.selectedWeekDays || []);
@@ -170,30 +195,21 @@ const Step1DateSelection = forwardRef(
     };
 
     const handleFormFieldChange = (formValues) => {
-      // Auto-update data when form fields change
+      // Auto-update data when form fields change, preserve existing data
       updateData({
         timeframeId: formValues.timeframeId,
         slotTypeId: formValues.slotTypeId,
         startDate: formValues.startDate,
         endDate: formValues.endDate,
-        status: formValues.status
+        status: formValues.status,
+        // Preserve existing selectedWeekDays and other data
+        selectedWeekDays: data.selectedWeekDays
       });
     };
 
+    // Ở bước 1 chỉ lưu data, không validate/submit
     const handleSubmit = async (formData) => {
-      if (!data.selectedWeekDays || data.selectedWeekDays.length === 0) {
-        throw new Error('Vui lòng chọn ít nhất một ngày trong tuần');
-      }
-
-      if (new Date(formData.startDate) > new Date(formData.endDate)) {
-        throw new Error('Ngày bắt đầu phải nhỏ hơn hoặc bằng ngày kết thúc');
-      }
-
-      const matchedDates = generateDates(formData.startDate, formData.endDate, data.selectedWeekDays);
-      if (matchedDates.length === 0) {
-        throw new Error('Các ngày trong tuần đã chọn không trùng với khoảng ngày đã chọn');
-      }
-
+      // Chỉ cần return true để cho phép next step, validation thực hiện ở bước 2
       updateData({
         timeframeId: formData.timeframeId,
         slotTypeId: formData.slotTypeId,
@@ -205,27 +221,40 @@ const Step1DateSelection = forwardRef(
       return true;
     };
 
-    useImperativeHandle(ref, () => ({
-      submit: async () => {
-        if (formRef.current && formRef.current.submit) {
-          return await formRef.current.submit();
-        }
-        return false;
+  useImperativeHandle(ref, () => ({
+    submit: async () => {
+      if (formRef.current && formRef.current.submit) {
+        return await formRef.current.submit();
       }
-    }));
+      return false;
+    },
+    reset: () => {
+      // Bước 1 không cần reset phức tạp, form luôn sẵn sàng edit
+      if (formRef.current?.clearErrors) {
+        formRef.current.clearErrors();
+      }
+      setShowWarningDialog(false);
+    },
+    clearErrors: () => {
+      if (formRef.current && formRef.current.clearErrors) {
+        formRef.current.clearErrors();
+      }
+      setShowWarningDialog(false);
+    }
+  }));
 
     return (
       <Box sx={{ height: '100%', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
         <Box sx={{ flex: 1, overflow: 'auto', display: 'flex', flexDirection: 'column', gap: 3, p: 3 }}>
           <Form
             ref={formRef}
-            schema={bulkCreateBranchSlotDateSchema}
-            defaultValues={defaultValues}
+            schema={undefined}  // Bước 1 chỉ là UI input, validation ở bước 2
+            defaultValues={initialDefaultValues}
             onSubmit={handleSubmit}
             onFieldChange={handleFormFieldChange}
             fields={formFields}
             hideSubmitButton={true}
-            disabled={dependenciesLoading || actionLoading}
+            disabled={false}  // Luôn enable ở bước 1
           />
 
           <Box>
@@ -234,19 +263,23 @@ const Step1DateSelection = forwardRef(
             </Typography>
             <FormGroup>
               <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
-                {WEEK_DAYS.map((day) => (
-                  <FormControlLabel
-                    key={day.value}
-                    control={
-                      <Checkbox
-                        checked={(data.selectedWeekDays || []).includes(day.value)}
-                        onChange={() => handleWeekDayToggle(day.value)}
-                        disabled={actionLoading}
-                      />
-                    }
-                    label={day.label}
-                  />
-                ))}
+                {WEEK_DAYS.map((day) => {
+                  const isDisabledByDateRange = data.startDate && data.endDate && !availableWeekDays.has(day.value);
+                  return (
+                    <FormControlLabel
+                      key={day.value}
+                      control={
+                        <Checkbox
+                          checked={(data.selectedWeekDays || []).includes(day.value)}
+                          onChange={() => handleWeekDayToggle(day.value)}
+                          disabled={actionLoading || isDisabledByDateRange}
+                        />
+                      }
+                      label={day.label}
+                      title={isDisabledByDateRange ? `Thứ này không có trong khoảng ${data.startDate} - ${data.endDate}` : ''}
+                    />
+                  );
+                })}
               </Box>
             </FormGroup>
             {(!data.selectedWeekDays || data.selectedWeekDays.length === 0) && (

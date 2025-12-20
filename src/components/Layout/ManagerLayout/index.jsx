@@ -1,5 +1,5 @@
 import React from 'react';
-import { Outlet, useNavigate } from 'react-router-dom';
+import { Outlet, useNavigate, useLocation } from 'react-router-dom';
 import { Box } from '@mui/material';
 import GenericDrawer from '../../Common/Drawer/GenericDrawer';
 import ManagerStaffHeader from '../../Headers/ManagementHeader';
@@ -24,6 +24,41 @@ import {
 
 const ManagerLayout = () => {
   const navigate = useNavigate();
+  const location = useLocation();
+
+  // Clear stepper form data when route changes to prevent navigation conflicts
+  React.useEffect(() => {
+    Object.keys(sessionStorage).forEach(key => {
+      if (key.startsWith('stepperForm_')) {
+        sessionStorage.removeItem(key);
+      }
+    });
+  }, [location.pathname]); // Clear when route changes
+
+  // Clear stepper form data on component mount and before unload
+  React.useEffect(() => {
+    const clearStepperData = () => {
+      Object.keys(sessionStorage).forEach(key => {
+        if (key.startsWith('stepperForm_')) {
+          sessionStorage.removeItem(key);
+        }
+      });
+    };
+
+    const handleBeforeUnload = () => {
+      clearStepperData();
+    };
+
+    // Clear on mount
+    clearStepperData();
+
+    // Listen for beforeunload
+    window.addEventListener('beforeunload', handleBeforeUnload);
+
+    return () => {
+      window.removeEventListener('beforeunload', handleBeforeUnload);
+    };
+  }, []);
 
   const handleLogout = async () => {
     try {

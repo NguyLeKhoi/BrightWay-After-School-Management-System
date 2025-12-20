@@ -40,14 +40,35 @@ const viLocale = {
 
 const normalizeDate = (value) => {
   if (!value) return null;
-  const date = new Date(value);
-  date.setHours(0, 0, 0, 0);
-  return date;
+  
+  // Handle string input (YYYY-MM-DD format from date input)
+  if (typeof value === 'string') {
+    const parts = value.split('-');
+    if (parts.length === 3) {
+      const year = parseInt(parts[0], 10);
+      const month = parseInt(parts[1], 10) - 1; // Month is 0-indexed
+      const day = parseInt(parts[2], 10);
+      const date = new Date(year, month, day, 0, 0, 0, 0);
+      return date;
+    }
+  }
+  
+  // Handle Date object input
+  if (value instanceof Date) {
+    const date = new Date(value);
+    date.setHours(0, 0, 0, 0);
+    return date;
+  }
+  
+  return null;
 };
 
 const formatInputDate = (date) => {
   if (!date) return '';
-  return date.toISOString().split('T')[0];
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
 };
 
 const BulkStep1DateRange = forwardRef(({ data, updateData, stepIndex, totalSteps }, ref) => {
@@ -329,8 +350,12 @@ const BulkStep1DateRange = forwardRef(({ data, updateData, stepIndex, totalSteps
   );
 
   const handleDateClick = (info) => {
-    const clickedDate = new Date(info.date);
-    clickedDate.setHours(0, 0, 0, 0);
+    // Fix timezone issue: Create date from local date components to avoid timezone shift
+    const year = info.date.getFullYear();
+    const month = info.date.getMonth();
+    const day = info.date.getDate();
+    // Create date at noon local time to avoid DST issues
+    const clickedDate = new Date(year, month, day, 12, 0, 0, 0);
 
     if (clickedDate < minDate || clickedDate > maxDate) {
       return;

@@ -333,17 +333,17 @@ const Step1SelectDate = forwardRef(({ data, updateData, stepIndex, totalSteps },
     }
 
     const dateStr = extractDateString(clickedDate);
-    
+
     // Check if this date has been checked and has slots
     if (checkedDates.size > 0) {
       const isChecked = dateStr ? checkedDates.has(dateStr) : false;
       const slotCount = dateStr ? datesWithSlots.get(dateStr) : undefined;
-      
+
       // If date has been checked but has no slots, don't allow selection
       if (isChecked && (slotCount === undefined || slotCount === 0)) {
         return;
       }
-      
+
       // If date hasn't been checked yet, don't allow selection (still loading)
       if (!isChecked) {
         return;
@@ -360,16 +360,20 @@ const Step1SelectDate = forwardRef(({ data, updateData, stepIndex, totalSteps },
       return;
     }
 
-    const newSelectedDate = new Date(clickedDate);
-    newSelectedDate.setHours(0, 0, 0, 0);
+    // Fix timezone issue: Create date from local date components to avoid timezone shift
+    const year = clickedDate.getFullYear();
+    const month = clickedDate.getMonth();
+    const day = clickedDate.getDate();
+    // Create date at noon local time to avoid DST issues
+    const newSelectedDate = new Date(year, month, day, 12, 0, 0, 0);
 
     isUserSelectingRef.current = true;
-    
+
     setSelectedDate(newSelectedDate);
     updateData({ selectedDate: newSelectedDate });
-    
+
     setCalendarKey(prev => prev + 1);
-    
+
     setTimeout(() => {
       isUserSelectingRef.current = false;
     }, 100);

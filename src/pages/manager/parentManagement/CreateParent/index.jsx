@@ -30,6 +30,7 @@ import Step1OCR from './Step1OCR';
 import Step1BasicInfo from './Step1BasicInfo';
 import Step2CCCDInfo from './Step2CCCDInfo';
 import userService from '../../../../services/user.service';
+import imageService from '../../../../services/image.service';
 
 const CreateParent = () => {
   const navigate = useNavigate();
@@ -70,9 +71,9 @@ const CreateParent = () => {
           return false;
         }
       } else {
-        // For manual mode, need email and password
-        if (!data.email || !data.password || !data.name) {
-          toast.error('Vui lòng nhập đầy đủ thông tin cơ bản');
+        // For manual mode, need email and name only (password auto-generated)
+        if (!data.email || !data.name) {
+          toast.error('Vui lòng nhập đầy đủ thông tin cơ bản (Họ tên và Email)');
           return false;
         }
       }
@@ -94,17 +95,27 @@ const CreateParent = () => {
     async (latestData) => {
       const finalData = latestData || formDataRef.current;
 
-      // Validate required fields
-      if (!finalData.name || !finalData.email || !finalData.password) {
-        toast.error('Vui lòng hoàn thành đầy đủ thông tin bắt buộc');
-        return;
+
+      // Validate required fields based on mode
+      if (mode === 'ocr') {
+        if (!finalData.name || !finalData.email) {
+          toast.error('Vui lòng hoàn thành đầy đủ thông tin bắt buộc (Họ tên và Email)');
+          return;
+        }
+      } else {
+        // Manual mode only requires name and email (password auto-generated)
+
+        if (!finalData.name || !finalData.email) {
+          toast.error('Vui lòng hoàn thành đầy đủ thông tin bắt buộc (Họ tên và Email)');
+          return;
+        }
       }
 
       // Show confirm dialog
       setConfirmData(finalData);
       setShowConfirmDialog(true);
     },
-    []
+    [mode]
   );
 
   const handleConfirm = useCallback(async () => {
@@ -114,6 +125,13 @@ const CreateParent = () => {
     setLoading(true);
 
     try {
+
+      // Generate password for both OCR and manual modes
+      let finalData = { ...confirmData };
+      if (!finalData.password) {
+        // Generate a random password
+        finalData.password = Math.random().toString(36).slice(-12) + 'Aa1!';
+      }
       // Helper function to convert dd/mm/yyyy or YYYY-MM-DD to ISO string for API
       const formatDateForAPI = (dateString) => {
         if (!dateString) return null;
@@ -145,47 +163,73 @@ const CreateParent = () => {
         return date.toISOString();
       };
 
-      // If has CCCD data, use with CCCD endpoint
-      if (confirmData.identityCardNumber || confirmData.identityCardPublicId) {
+      // Handle avatar upload first if present
+      let avatarUrl = null;
+      if (finalData.avatarFile && finalData.avatarFile instanceof File) {
+        try {
+          avatarUrl = await imageService.uploadImage(finalData.avatarFile);
+        } catch (uploadError) {
+          // Continue without avatar, don't fail the whole process
+          toast.warning('Không thể tải lên ảnh đại diện. Tiếp tục tạo tài khoản...', {
+            autoClose: 3000
+          });
+        }
+      }
+
+      // Use CCCD endpoint for both OCR and manual mode if has CCCD data
+      if (confirmData.identityCardNumber || confirmData.identityCardPublicId || mode === 'ocr') {
+
         // Create FormData for multipart/form-data
         const formData = new FormData();
-        formData.append('Email', confirmData.email);
-        formData.append('Password', confirmData.password);
-        formData.append('Name', confirmData.name);
-        if (confirmData.phoneNumber) {
-          formData.append('PhoneNumber', confirmData.phoneNumber);
+        formData.append('Email', finalData.email);
+        formData.append('Password', finalData.password);
+        formData.append('Name', finalData.name);
+        if (finalData.phoneNumber) {
+          formData.append('PhoneNumber', finalData.phoneNumber);
         }
-        
-        // Optional CCCD fields
-        if (confirmData.identityCardNumber) {
-          formData.append('IdentityCardNumber', confirmData.identityCardNumber);
+
+        // CCCD fields (optional but recommended)
+        if (finalData.identityCardNumber) {
+          formData.append('IdentityCardNumber', finalData.identityCardNumber);
         }
-        if (confirmData.dateOfBirth) {
-          const dob = formatDateForAPI(confirmData.dateOfBirth);
+        if (finalData.dateOfBirth) {
+          const dob = formatDateForAPI(finalData.dateOfBirth);
           if (dob) formData.append('DateOfBirth', dob);
         }
-        if (confirmData.gender) {
-          formData.append('Gender', confirmData.gender);
+        if (finalData.gender) {
+          formData.append('Gender', finalData.gender);
         }
-        if (confirmData.address) {
-          formData.append('Address', confirmData.address);
+        if (finalData.address) {
+          formData.append('Address', finalData.address);
         }
-        if (confirmData.issuedDate) {
-          const issued = formatDateForAPI(confirmData.issuedDate);
+        if (finalData.issuedDate) {
+          const issued = formatDateForAPI(finalData.issuedDate);
           if (issued) formData.append('IssuedDate', issued);
         }
-        if (confirmData.issuedPlace) {
-          formData.append('IssuedPlace', confirmData.issuedPlace);
+        if (finalData.issuedPlace) {
+          formData.append('IssuedPlace', finalData.issuedPlace);
         }
-        if (confirmData.identityCardPublicId) {
-          formData.append('IdentityCardPublicId', confirmData.identityCardPublicId);
+        if (finalData.identityCardPublicId) {
+          formData.append('IdentityCardPublicId', finalData.identityCardPublicId);
         }
-        // AvatarFile (optional)
-        if (confirmData.avatarFile && confirmData.avatarFile instanceof File) {
-          formData.append('AvatarFile', confirmData.avatarFile);
+
+        // Use uploaded avatar URL if available, otherwise don't send avatar
+        if (avatarUrl) {
+          // If we have URL, send it as AvatarUrl or ProfilePictureUrl
+          formData.append('ProfilePictureUrl', avatarUrl);
         }
-        
-        await userService.createParentWithCCCD(formData);
+        // Don't send AvatarFile anymore since we uploaded separately
+
+        try {
+          await userService.createParentWithCCCD(formData);
+        } catch (apiError) {
+          // Handle authentication errors specifically for parent creation
+          if (apiError.response?.status === 401) {
+            throw new Error('Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại và thử tạo tài khoản.');
+          }
+          // Re-throw other errors
+          throw apiError;
+        }
       } else {
         // Otherwise use regular endpoint - create FormData for multipart/form-data
         const formData = new FormData();
@@ -196,17 +240,47 @@ const CreateParent = () => {
           formData.append('PhoneNumber', confirmData.phoneNumber);
         }
         // BranchId will be set automatically by backend from manager's branch
-        // AvatarFile (optional)
-        if (confirmData.avatarFile && confirmData.avatarFile instanceof File) {
-          formData.append('AvatarFile', confirmData.avatarFile);
+
+        // Use uploaded avatar URL if available
+        if (avatarUrl) {
+          formData.append('ProfilePictureUrl', avatarUrl);
         }
-        
-        await userService.createParent(formData);
+        // Don't send AvatarFile anymore
+
+        try {
+          await userService.createParent(formData);
+        } catch (apiError) {
+          // Handle authentication errors specifically for parent creation
+          if (apiError.response?.status === 401) {
+            throw new Error('Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại và thử tạo tài khoản.');
+          }
+          // Re-throw other errors
+          throw apiError;
+        }
       }
 
+
       toast.success(`Tạo tài khoản Người dùng (Phụ huynh) "${confirmData.name}" thành công!`);
-      navigate('/manager/parents');
+
+      // Force navigation để đảm bảo hoạt động
+      setTimeout(() => {
+        window.location.href = '/manager/parents';
+      }, 1500); // Give time for toast to show
     } catch (err) {
+
+      // Handle authentication errors specially
+      if (err.message?.includes('Phiên đăng nhập đã hết hạn')) {
+        toast.error('Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại và thử tạo tài khoản.', {
+          autoClose: 5000,
+          style: { whiteSpace: 'pre-line' }
+        });
+        // Optionally redirect to login after a delay
+        setTimeout(() => {
+          window.location.href = '/login';
+        }, 3000);
+        return;
+      }
+
       const errorMessage = getErrorMessage(err) || 'Có lỗi xảy ra khi tạo tài khoản Người dùng (Phụ huynh)';
       toast.error(errorMessage, {
         autoClose: 5000,
@@ -218,8 +292,8 @@ const CreateParent = () => {
   }, [confirmData, navigate]);
 
   const handleCancel = useCallback(() => {
-    navigate('/manager/parents');
-  }, [navigate]);
+    window.location.href = '/manager/parents';
+  }, []);
 
   const steps = useMemo(
     () => {

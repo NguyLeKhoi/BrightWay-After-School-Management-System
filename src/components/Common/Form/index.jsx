@@ -101,7 +101,8 @@ const Form = forwardRef(({
     control,
     trigger,
     getValues,
-    setValue
+    setValue,
+    clearErrors
   } = useForm({
     resolver: schema ? yupResolver(schema) : undefined,
     defaultValues,
@@ -199,16 +200,16 @@ const Form = forwardRef(({
         // First validate the form - trigger validation for all fields
         try {
           const isValid = await trigger();
-          
+
           if (!isValid) {
             // Validation failed, don't submit
             return false;
           }
-          
+
           // If validation passes, get values and submit
           const values = getValues();
           const result = await handleFormSubmit(values);
-          
+
           // Return true only if submit was successful
           return result !== false;
         } catch (error) {
@@ -221,9 +222,15 @@ const Form = forwardRef(({
     validate: async () => {
       return await trigger();
     },
+    reset: (values, options) => {
+      reset(values, options);
+    },
     getValues: () => getValues(),
     setValue: (name, value, options) => {
       setValue(name, value, options);
+    },
+    clearErrors: (name) => {
+      clearErrors(name);
     },
     control: control // Expose control for useWatch
   }));

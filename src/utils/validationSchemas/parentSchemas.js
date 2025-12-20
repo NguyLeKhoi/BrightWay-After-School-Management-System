@@ -43,7 +43,7 @@ export const createParentCCCDInfoSchema = yup.object({
   phoneNumber: yup
     .string()
     .optional()
-    .matches(/^[0-9]{10,11}$/, 'Số điện thoại phải có 10-11 chữ số'),
+    .nullable(),
   avatarFile: yup
     .mixed()
     .nullable()
@@ -58,42 +58,45 @@ export const createParentCCCDInfoSchema = yup.object({
     }),
   identityCardNumber: yup
     .string()
-    .optional(),
+    .optional()
+    .nullable(),
   dateOfBirth: yup
     .string()
     .optional()
-    .matches(/^(\d{2}\/\d{2}\/\d{4}|)$/, 'Ngày sinh phải có định dạng dd/mm/yyyy'),
+    .nullable(),
   gender: yup
     .string()
     .optional(),
   address: yup
     .string()
-    .optional(),
+    .optional()
+    .nullable(),
   issuedDate: yup
     .string()
     .optional()
-    .matches(/^(\d{2}\/\d{2}\/\d{4}|)$/, 'Ngày cấp phải có định dạng dd/mm/yyyy'),
+    .nullable(),
   issuedPlace: yup
     .string()
     .optional()
+    .nullable()
 });
 
-// Schema for Step 2: CCCD Info in OCR mode (email & password required)
+// Schema for Step 2: CCCD Info in OCR mode (all optional - validation at parent level)
 export const createParentCCCDInfoOCRSchema = yup.object({
   name: yup
     .string()
-    .required('Họ và tên là bắt buộc')
+    .optional()
     .min(2, 'Họ và tên phải có ít nhất 2 ký tự')
     .max(100, 'Họ và tên không được quá 100 ký tự'),
   email: yup
     .string()
-    .required('Email là bắt buộc')
+    .optional()
     .email('Email không hợp lệ')
     .max(256, 'Email không được quá 256 ký tự'),
   phoneNumber: yup
     .string()
     .optional()
-    .matches(/^[0-9]{10,11}$/, 'Số điện thoại phải có 10-11 chữ số'),
+    .nullable(),
   avatarFile: yup
     .mixed()
     .nullable()
@@ -108,24 +111,27 @@ export const createParentCCCDInfoOCRSchema = yup.object({
     }),
   identityCardNumber: yup
     .string()
-    .optional(),
+    .optional()
+    .nullable(),
   dateOfBirth: yup
     .string()
     .optional()
-    .matches(/^(\d{2}\/\d{2}\/\d{4}|)$/, 'Ngày sinh phải có định dạng dd/mm/yyyy'),
+    .nullable(),
   gender: yup
     .string()
     .optional(),
   address: yup
     .string()
-    .optional(),
+    .optional()
+    .nullable(),
   issuedDate: yup
     .string()
     .optional()
-    .matches(/^(\d{2}\/\d{2}\/\d{4}|)$/, 'Ngày cấp phải có định dạng dd/mm/yyyy'),
+    .nullable(),
   issuedPlace: yup
     .string()
     .optional()
+    .nullable()
 });
 
 // Schema for creating parent with CCCD
