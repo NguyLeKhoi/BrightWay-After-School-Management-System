@@ -42,6 +42,41 @@ const BulkCreateBranchSlot = () => {
     }
   }, [authUser]);
 
+  // Cleanup khi component mount - clear any existing stepper form data
+  useEffect(() => {
+    // Clear all stepper form data to prevent navigation conflicts
+    Object.keys(sessionStorage).forEach(key => {
+      if (key.startsWith('stepperForm_')) {
+        sessionStorage.removeItem(key);
+      }
+    });
+
+    return () => {
+      // Cleanup on unmount - clear everything before navigation
+      Object.keys(sessionStorage).forEach(key => {
+        if (key.startsWith('stepperForm_')) {
+          sessionStorage.removeItem(key);
+        }
+      });
+    };
+  }, []);
+
+  // Prevent back/forward navigation conflicts - remove this as it may cause issues
+  // useEffect(() => {
+  //   const handlePopState = () => {
+  //     Object.keys(sessionStorage).forEach(key => {
+  //       if (key.startsWith('stepperForm_')) {
+  //         sessionStorage.removeItem(key);
+  //       }
+  //     });
+  //   };
+
+  //   window.addEventListener('popstate', handlePopState);
+  //   return () => {
+  //     window.removeEventListener('popstate', handlePopState);
+  //   };
+  // }, []);
+
   const generateDates = useCallback((startDate, endDate, selectedWeekDays) => {
     if (!startDate || !endDate || selectedWeekDays.length === 0) {
       return [];
@@ -130,12 +165,10 @@ const BulkCreateBranchSlot = () => {
         return;
       }
 
-      // Call bulk create API
+      // Call bulk create API theo format ổn định
+      // Gửi vào shape { dto, weekDates } để service không phải đoán start/end
       await branchSlotService.bulkCreateBranchSlots({
-        // Some BE builds expect wrapper { dto, weekDates }, some expect flat fields.
-        // Send both to be compatible.
         dto: {
-          branchId: managerBranchId || null,
           timeframeId: finalData.timeframeId,
           slotTypeId: finalData.slotTypeId,
           startDate,
@@ -143,14 +176,7 @@ const BulkCreateBranchSlot = () => {
           status: finalData.status || 'Available',
           roomAssignments
         },
-        weekDates,
-        branchId: managerBranchId || null,
-        timeframeId: finalData.timeframeId,
-        slotTypeId: finalData.slotTypeId,
-        startDate,
-        endDate,
-        status: finalData.status || 'Available',
-        roomAssignments
+        weekDates // Array of weekday numbers [0,1,2,3,4,5,6]
       });
 
       toast.success(`Đã tạo thành công ${dates.length} ca giữ trẻ!`, {
@@ -199,8 +225,21 @@ const BulkCreateBranchSlot = () => {
         icon={<BranchSlotIcon />}
         steps={steps}
         onComplete={handleComplete}
-        onCancel={() => navigate('/manager/branch-slots')}
+        onCancel={() => {
+          // Clear any saved stepper form data before navigating
+          Object.keys(sessionStorage).forEach(key => {
+            if (key.startsWith('stepperForm_')) {
+              sessionStorage.removeItem(key);
+            }
+          });
+
+          // Small delay to ensure cleanup completes before navigation
+          setTimeout(() => {
+            window.location.href = '/manager/branch-slots';
+          }, 50);
+        }}
         loading={actionLoading}
+        enableLocalStorage={false} // Disable localStorage để tránh conflict với navigation
         stepProps={{
           timeframeOptions,
           slotTypeOptions,

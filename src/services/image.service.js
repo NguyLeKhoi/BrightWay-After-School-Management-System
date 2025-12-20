@@ -21,10 +21,21 @@ const imageService = {
         }
       });
 
-      // API trả về URL của ảnh đã upload
-      // Có thể là response.data.url hoặc response.data hoặc response.data.imageUrl
-      // Tùy vào format response của backend
-      return response.data?.url || response.data?.imageUrl || response.data || '';
+      // API trả về thông tin ảnh đã upload
+      // Có thể là URL trực tiếp hoặc object với các field khác nhau
+
+      // Try different possible response formats
+      if (typeof response.data === 'string') {
+        return response.data; // Direct URL string
+      }
+
+      return response.data?.url ||
+             response.data?.imageUrl ||
+             response.data?.publicUrl ||
+             response.data?.fileUrl ||
+             response.data?.path ||
+             response.data?.imagePath ||
+             JSON.stringify(response.data); // Fallback to stringify
     } catch (error) {
       throw error.response?.data || error.message;
     }

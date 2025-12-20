@@ -471,7 +471,7 @@ export const routes = createBrowserRouter([
       },
       {
         path: 'branch-slots/bulk-create',
-        element: <BulkCreateBranchSlot />,
+        element: <BulkCreateBranchSlot key={Date.now()} />,
       },
       {
         path: 'branch-slots/update/:id',

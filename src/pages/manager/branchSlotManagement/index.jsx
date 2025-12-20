@@ -9,10 +9,24 @@ import {
   Select,
   MenuItem,
   Button,
-  TextField
+  TextField,
+  Accordion,
+  AccordionSummary,
+  AccordionDetails,
+  List,
+  ListItem,
+  ListItemIcon,
+  ListItemText
 } from '@mui/material';
 import {
-  AccessTime as BranchSlotIcon
+  AccessTime as BranchSlotIcon,
+  ExpandMore as ExpandMoreIcon,
+  Add as AddIcon,
+  GroupAdd as BulkAddIcon,
+  Search as SearchIcon,
+  Edit as EditIcon,
+  Delete as DeleteIcon,
+  Info as InfoIcon
 } from '@mui/icons-material';
 import DataTable from '../../../components/Common/DataTable';
 import ConfirmDialog from '../../../components/Common/ConfirmDialog';
@@ -327,6 +341,106 @@ const ManagerBranchSlotManagement = () => {
           Tạo Nhiều Ca Cùng Lúc
         </Button>
       </ManagementPageHeader>
+
+      {/* Hướng dẫn sử dụng */}
+      <Box sx={{ mb: 3 }}>
+        <Accordion
+          defaultExpanded={false}
+          sx={{
+            borderRadius: 'var(--radius-lg)',
+            boxShadow: 'var(--shadow-sm)',
+            '&:before': { display: 'none' },
+            '& .MuiAccordionSummary-root': {
+              backgroundColor: 'var(--bg-secondary)',
+              borderRadius: 'var(--radius-lg)',
+            },
+            '& .MuiAccordionDetails-root': {
+              backgroundColor: 'var(--bg-primary)',
+              borderBottomLeftRadius: 'var(--radius-lg)',
+              borderBottomRightRadius: 'var(--radius-lg)',
+            }
+          }}
+        >
+          <AccordionSummary
+            expandIcon={<ExpandMoreIcon />}
+            sx={{
+              '& .MuiAccordionSummary-content': {
+                alignItems: 'center',
+                gap: 1
+              }
+            }}
+          >
+            <InfoIcon color="info" />
+            <Typography variant="h6" sx={{ fontWeight: 600 }}>
+              Hướng dẫn sử dụng trang Quản lý Ca Giữ Trẻ
+            </Typography>
+          </AccordionSummary>
+          <AccordionDetails>
+            <Typography variant="body1" paragraph sx={{ mb: 2 }}>
+              Trang này giúp bạn quản lý các ca giữ trẻ của chi nhánh. Dưới đây là hướng dẫn chi tiết để sử dụng:
+            </Typography>
+
+            <List>
+              <ListItem>
+                <ListItemIcon>
+                  <AddIcon color="primary" />
+                </ListItemIcon>
+                <ListItemText
+                  primary="Thêm ca giữ trẻ đơn lẻ"
+                  secondary="Nhấn nút 'Thêm Ca Giữ Trẻ Mới' để tạo một ca giữ trẻ cụ thể với thông tin chi tiết về khung giờ, loại ca, phòng và nhân viên."
+                />
+              </ListItem>
+
+              <ListItem>
+                <ListItemIcon>
+                  <BulkAddIcon color="secondary" />
+                </ListItemIcon>
+                <ListItemText
+                  primary="Tạo nhiều ca cùng lúc (khuyến nghị)"
+                  secondary="Nhấn nút 'Tạo Nhiều Ca Cùng Lúc' để tạo hàng loạt ca giữ trẻ theo lịch định kỳ. Phù hợp cho việc lên lịch dài hạn."
+                />
+              </ListItem>
+
+              <ListItem>
+                <ListItemIcon>
+                  <SearchIcon color="info" />
+                </ListItemIcon>
+                <ListItemText
+                  primary="Tìm kiếm và lọc ca giữ trẻ"
+                  secondary="Sử dụng thanh tìm kiếm để tìm theo tên, hoặc dùng các bộ lọc khung giờ, loại ca và ngày để lọc kết quả."
+                />
+              </ListItem>
+
+              <ListItem>
+                <ListItemIcon>
+                  <EditIcon color="warning" />
+                </ListItemIcon>
+                <ListItemText
+                  primary="Chỉnh sửa thông tin ca"
+                  secondary="Nhấn biểu tượng chỉnh sửa để thay đổi thông tin ca giữ trẻ như khung giờ, phòng hoặc nhân viên phụ trách."
+                />
+              </ListItem>
+
+              <ListItem>
+                <ListItemIcon>
+                  <DeleteIcon color="error" />
+                </ListItemIcon>
+                <ListItemText
+                  primary="Xóa ca giữ trẻ"
+                  secondary="Nhấn biểu tượng thùng rác để xóa ca giữ trẻ. Lưu ý: chỉ xóa được ca chưa có lịch hẹn."
+                />
+              </ListItem>
+            </List>
+
+            <Alert severity="info" sx={{ mt: 2 }}>
+              <Typography variant="body2">
+                <strong>Lưu ý:</strong> Để tạo ca giữ trẻ hiệu quả, hãy sử dụng tính năng "Tạo Nhiều Ca Cùng Lúc"
+                cho việc lên lịch định kỳ. Bạn có thể chọn nhiều ngày trong tuần và khoảng thời gian dài hạn.
+              </Typography>
+            </Alert>
+          </AccordionDetails>
+        </Accordion>
+      </Box>
 
       {dependenciesError && (
         <Alert severity="warning" className={styles.errorAlert}>

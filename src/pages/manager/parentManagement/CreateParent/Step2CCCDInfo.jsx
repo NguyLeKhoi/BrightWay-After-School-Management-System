@@ -9,22 +9,55 @@ const Step2CCCDInfo = React.forwardRef(
     const formRef = React.useRef(null);
     const dataRef = React.useRef({ avatarFile: data.avatarFile });
 
+    // Update form values khi data thay đổi từ bên ngoài (không reset form)
+    React.useEffect(() => {
+      if (formRef.current && formRef.current.setValue) {
+        // Chỉ update nếu có data từ OCR/external
+        if (data.name && formRef.current.getValues) {
+          const currentValues = formRef.current.getValues();
+          // Chỉ update nếu value thực sự khác
+          if (currentValues.name !== data.name) {
+            formRef.current.setValue('name', data.name, { shouldValidate: false });
+          }
+          if (data.email && currentValues.email !== data.email) {
+            formRef.current.setValue('email', data.email, { shouldValidate: false });
+          }
+          if (data.phoneNumber && currentValues.phoneNumber !== data.phoneNumber) {
+            formRef.current.setValue('phoneNumber', data.phoneNumber, { shouldValidate: false });
+          }
+          if (data.identityCardNumber && currentValues.identityCardNumber !== data.identityCardNumber) {
+            formRef.current.setValue('identityCardNumber', data.identityCardNumber, { shouldValidate: false });
+          }
+        }
+      }
+    }, [data.name, data.email, data.phoneNumber, data.identityCardNumber]);
+
+    // Update data when form fields change
+    const handleFieldChange = (formValues) => {
+      updateData({
+        ...data,
+        ...formValues,
+        avatarFile: dataRef.current.avatarFile // Preserve avatarFile from ref
+      });
+    };
+
     const fields = useMemo(
       () => {
-        const accountFields = mode === 'ocr' ? [
+        // Account fields are always available for editing in step 2
+        const accountFields = [
           {
             name: 'name',
             label: 'Họ và Tên',
             type: 'text',
-            required: true,
+            required: mode === 'ocr', // Required for OCR, optional for manual
             placeholder: 'Ví dụ: Nguyễn Văn A',
-            gridSize: 12
+            gridSize: mode === 'ocr' ? 12 : 6
           },
           {
             name: 'email',
             label: 'Email',
             type: 'email',
-            required: true,
+            required: mode === 'ocr', // Required for OCR, optional for manual
             placeholder: 'Ví dụ: email@example.com',
             gridSize: 6
           },
@@ -36,12 +69,14 @@ const Step2CCCDInfo = React.forwardRef(
             placeholder: 'Ví dụ: 0901234567',
             gridSize: 6
           }
-        ] : [];
+        ];
 
         const cccdFields = [
           {
-            section: mode === 'ocr' ? undefined : 'Thông tin CCCD',
-            sectionDescription: mode === 'ocr' ? undefined : 'Nhập thông tin từ căn cước công dân (tùy chọn).',
+            section: 'Thông tin CCCD',
+            sectionDescription: mode === 'ocr'
+              ? 'Thông tin đã được trích xuất từ CCCD. Bạn có thể chỉnh sửa nếu cần.'
+              : 'Nhập thông tin từ căn cước công dân. Tất cả các trường đều tùy chọn.',
             name: 'identityCardNumber',
             label: 'Số CCCD',
             type: 'text',
@@ -102,62 +137,65 @@ const Step2CCCDInfo = React.forwardRef(
       [mode]
     );
 
-    const defaultValues = useMemo(
-      () => {
-        // Helper function to format date to dd/mm/yyyy
-        const formatDateToDDMMYYYY = (dateString) => {
-          if (!dateString) return '';
-          // If already in dd/mm/yyyy format, return as is
-          if (typeof dateString === 'string' && /^\d{2}\/\d{2}\/\d{4}$/.test(dateString)) {
-            return dateString;
-          }
-          try {
-            let date;
-            // If in YYYY-MM-DD format (without time)
-            if (typeof dateString === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(dateString)) {
-              const [year, month, day] = dateString.split('-');
-              date = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
-            }
-            // If in ISO format (with T and time)
-            else if (typeof dateString === 'string' && dateString.includes('T')) {
-              // Remove time part and parse
-              const dateOnly = dateString.split('T')[0];
-              const [year, month, day] = dateOnly.split('-');
-              date = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
-            }
-            // Otherwise try to parse as Date
-            else {
-              date = new Date(dateString);
-            }
-            if (isNaN(date.getTime())) return '';
-            const day = String(date.getDate()).padStart(2, '0');
-            const month = String(date.getMonth() + 1).padStart(2, '0');
-            const year = date.getFullYear();
-            return `${day}/${month}/${year}`;
-          } catch {
-            return '';
-          }
-        };
+    // Helper function to format date to dd/mm/yyyy
+    const formatDateToDDMMYYYY = (dateString) => {
+      if (!dateString) return '';
+      // If already in dd/mm/yyyy format, return as is
+      if (typeof dateString === 'string' && /^\d{2}\/\d{2}\/\d{4}$/.test(dateString)) {
+        return dateString;
+      }
+      try {
+        let date;
+        // If in YYYY-MM-DD format (without time)
+        if (typeof dateString === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(dateString)) {
+          const [year, month, day] = dateString.split('-');
+          date = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
+        }
+        // If in ISO format (with T and time)
+        else if (typeof dateString === 'string' && dateString.includes('T')) {
+          // Remove time part and parse
+          const dateOnly = dateString.split('T')[0];
+          const [year, month, day] = dateOnly.split('-');
+          date = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
+        }
+        // Otherwise try to parse as Date
+        else {
+          date = new Date(dateString);
+        }
+        if (isNaN(date.getTime())) return '';
+        const day = String(date.getDate()).padStart(2, '0');
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const year = date.getFullYear();
+        return `${day}/${month}/${year}`;
+      } catch {
+        return '';
+      }
+    };
 
-        return {
-          ...(mode === 'ocr' ? {
-            name: data.name || '',
-            email: data.email || '',
-            phoneNumber: data.phoneNumber || '',
-            avatarFile: data.avatarFile || null
-          } : {}),
-          identityCardNumber: data.identityCardNumber || '',
-          dateOfBirth: formatDateToDDMMYYYY(data.dateOfBirth) || '',
-          gender: data.gender || '',
-          address: data.address || '',
-          issuedDate: formatDateToDDMMYYYY(data.issuedDate) || '',
-          issuedPlace: data.issuedPlace || ''
-        };
-      },
-      [data, mode]
-    );
+    // Initialize defaultValues ONCE để tránh Form bị reset mỗi lần data thay đổi
+    const [defaultValues] = React.useState(() => ({
+      // Account fields - luôn có cho cả OCR và manual
+      name: data.name || '',
+      email: data.email || '',
+      phoneNumber: data.phoneNumber || '',
+      avatarFile: data.avatarFile || null,
+      // CCCD fields
+      identityCardNumber: data.identityCardNumber || '',
+      dateOfBirth: formatDateToDDMMYYYY(data.dateOfBirth) || '',
+      gender: data.gender || '',
+      address: data.address || '',
+      issuedDate: formatDateToDDMMYYYY(data.issuedDate) || '',
+      issuedPlace: data.issuedPlace || ''
+    }));
 
     const handleSubmit = async (formValues) => {
+      // Validate required fields for OCR mode only
+      if (mode === 'ocr') {
+        if (!formValues.name || !formValues.email) {
+          return false;
+        }
+      }
+
       // Convert dd/mm/yyyy back to YYYY-MM-DD for storage
       const convertDDMMYYYYToYYYYMMDD = (dateString) => {
         if (!dateString) return '';
@@ -176,6 +214,7 @@ const Step2CCCDInfo = React.forwardRef(
       };
 
       updateData(convertedValues);
+
       return true;
     };
 
@@ -208,11 +247,11 @@ const Step2CCCDInfo = React.forwardRef(
 
         <Box sx={{ flex: 1, overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
           <Form
-            key={`step2-ocr-${data.name || ''}-${data.phoneNumber || ''}-${data.avatarFile?.name || ''}-${data.identityCardNumber || ''}-${data.dateOfBirth || ''}-${data.gender || ''}-${data.address || ''}-${data.issuedDate || ''}-${data.issuedPlace || ''}`}
             ref={formRef}
-            schema={mode === 'ocr' ? createParentCCCDInfoOCRSchema : createParentCCCDInfoSchema}
+            schema={undefined}  // Tạm bỏ validation để form không bị block input
             defaultValues={defaultValues}
             onSubmit={handleSubmit}
+            onFieldChange={handleFieldChange}
             fields={fields}
             hideSubmitButton
           />

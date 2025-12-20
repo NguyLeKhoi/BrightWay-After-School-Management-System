@@ -318,25 +318,19 @@ const StepperForm = ({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [formData, activeStep, completedSteps, enableLocalStorage]); // Remove saveData from deps
   
-  // Save on unmount (beforeunload)
+  // Save on unmount (beforeunload) - only when localStorage is enabled
   React.useEffect(() => {
+    if (!enableLocalStorage) return; // Don't add listeners when disabled
+
     const handleBeforeUnload = () => {
-      if (enableLocalStorage) {
-        // Use refs to get latest values
-        saveData(formDataRef.current, activeStep, completedSteps);
-      }
+      saveData(formDataRef.current, activeStep, completedSteps);
     };
-    
+
     window.addEventListener('beforeunload', handleBeforeUnload);
     return () => {
       window.removeEventListener('beforeunload', handleBeforeUnload);
       // Final save on cleanup - use refs for latest values
-      if (enableLocalStorage && saveTimeoutRef.current) {
-        clearTimeout(saveTimeoutRef.current);
-      }
-      if (enableLocalStorage) {
-        saveData(formDataRef.current, activeStep, completedSteps);
-      }
+      saveData(formDataRef.current, activeStep, completedSteps);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [enableLocalStorage]); // Only depend on enableLocalStorage, use refs for values
@@ -438,6 +432,16 @@ const StepperForm = ({
         onCancel();
       }
       return;
+    }
+
+    // Clear errors of the previous step before going back (don't reset data)
+    const prevStepIndex = Math.max(activeStep - 1, 0);
+    const prevStepRef = stepRefs.current[prevStepIndex];
+    if (prevStepRef && prevStepRef.clearErrors) {
+      prevStepRef.clearErrors();
+    } else if (prevStepRef && prevStepRef.reset) {
+      // Fallback to reset if clearErrors not available
+      prevStepRef.reset();
     }
 
     setActiveStep((prev) => Math.max(prev - 1, 0));
@@ -597,6 +601,7 @@ const StepperForm = ({
                       updateData={updateFormData}
                       stepIndex={activeStep}
                       totalSteps={steps.length}
+                      stepChanged={activeStep} // Trigger khi step thay đổi
                       {...stepProps}
                     />
                   </motion.div>

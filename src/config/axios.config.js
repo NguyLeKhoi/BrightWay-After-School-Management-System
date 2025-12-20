@@ -96,7 +96,14 @@ axiosInstance.interceptors.response.use(
           // Unauthorized - try to refresh token
           // Skip refresh for certain endpoints that might return 401 for other reasons
           // Also skip for public endpoints that don't require authentication
-          const skipRefreshPaths = ['/Auth/login', '/Auth/refresh', '/ContactRequest/submit'];
+          // Also skip for parent creation endpoints to avoid auto-logout during creation
+          const skipRefreshPaths = [
+            '/Auth/login',
+            '/Auth/refresh',
+            '/ContactRequest/submit',
+            '/User/create-parent',
+            '/User/create-parent-with-cccd'
+          ];
           if (skipRefreshPaths.some(path => originalRequest.url?.includes(path))) {
             return Promise.reject(error);
           }

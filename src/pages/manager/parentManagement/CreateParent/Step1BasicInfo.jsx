@@ -34,7 +34,7 @@ const Step1BasicInfo = React.forwardRef(
           type: 'tel',
           required: false,
           placeholder: 'Ví dụ: 0901234567',
-          gridSize: 12
+          gridSize: 6
         }
       ],
       []
@@ -44,9 +44,7 @@ const Step1BasicInfo = React.forwardRef(
       () => ({
         name: data.name || '',
         email: data.email || '',
-        phoneNumber: data.phoneNumber || '',
-        password: data.password || '',
-        avatarFile: data.avatarFile || null
+        phoneNumber: data.phoneNumber || ''
       }),
       [data]
     );

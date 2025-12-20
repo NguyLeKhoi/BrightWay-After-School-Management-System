@@ -1,4 +1,4 @@
-import React, { useState, useImperativeHandle, forwardRef, useEffect } from 'react';
+import React, { useState, useImperativeHandle, forwardRef, useEffect, useMemo } from 'react';
 import {
   Box,
   FormControlLabel,
@@ -8,7 +8,8 @@ import {
   Alert,
   Grid,
   Card,
-  CardContent
+  CardContent,
+  Tooltip
 } from '@mui/material';
 import { Schedule as ScheduleIcon } from '@mui/icons-material';
 import styles from '../Schedule.module.css';
@@ -23,9 +24,47 @@ const WEEKDAYS = [
   { value: 6, label: 'Thứ bảy', color: '#a29bfe' }
 ];
 
+const getAvailableWeekDays = (startDate, endDate) => {
+  if (!startDate || !endDate) return new Set();
+  
+  // Parse dates properly to avoid timezone issues
+  const getLocalDate = (dateStr) => {
+    if (!dateStr) return null;
+    if (typeof dateStr === 'string') {
+      const parts = dateStr.split('-');
+      if (parts.length === 3) {
+        const year = parseInt(parts[0], 10);
+        const month = parseInt(parts[1], 10) - 1;
+        const day = parseInt(parts[2], 10);
+        return new Date(year, month, day, 0, 0, 0, 0);
+      }
+    }
+    return null;
+  };
+
+  const start = getLocalDate(startDate);
+  const end = getLocalDate(endDate);
+  
+  if (!start || !end || end < start) return new Set();
+  
+  const availableWeekDays = new Set();
+  const cursor = new Date(start);
+  
+  while (cursor <= end) {
+    availableWeekDays.add(cursor.getDay());
+    cursor.setDate(cursor.getDate() + 1);
+  }
+  
+  return availableWeekDays;
+};
+
 const BulkStep2WeekDates = forwardRef(({ data, updateData, stepIndex, totalSteps }, ref) => {
   const [weekDates, setWeekDates] = useState(data?.weekDates || []);
   const [error, setError] = useState('');
+
+  const availableWeekDays = useMemo(() => {
+    return getAvailableWeekDays(data?.startDate, data?.endDate);
+  }, [data?.startDate, data?.endDate]);
 
   useImperativeHandle(ref, () => ({
     submit: async () => {
@@ -82,6 +121,11 @@ const BulkStep2WeekDates = forwardRef(({ data, updateData, stepIndex, totalSteps
   }, [data?.weekDates]);
 
   const handleToggleWeekday = (value) => {
+    // Prevent unchecking if weekday not available in range
+    if (!availableWeekDays.has(value)) {
+      return;
+    }
+
     setWeekDates((prev) => {
       if (prev.includes(value)) {
         return prev.filter((d) => d !== value);
@@ -90,6 +134,10 @@ const BulkStep2WeekDates = forwardRef(({ data, updateData, stepIndex, totalSteps
       }
     });
     setError('');
+  };
+
+  const isWeekdayDisabled = (weekdayValue) => {
+    return availableWeekDays.size > 0 && !availableWeekDays.has(weekdayValue);
   };
 
   return (
@@ -107,50 +155,61 @@ const BulkStep2WeekDates = forwardRef(({ data, updateData, stepIndex, totalSteps
         </Alert>
 
         <Grid container spacing={2}>
-          {WEEKDAYS.map((day) => (
-            <Grid item xs={12} sm={6} md={4} key={day.value}>
-              <Card
-                sx={{
-                  cursor: 'pointer',
-                  transition: 'all 0.3s ease',
-                  backgroundColor: weekDates.includes(day.value) ? day.color : '#fff',
-                  border: weekDates.includes(day.value) ? '3px solid' : '2px solid',
-                  borderColor: weekDates.includes(day.value) ? day.color : '#e0e0e0',
-                  '&:hover': {
-                    transform: 'translateY(-4px)',
-                    boxShadow: '0 8px 16px rgba(0,0,0,0.1)'
-                  }
-                }}
-                onClick={() => handleToggleWeekday(day.value)}
-              >
-                <CardContent sx={{ p: 2, textAlign: 'center', cursor: 'pointer', '&:last-child': { pb: 2 } }}>
-                  <FormControlLabel
-                    control={
-                      <Checkbox
-                        checked={weekDates.includes(day.value)}
-                        onChange={() => handleToggleWeekday(day.value)}
-                        onClick={(e) => e.stopPropagation()}
-                      />
-                    }
-                    label={
-                      <Box sx={{ display: 'flex', flexDirection: 'column', ml: 1 }}>
-                        <Typography
-                          variant="body1"
-                          sx={{
-                            fontWeight: 600,
-                            color: weekDates.includes(day.value) ? '#fff' : 'inherit'
-                          }}
-                        >
-                          {day.label}
-                        </Typography>
-                      </Box>
-                    }
-                    sx={{ width: '100%', m: 0 }}
-                  />
-                </CardContent>
-              </Card>
-            </Grid>
-          ))}
+          {WEEKDAYS.map((day) => {
+            const isDisabled = isWeekdayDisabled(day.value);
+            const tooltipText = isDisabled ? `${day.label} không nằm trong khoảng ngày đã chọn` : '';
+
+            return (
+              <Grid item xs={12} sm={6} md={4} key={day.value}>
+                <Tooltip title={tooltipText} arrow>
+                  <div>
+                    <Card
+                      sx={{
+                        cursor: isDisabled ? 'not-allowed' : 'pointer',
+                        transition: 'all 0.3s ease',
+                        backgroundColor: weekDates.includes(day.value) ? day.color : '#fff',
+                        border: weekDates.includes(day.value) ? '3px solid' : '2px solid',
+                        borderColor: weekDates.includes(day.value) ? day.color : isDisabled ? '#bdbdbd' : '#e0e0e0',
+                        opacity: isDisabled ? 0.5 : 1,
+                        '&:hover': !isDisabled ? {
+                          transform: 'translateY(-4px)',
+                          boxShadow: '0 8px 16px rgba(0,0,0,0.1)'
+                        } : {}
+                      }}
+                      onClick={() => !isDisabled && handleToggleWeekday(day.value)}
+                    >
+                      <CardContent sx={{ p: 2, textAlign: 'center', cursor: 'pointer', '&:last-child': { pb: 2 } }}>
+                        <FormControlLabel
+                          control={
+                            <Checkbox
+                              checked={weekDates.includes(day.value)}
+                              onChange={() => !isDisabled && handleToggleWeekday(day.value)}
+                              onClick={(e) => e.stopPropagation()}
+                              disabled={isDisabled}
+                            />
+                          }
+                          label={
+                            <Box sx={{ display: 'flex', flexDirection: 'column', ml: 1 }}>
+                              <Typography
+                                variant="body1"
+                                sx={{
+                                  fontWeight: 600,
+                                  color: weekDates.includes(day.value) ? '#fff' : isDisabled ? '#9e9e9e' : 'inherit'
+                                }}
+                              >
+                                {day.label}
+                              </Typography>
+                            </Box>
+                          }
+                          sx={{ width: '100%', m: 0 }}
+                        />
+                      </CardContent>
+                    </Card>
+                  </div>
+                </Tooltip>
+              </Grid>
+            );
+          })}
         </Grid>
 
         {weekDates.length > 0 && (
