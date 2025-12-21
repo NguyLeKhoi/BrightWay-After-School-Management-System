@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import FullCalendar from '@fullcalendar/react';
 import dayGridPlugin from '@fullcalendar/daygrid';
 import timeGridPlugin from '@fullcalendar/timegrid';
@@ -35,6 +35,7 @@ import styles from './assignments.module.css';
 
 const StaffAssignments = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const [scheduleData, setScheduleData] = useState([]);
   const [rawSlots, setRawSlots] = useState({
     past: [],
@@ -337,35 +338,37 @@ const StaffAssignments = () => {
       });
 
       // Transform slots to events for calendar
-      // Group studentSlots theo branchSlot + date + room để tránh duplicate
+      // Group theo timeframe + date + room để tránh duplicate khung giờ
       const events = [];
-      const eventMap = new Map(); // Key: `${branchSlotId}_${dateStr}_${roomName}`
-      
+      const eventMap = new Map(); // Key: `${timeframeId}_${dateStr}_${roomName}`
+
       branchSlots.forEach(branchSlot => {
         const studentSlots = branchSlot.studentSlots || [];
         const timeframe = branchSlot.timeframe || branchSlot.timeFrame;
         const roomName = branchSlot.roomName || 'Chưa xác định';
-        
+
+        if (!timeframe || !timeframe.id) return; // Skip if no timeframe
+
         // Group studentSlots theo date
         const slotsByDate = new Map();
         studentSlots.forEach(studentSlot => {
           const dateValue = studentSlot.date || branchSlot.date;
           if (!dateValue) return;
-          
+
           const dateStr = extractDateString(dateValue);
           if (!dateStr) return;
-          
+
           if (!slotsByDate.has(dateStr)) {
             slotsByDate.set(dateStr, []);
           }
           slotsByDate.get(dateStr).push(studentSlot);
         });
-        
+
         // Tạo 1 event cho mỗi date (không tạo event riêng cho từng studentSlot)
         slotsByDate.forEach((slotsForDate, dateStr) => {
-          const eventKey = `${branchSlot.id}_${dateStr}_${roomName}`;
-          
-          // Chỉ tạo event nếu chưa có (tránh duplicate)
+          const eventKey = `${timeframe.id}_${dateStr}_${roomName}`;
+
+          // Chỉ tạo event nếu chưa có (tránh duplicate khung giờ)
           if (!eventMap.has(eventKey)) {
             // Lấy studentSlot đầu tiên để lấy thông tin date
             const firstSlot = slotsForDate[0];
@@ -377,14 +380,23 @@ const StaffAssignments = () => {
               branch: branchSlot.branch,
               studentCount: slotsForDate.length // Thêm số lượng học sinh
             });
-            
+
             if (event) {
               // Cập nhật extendedProps để lưu tất cả studentSlots cho ngày đó
               event.extendedProps.studentSlots = slotsForDate;
               event.extendedProps.studentCount = slotsForDate.length;
+              event.extendedProps.branchSlotIds = [...new Set(slotsForDate.map(s => s.branchSlotId || branchSlot.id))]; // Collect all branchSlotIds
               eventMap.set(eventKey, event);
               events.push(event);
             }
+          } else {
+            // Nếu đã có event, cộng dồn studentSlots
+            const existingEvent = eventMap.get(eventKey);
+            existingEvent.extendedProps.studentSlots.push(...slotsForDate);
+            existingEvent.extendedProps.studentCount += slotsForDate.length;
+            existingEvent.extendedProps.branchSlotIds.push(...slotsForDate.map(s => s.branchSlotId || branchSlot.id));
+            // Remove duplicates
+            existingEvent.extendedProps.branchSlotIds = [...new Set(existingEvent.extendedProps.branchSlotIds)];
           }
         });
       });
@@ -409,12 +421,23 @@ const StaffAssignments = () => {
   // Event handlers cho FullCalendar
   const handleEventClick = (clickInfo) => {
     const event = clickInfo.event;
-    // event.extendedProps.slotId là studentSlotId, nhưng ta cần branchSlotId
-    // Lấy từ extendedProps hoặc tìm branchSlotId từ event data
-    const branchSlotId = event.extendedProps.branchSlotId || event.extendedProps.slotId;
-    
-    if (branchSlotId) {
-      navigate(`/staff/assignments/${branchSlotId}`);
+    // Một event có thể chứa nhiều branchSlotIds sau khi group
+    const branchSlotIds = event.extendedProps.branchSlotIds || [event.extendedProps.branchSlotId || event.extendedProps.slotId];
+
+    // Nếu chỉ có một branchSlotId, navigate trực tiếp
+    if (branchSlotIds.length === 1 && branchSlotIds[0]) {
+      navigate(`/staff/assignments/${branchSlotIds[0]}`, {
+        state: { from: 'assignments-list' }
+      });
+    } else if (branchSlotIds.length > 1) {
+      // Nếu có nhiều branchSlotIds, navigate đến branchSlotId đầu tiên
+      // (có thể cần cải thiện để hiển thị dialog chọn)
+      const firstBranchSlotId = branchSlotIds.find(id => id);
+      if (firstBranchSlotId) {
+        navigate(`/staff/assignments/${firstBranchSlotId}`, {
+          state: { from: 'assignments-list' }
+        });
+      }
     }
   };
 
@@ -422,7 +445,9 @@ const StaffAssignments = () => {
   const handleViewDetail = (slot) => {
     // slot.id là branchSlotId
     if (slot && slot.id) {
-      navigate(`/staff/assignments/${slot.id}`);
+      navigate(`/staff/assignments/${slot.id}`, {
+        state: { from: 'assignments-list' }
+      });
     }
   };
 
@@ -914,7 +939,8 @@ const StaffAssignments = () => {
                   const roomName = props.roomName || 'Chưa xác định';
                   const timeDisplay = props.timeDisplay || '';
                   const studentCount = props.studentCount || 1;
-                  
+                  const branchSlotCount = props.branchSlotIds?.length || 1;
+
                   return {
                     html: `
                       <div style="

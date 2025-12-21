@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import {
   Box,
   CircularProgress,
@@ -74,6 +74,7 @@ import styles from './AssignmentDetail.module.css';
 const AssignmentDetail = () => {
   const { slotId } = useParams();
   const navigate = useNavigate();
+  const location = useLocation();
   const { showGlobalError } = useApp();
   const { user } = useAuth();
   
@@ -908,7 +909,15 @@ const AssignmentDetail = () => {
   };
 
   const handleBack = () => {
-    navigate('/staff/assignments');
+    // Check where we came from
+    if (location.state?.from === 'assignments-list') {
+      navigate('/staff/assignments');
+    } else if (location.state?.from === 'staff-dashboard') {
+      navigate('/staff/dashboard');
+    } else {
+      // Default: go back to assignments list
+      navigate('/staff/assignments');
+    }
   };
 
   // ExpandedActivitiesContent component - renders activities when row is expanded

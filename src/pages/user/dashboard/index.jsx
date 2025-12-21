@@ -8,6 +8,10 @@ import {
   Button,
   Paper
 } from '@mui/material';
+import FullCalendar from '@fullcalendar/react';
+import dayGridPlugin from '@fullcalendar/daygrid';
+import timeGridPlugin from '@fullcalendar/timegrid';
+import interactionPlugin from '@fullcalendar/interaction';
 import {
   ChildCare as ChildIcon,
   AccountBalanceWallet as WalletIcon,
@@ -18,7 +22,10 @@ import {
   CalendarToday,
   AccessTime,
   MeetingRoom,
-  Business
+  Business,
+  ChevronLeft,
+  ChevronRight,
+  Person
 } from '@mui/icons-material';
 import AnimatedCard from '../../../components/Common/AnimatedCard';
 import Card from '../../../components/Common/Card';
@@ -43,11 +50,20 @@ const UserDashboard = () => {
     unreadNotifications: 0
   });
 
-  const [upcomingSchedules, setUpcomingSchedules] = useState([]);
+  const [calendarSchedules, setCalendarSchedules] = useState([]);
+  const [childrenList, setChildrenList] = useState([]);
+  const [currentChildIndex, setCurrentChildIndex] = useState(0);
 
   useEffect(() => {
     loadDashboardData();
   }, []);
+
+  // Load calendar when current child changes
+  useEffect(() => {
+    if (childrenList.length > 0 && currentChildIndex < childrenList.length) {
+      loadCalendarSchedules(childrenList[currentChildIndex]);
+    }
+  }, [currentChildIndex, childrenList]);
 
   // Xác định loại lịch: past, current, upcoming
   const getSlotTimeType = (slot) => {
@@ -86,71 +102,112 @@ const UserDashboard = () => {
     }
   };
 
-  const loadUpcomingSchedules = async (children) => {
-    if (!children || children.length === 0) {
-      setUpcomingSchedules([]);
+
+  const loadCalendarSchedules = async (child) => {
+    if (!child) {
+      setCalendarSchedules([]);
       return;
     }
-    
+
     try {
-      const allUpcomingSlots = [];
-      
-      for (const child of children) {
-        try {
-          // Load tất cả các trang
-          let pageIndex = 1;
-          const pageSize = 100;
-          let hasMore = true;
-          
-          while (hasMore) {
-            const response = await studentSlotService.getStudentSlots({
-              StudentId: child.id,
-              pageIndex: pageIndex,
-              pageSize: pageSize
-            });
-            
-            const items = response?.items || [];
-            const totalCount = response?.totalCount || 0;
-            const totalPages = response?.totalPages || Math.ceil(totalCount / pageSize);
-            
-            // Lọc lấy lịch đang diễn ra và sắp tới (không lấy lịch đã qua)
-            const upcomingItems = items.filter(slot => {
-              const timeType = getSlotTimeType(slot);
-              const isUpcoming = timeType === 'upcoming' || timeType === 'current';
-              return isUpcoming;
-            });
-            
-            // Thêm thông tin child vào mỗi slot
-            upcomingItems.forEach(slot => {
-              allUpcomingSlots.push({
-                ...slot,
-                childName: child.name || child.userName || 'Chưa có tên',
-                childId: child.id
-              });
-            });
-            
-            if (pageIndex >= totalPages || items.length < pageSize) {
-              hasMore = false;
-            } else {
-              pageIndex++;
-            }
-          }
-        } catch (error) {
-          // Skip this child if error loading schedules
+      const allSlots = [];
+
+      // Load tất cả các trang cho child hiện tại
+      let pageIndex = 1;
+      const pageSize = 100;
+      let hasMore = true;
+
+      while (hasMore) {
+        const response = await studentSlotService.getStudentSlots({
+          StudentId: child.id,
+          pageIndex: pageIndex,
+          pageSize: pageSize
+        });
+
+        const items = response?.items || [];
+        const totalCount = response?.totalCount || 0;
+        const totalPages = response?.totalPages || Math.ceil(totalCount / pageSize);
+
+        // Thêm thông tin child vào mỗi slot
+        items.forEach(slot => {
+          allSlots.push({
+            ...slot,
+            childName: child.name || child.userName || 'Chưa có tên',
+            childId: child.id
+          });
+        });
+
+        if (pageIndex >= totalPages || items.length < pageSize) {
+          hasMore = false;
+        } else {
+          pageIndex++;
         }
       }
-      
-      // Sắp xếp theo thời gian (sớm nhất trước)
-      allUpcomingSlots.sort((a, b) => {
-        const dateA = new Date(a.branchSlot?.date || a.date || 0);
-        const dateB = new Date(b.branchSlot?.date || b.date || 0);
-        return dateA - dateB;
-      });
-      
-      // Chỉ lấy 5 lịch sắp tới gần nhất
-      setUpcomingSchedules(allUpcomingSlots.slice(0, 5));
+
+      // Transform slots to calendar events
+      const events = allSlots.map(slot => {
+        const dateValue = slot.branchSlot?.date || slot.date;
+        const timeframe = slot.timeframe || slot.timeFrame;
+
+        if (!dateValue || !timeframe) return null;
+
+        const dateStr = extractDateString(dateValue);
+        if (!dateStr) return null;
+
+        const startTime = timeframe.startTime || '00:00:00';
+        const endTime = timeframe.endTime || '00:00:00';
+
+        const formatTime = (time) => {
+          if (!time) return '00:00:00';
+          if (time.length === 5) return time + ':00';
+          return time;
+        };
+
+        const formattedStartTime = formatTime(startTime);
+        const formattedEndTime = formatTime(endTime);
+
+        // Format with UTC+7 timezone
+        const startDateTime = `${dateStr}T${formattedStartTime}+07:00`;
+        const endDateTime = `${dateStr}T${formattedEndTime}+07:00`;
+
+        const timeType = getSlotTimeType(slot);
+        const backgroundColor = timeType === 'past' ? '#9e9e9e' :
+                               timeType === 'current' ? '#ff9800' : 'var(--color-primary)';
+
+        const formatTimeDisplay = (time) => {
+          if (!time) return '00:00';
+          return time.substring(0, 5);
+        };
+
+        const timeDisplay = `${formatTimeDisplay(startTime)}-${formatTimeDisplay(endTime)}`;
+
+        return {
+          id: `${slot.id}_${slot.childId}`,
+          title: timeDisplay, // Chỉ hiển thị giờ vì đã biết tên con từ header
+          start: startDateTime,
+          end: endDateTime,
+          backgroundColor: backgroundColor,
+          borderColor: backgroundColor,
+          textColor: 'white',
+          display: 'block',
+          classNames: ['custom-event', `event-${timeType}`],
+          extendedProps: {
+            childName: slot.childName,
+            childId: slot.childId,
+            timeDisplay: timeDisplay,
+            slotId: slot.id,
+            timeType: timeType,
+            roomName: slot.room?.roomName || slot.roomName || 'Chưa xác định',
+            branchName: slot.branchSlot?.branch?.branchName || slot.branchSlot?.branchName || slot.branchName || 'Chưa xác định',
+            timeframeName: timeframe.name || 'Chưa xác định',
+            studentCount: slot.studentCount || 1
+          }
+        };
+      }).filter(event => event !== null);
+
+      setCalendarSchedules(events);
     } catch (error) {
-      setUpcomingSchedules([]);
+      setCalendarSchedules([]);
     }
   };
 
@@ -164,6 +221,7 @@ const UserDashboard = () => {
         : (Array.isArray(childrenResponse?.items) ? childrenResponse.items : []);
       
       setStats(prev => ({ ...prev, childrenCount: children.length }));
+      setChildrenList(children);
 
       // Load wallet balance
       try {
@@ -186,16 +244,29 @@ const UserDashboard = () => {
         // Silent fail
       }
 
-      // Load upcoming schedules for all children
+      // Load calendar schedules for first child
       if (children && children.length > 0) {
-        await loadUpcomingSchedules(children);
+        await loadCalendarSchedules(children[0]);
       } else {
-        setUpcomingSchedules([]);
+        setCalendarSchedules([]);
       }
     } catch (error) {
       showGlobalError('Không thể tải dữ liệu dashboard');
     } finally {
       hideLoading();
+    }
+  };
+
+  // Navigation functions for child switching
+  const handlePrevChild = () => {
+    if (childrenList.length > 1) {
+      setCurrentChildIndex(prev => (prev > 0 ? prev - 1 : childrenList.length - 1));
+    }
+  };
+
+  const handleNextChild = () => {
+    if (childrenList.length > 1) {
+      setCurrentChildIndex(prev => (prev < childrenList.length - 1 ? prev + 1 : 0));
     }
   };
 
@@ -353,95 +424,187 @@ const UserDashboard = () => {
           </div>
         </AnimatedCard>
 
-        {/* Upcoming Schedules */}
+        {/* Calendar Overview */}
         <AnimatedCard delay={0.5} className={styles.infoCard}>
           <div className={styles.infoHeader}>
-            <h2 className={styles.infoTitle}>
-              Lịch giữ trẻ sắp tới
-            </h2>
-            <button
-              className={styles.viewAllButton}
-              onClick={() => navigate('/user/management/schedule')}
-            >
-              Xem tất cả
-            </button>
-          </div>
-          {upcomingSchedules.length > 0 ? (
-            <div className={styles.schedulesList}>
-              {upcomingSchedules.map((slot) => {
-                const dateValue = slot.branchSlot?.date || slot.date;
-                const timeframe = slot.timeframe || slot.timeFrame;
-                const roomName = slot.room?.roomName || slot.roomName || slot.branchSlot?.roomName || 'Chưa xác định';
-                const branchName = slot.branchSlot?.branchName || slot.branchName || 'Chưa xác định';
-                const startTime = timeframe?.startTime || '';
-                const endTime = timeframe?.endTime || '';
-                
-                return (
-                  <Paper
-                    key={slot.id}
-                    elevation={0}
+            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                <Person sx={{ color: 'var(--color-primary)', fontSize: 28 }} />
+                <Box>
+                  <Typography variant="h6" sx={{ fontWeight: 'bold', color: 'var(--text-primary)' }}>
+                    Lịch giữ trẻ của {childrenList[currentChildIndex]?.name || childrenList[currentChildIndex]?.userName || 'Chưa có tên'}
+                  </Typography>
+                  <Typography variant="body2" sx={{ color: 'var(--text-secondary)', mt: 0.5 }}>
+                    {childrenList.length > 1 ? `${currentChildIndex + 1} / ${childrenList.length} con` : '1 con'}
+                  </Typography>
+                </Box>
+              </Box>
+              {childrenList.length > 1 && (
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                  <Button
+                    onClick={handlePrevChild}
+                    variant="outlined"
+                    size="small"
                     sx={{
-                      p: 3,
-                      border: '1px solid var(--border-light)',
-                      borderRadius: 'var(--radius-lg)',
-                      cursor: 'pointer',
-                      transition: 'all 0.3s ease',
+                      minWidth: 36,
+                      height: 36,
+                      borderRadius: '50%',
+                      borderColor: 'var(--border-light)',
+                      color: 'var(--text-secondary)',
                       '&:hover': {
                         borderColor: 'var(--color-primary)',
-                        boxShadow: 'var(--shadow-sm)',
-                        transform: 'translateY(-2px)'
+                        backgroundColor: 'rgba(var(--color-primary-rgb), 0.04)'
                       }
                     }}
-                    onClick={() => navigate(`/user/management/schedule/${slot.childId}/${slot.id}`)}
                   >
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 4, flexWrap: 'wrap' }}>
-                      <Typography variant="h6" fontWeight="bold" sx={{ fontSize: '1.125rem', minWidth: '180px' }}>
-                        {slot.childName}
-                      </Typography>
-                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                        <CalendarToday sx={{ fontSize: 20, color: 'var(--text-secondary)' }} />
-                        <Typography variant="body1" color="text.secondary" sx={{ fontSize: '0.9375rem' }}>
-                          {dateValue ? formatDateOnlyUTC7(dateValue) : 'Chưa xác định'}
-                        </Typography>
-                      </Box>
-                      {startTime && endTime && (
-                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                          <AccessTime sx={{ fontSize: 20, color: 'var(--text-secondary)' }} />
-                          <Typography variant="body1" color="text.secondary" sx={{ fontSize: '0.9375rem' }}>
-                            {startTime.substring(0, 5)} - {endTime.substring(0, 5)}
-                          </Typography>
-                        </Box>
-                      )}
-                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                        <MeetingRoom sx={{ fontSize: 20, color: 'var(--text-secondary)' }} />
-                        <Typography variant="body1" color="text.secondary" sx={{ fontSize: '0.9375rem' }}>
-                          {roomName}
-                        </Typography>
-                      </Box>
-                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                        <Business sx={{ fontSize: 20, color: 'var(--text-secondary)' }} />
-                        <Typography variant="body1" color="text.secondary" sx={{ fontSize: '0.9375rem' }}>
-                          {branchName}
-                        </Typography>
-                      </Box>
-                    </Box>
-                  </Paper>
-                );
-              })}
-            </div>
-          ) : (
-            <Box sx={{ py: 4, textAlign: 'center' }}>
-              <ScheduleIcon sx={{ fontSize: 48, color: 'var(--text-secondary)', mb: 2, opacity: 0.5 }} />
-              <Typography variant="body1" color="text.secondary" fontWeight="medium">
-                Chưa có lịch giữ trẻ sắp tới
-              </Typography>
-              <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
-                Hiện tại không có lịch giữ trẻ nào đang diễn ra hoặc sắp tới
-              </Typography>
+                    <ChevronLeft fontSize="small" />
+                  </Button>
+                  <Button
+                    onClick={handleNextChild}
+                    variant="outlined"
+                    size="small"
+                    sx={{
+                      minWidth: 36,
+                      height: 36,
+                      borderRadius: '50%',
+                      borderColor: 'var(--border-light)',
+                      color: 'var(--text-secondary)',
+                      '&:hover': {
+                        borderColor: 'var(--color-primary)',
+                        backgroundColor: 'rgba(var(--color-primary-rgb), 0.04)'
+                      }
+                    }}
+                  >
+                    <ChevronRight fontSize="small" />
+                  </Button>
+                </Box>
+              )}
             </Box>
-          )}
-        </AnimatedCard>
+          </div>
+          <Box sx={{ mt: 2 }}>
+            <Paper
+              elevation={0}
+              sx={{
+                padding: 2,
+                borderRadius: 'var(--radius-xl)',
+                border: '1px solid var(--border-light)',
+                backgroundColor: 'transparent'
+              }}
+            >
+              <div style={{ height: '1000px' }}>
+                <FullCalendar
+                  plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin]}
+                  initialView="timeGridWeek"
+                  headerToolbar={{
+                    left: 'prev,next today',
+                    center: 'title',
+                    right: 'timeGridWeek,dayGridMonth'
+                  }}
+                  events={calendarSchedules}
+                  height="100%"
+                  locale="vi"
+                  timeZone="Asia/Ho_Chi_Minh"
+                  buttonText={{
+                    today: 'Hôm nay',
+                    week: 'Tuần',
+                    month: 'Tháng'
+                  }}
+                  views={{
+                    timeGridWeek: {
+                      slotMinTime: '05:00:00',
+                      slotMaxTime: '23:00:00',
+                      allDaySlot: false,
+                      eventDisplay: 'block',
+                      slotDuration: '00:30:00',
+                      slotLabelInterval: '01:00:00'
+                    }
+                  }}
+                  dayMaxEvents={5}
+                  moreLinkClick="popover"
+                  eventDisplay="block"
+                  eventContent={(arg) => {
+                    const props = arg.event.extendedProps;
+                    const timeDisplay = props.timeDisplay || '';
+                    const roomName = props.roomName || 'Chưa xác định';
+                    const branchName = props.branchName || 'Chưa xác định';
+                    const timeframeName = props.timeframeName || 'Chưa xác định';
 
+                    return {
+                      html: `
+                        <div style="
+                          display: flex;
+                          flex-direction: column;
+                          justify-content: flex-start;
+                          gap: 4px;
+                          padding: 6px 8px;
+                          width: 100%;
+                          height: 100%;
+                          box-sizing: border-box;
+                          color: white;
+                          font-family: var(--font-family, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif);
+                          overflow: visible;
+                        ">
+                          <div style="
+                            font-weight: 600;
+                            font-size: 12px;
+                            line-height: 1.3;
+                            white-space: normal;
+                            word-break: break-word;
+                            overflow-wrap: break-word;
+                          ">
+                            ${roomName}
+                          </div>
+                          <div style="
+                            font-size: 11px;
+                            line-height: 1.3;
+                            opacity: 0.95;
+                            word-break: break-word;
+                            overflow-wrap: break-word;
+                            white-space: normal;
+                          ">
+                            ${timeDisplay}
+                          </div>
+                          <div style="
+                            font-size: 10px;
+                            line-height: 1.2;
+                            opacity: 0.9;
+                            word-break: break-word;
+                            overflow-wrap: break-word;
+                            white-space: normal;
+                          ">
+                            ${timeframeName} • ${branchName}
+                          </div>
+                        </div>
+                      `
+                    };
+                  }}
+                  eventClick={(clickInfo) => {
+                    const event = clickInfo.event;
+                    const props = event.extendedProps;
+                    // Navigate to child's schedule detail with source page info
+                    navigate(`/user/management/schedule/${props.childId}/${props.slotId}`, {
+                      state: { from: 'dashboard' }
+                    });
+                  }}
+                />
+              </div>
+            </Paper>
+            <Box sx={{ mt: 2, display: 'flex', gap: 2, justifyContent: 'center', flexWrap: 'wrap' }}>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                <Box sx={{ width: 12, height: 12, borderRadius: '50%', backgroundColor: 'var(--color-primary)' }} />
+                <Typography variant="caption" color="text.secondary">Sắp tới</Typography>
+              </Box>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                <Box sx={{ width: 12, height: 12, borderRadius: '50%', backgroundColor: '#ff9800' }} />
+                <Typography variant="caption" color="text.secondary">Đang diễn ra</Typography>
+              </Box>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                <Box sx={{ width: 12, height: 12, borderRadius: '50%', backgroundColor: '#9e9e9e' }} />
+                <Typography variant="caption" color="text.secondary">Đã qua</Typography>
+              </Box>
+            </Box>
+          </Box>
+        </AnimatedCard>
 
         {/* Empty State */}
         {stats.childrenCount === 0 && (
