@@ -431,13 +431,17 @@ const ChildSchedule = () => {
   const handleEventClick = (clickInfo) => {
     const event = clickInfo.event;
     const slotId = event.id;
-    navigate(`/user/management/schedule/${childId}/${slotId}`);
+    navigate(`/user/management/schedule/${childId}/${slotId}`, {
+      state: { from: 'schedule-list' }
+    });
   };
 
   // Handler cho xem chi tiết
   const handleViewDetail = (slot) => {
     const slotId = slot.id;
-    navigate(`/user/management/schedule/${childId}/${slotId}`);
+    navigate(`/user/management/schedule/${childId}/${slotId}`, {
+      state: { from: 'schedule-list' }
+    });
   };
 
   // Handler cho hủy slot

@@ -380,7 +380,9 @@ const StaffDashboard = () => {
                         transform: 'translateY(-2px)'
                       }
                     }}
-                    onClick={() => navigate(`/staff/assignments/${slot.id}`)}
+                    onClick={() => navigate(`/staff/assignments/${slot.id}`, {
+                      state: { from: 'staff-dashboard' }
+                    })}
                   >
                     <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 3, flexWrap: 'wrap' }}>
                       <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, flex: '1 1 200px' }}>

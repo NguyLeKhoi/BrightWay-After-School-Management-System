@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import {
   Box,
   CircularProgress,
@@ -50,6 +50,7 @@ import styles from './ChildScheduleDetail.module.css';
 const ChildScheduleDetail = () => {
   const { childId, slotId } = useParams();
   const navigate = useNavigate();
+  const location = useLocation();
   const { showGlobalError, addNotification } = useApp();
   
   const [child, setChild] = useState(null);
@@ -395,7 +396,13 @@ const ChildScheduleDetail = () => {
   };
 
   const handleBack = () => {
-    navigate(`/user/management/schedule/${childId}`);
+    // Check if we came from dashboard
+    if (location.state?.from === 'dashboard') {
+      navigate('/user/dashboard');
+    } else {
+      // Default: go back to child's schedule list
+      navigate(`/user/management/schedule/${childId}`);
+    }
   };
 
   if (loading) {
