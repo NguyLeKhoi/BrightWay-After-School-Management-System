@@ -240,6 +240,8 @@ const BulkCreateBranchSlot = () => {
         }}
         loading={actionLoading}
         enableLocalStorage={false} // Disable localStorage để tránh conflict với navigation
+        showStepConfirmation={true}
+        stepConfirmationCancelText="Quay về"
         stepProps={{
           timeframeOptions,
           slotTypeOptions,

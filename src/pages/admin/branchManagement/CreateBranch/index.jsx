@@ -3,6 +3,7 @@ import { Box, Typography, Autocomplete, TextField, Checkbox, ListItemText, Butto
 import { Business as BranchIcon } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 import StepperForm from '../../../../components/Common/StepperForm';
+import ConfirmDialog from '../../../../components/Common/ConfirmDialog';
 import useLocationData from '../../../../hooks/useLocationData';
 import branchService from '../../../../services/branch.service';
 import benefitService from '../../../../services/benefit.service';
@@ -378,6 +379,12 @@ const Step4AssignStudentLevels = forwardRef(({ data }, ref) => {
 const CreateBranch = () => {
   const navigate = useNavigate();
   const [formData, setFormData] = useState({});
+  const [stepCompletionDialog, setStepCompletionDialog] = useState({
+    open: false,
+    title: 'Hoàn thành tạo chi nhánh',
+    description: 'Bạn đã hoàn thành tạo chi nhánh. Bạn có muốn tiếp tục gán lợi ích, trường và cấp độ học sinh không?',
+    onConfirm: null
+  });
 
 
   const handleStep1Create = useCallback(async (data) => {
@@ -390,8 +397,20 @@ const CreateBranch = () => {
         status: data.status || 'Active'
       });
       setFormData(prev => ({ ...prev, createdBranchId: created.id }));
-      toast.success('Tạo chi nhánh thành công, tiếp tục gán lợi ích');
-      return true;
+      toast.success('Tạo chi nhánh thành công');
+
+      // Hiển thị dialog xác nhận ngay sau khi tạo chi nhánh thành công
+      return new Promise((resolve) => {
+        setStepCompletionDialog({
+          open: true,
+          title: 'Hoàn thành tạo chi nhánh',
+          description: 'Bạn đã hoàn thành tạo chi nhánh. Bạn có muốn tiếp tục gán lợi ích, trường và cấp độ học sinh không?',
+          onConfirm: () => {
+            setStepCompletionDialog(prev => ({ ...prev, open: false }));
+            resolve(true); // Tiếp tục sang bước tiếp theo
+          }
+        });
+      });
     } catch (err) {
       toast.error(err.response?.data?.message || err.message || 'Tạo chi nhánh thất bại');
       return false;
@@ -423,6 +442,22 @@ const CreateBranch = () => {
         title="Tạo Chi Nhánh"
         icon={<BranchIcon />}
         initialData={formData}
+      />
+
+      {/* Step Completion Dialog */}
+      <ConfirmDialog
+        open={stepCompletionDialog.open}
+        onClose={() => {
+          setStepCompletionDialog(prev => ({ ...prev, open: false }));
+          // Khi đóng dialog mà không confirm, quay về trang danh sách
+          navigate('/admin/branches');
+        }}
+        onConfirm={stepCompletionDialog.onConfirm}
+        title={stepCompletionDialog.title}
+        description={stepCompletionDialog.description}
+        confirmText="Tiếp tục"
+        cancelText="Trở về"
+        confirmColor="primary"
       />
     </Box>
   );

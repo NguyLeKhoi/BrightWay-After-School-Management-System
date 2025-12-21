@@ -25,6 +25,7 @@ import styles from './StepperForm.module.css';
  * @param {string} title - Form title
  * @param {ReactNode} icon - Icon to display in header
  * @param {boolean} showStepConfirmation - Show confirmation dialog after each step
+ * @param {string} stepConfirmationCancelText - Text for cancel button in step confirmation dialog (default: 'Ở lại')
  * @param {string} storageKey - Optional custom storage key. If not provided, will use location.pathname
  * @param {boolean} enableLocalStorage - Enable localStorage persistence (default: true)
  * @param {number} initialStep - Initial step to start from (default: 0)
@@ -39,6 +40,7 @@ const StepperForm = ({
   icon = null,
   stepProps = {},
   showStepConfirmation = false,
+  stepConfirmationCancelText = 'Ở lại',
   storageKey = null,
   enableLocalStorage = true,
   initialStep = 0,
@@ -671,12 +673,18 @@ const StepperForm = ({
       {showStepConfirmation && (
         <ConfirmDialog
           open={confirmDialog.open}
-          onClose={() => setConfirmDialog(prev => ({ ...prev, open: false }))}
+          onClose={() => {
+            setConfirmDialog(prev => ({ ...prev, open: false }));
+            // Khi bấm "Quay về", gọi onCancel để quay về trang danh sách
+            if (onCancel) {
+              onCancel();
+            }
+          }}
           onConfirm={confirmDialog.onConfirm || (() => {})}
           title={confirmDialog.title}
           description={confirmDialog.description}
           confirmText="Tiếp tục"
-          cancelText="Ở lại"
+          cancelText={stepConfirmationCancelText}
           confirmColor="primary"
           showWarningIcon={false}
         />

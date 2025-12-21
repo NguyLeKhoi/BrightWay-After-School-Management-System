@@ -1,6 +1,7 @@
 import React, { useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
-import { Alert } from '@mui/material';
+import { Alert, Box, Typography, Paper, Accordion, AccordionSummary, AccordionDetails, Button } from '@mui/material';
+import { ExpandMore as ExpandMoreIcon } from '@mui/icons-material';
 import ConfirmDialog from '../../../components/Common/ConfirmDialog';
 import PageWrapper from '../../../components/Common/PageWrapper';
 import ManagementPageHeader from '../../../components/Management/PageHeader';
@@ -189,6 +190,237 @@ const BranchManagement = () => {
         onClear={handleClearSearch}
         placeholder="Tìm kiếm theo tên, địa chỉ..."
       />
+
+      {/* Quy trình tạo chi nhánh */}
+      <Box sx={{ mb: 3 }}>
+        <Accordion
+          defaultExpanded={false}
+          sx={{
+            borderRadius: 'var(--radius-lg)',
+            boxShadow: 'var(--shadow-sm)',
+            '&:before': { display: 'none' },
+            '& .MuiAccordionSummary-root': {
+              backgroundColor: 'var(--bg-secondary)',
+              borderRadius: 'var(--radius-lg)',
+            },
+            '& .MuiAccordionDetails-root': {
+              backgroundColor: 'var(--bg-primary)',
+              borderBottomLeftRadius: 'var(--radius-lg)',
+              borderBottomRightRadius: 'var(--radius-lg)',
+            }
+          }}
+        >
+          <AccordionSummary
+            expandIcon={<ExpandMoreIcon />}
+            sx={{
+              '& .MuiAccordionSummary-content': {
+                alignItems: 'center',
+                gap: 1
+              }
+            }}
+          >
+            <Typography variant="h6" sx={{ fontWeight: 600 }}>
+              Quy trình tạo chi nhánh hoàn chỉnh
+            </Typography>
+          </AccordionSummary>
+          <AccordionDetails>
+            <Typography variant="body1" paragraph sx={{ mb: 3 }}>
+              Để tạo chi nhánh thành công, hãy thực hiện theo thứ tự 3 bước chuẩn bị sau:
+            </Typography>
+
+            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+              {/* Bước 1: Có Lợi Ích */}
+              <Paper
+                elevation={1}
+                sx={{
+                  p: 2,
+                  borderRadius: 2,
+                  border: '1px solid',
+                  borderColor: 'divider',
+                  backgroundColor: 'background.paper'
+                }}
+              >
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 1 }}>
+                  <Box sx={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    width: 32,
+                    height: 32,
+                    borderRadius: '50%',
+                    backgroundColor: 'primary.main',
+                    color: 'white',
+                    fontWeight: 'bold',
+                    fontSize: '1rem'
+                  }}>
+                    1
+                  </Box>
+                  <Typography variant="h6" sx={{ fontWeight: 600, flex: 1 }}>
+                    Có Lợi Ích
+                  </Typography>
+                  <Button
+                    variant="outlined"
+                    size="small"
+                    onClick={() => navigate('/admin/benefits')}
+                    sx={{ textTransform: 'none' }}
+                  >
+                    Quản Lý Lợi Ích
+                  </Button>
+                </Box>
+                <Typography variant="body2" color="text.secondary" sx={{ ml: 6 }}>
+                  Đảm bảo đã có các lợi ích phù hợp để gán cho chi nhánh (wifi, máy lạnh, parking,...).
+                </Typography>
+              </Paper>
+
+              {/* Bước 2: Có Trường */}
+              <Paper
+                elevation={1}
+                sx={{
+                  p: 2,
+                  borderRadius: 2,
+                  border: '1px solid',
+                  borderColor: 'divider',
+                  backgroundColor: 'background.paper'
+                }}
+              >
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 1 }}>
+                  <Box sx={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    width: 32,
+                    height: 32,
+                    borderRadius: '50%',
+                    backgroundColor: 'primary.main',
+                    color: 'white',
+                    fontWeight: 'bold',
+                    fontSize: '1rem'
+                  }}>
+                    2
+                  </Box>
+                  <Typography variant="h6" sx={{ fontWeight: 600, flex: 1 }}>
+                    Có Trường
+                  </Typography>
+                  <Button
+                    variant="outlined"
+                    size="small"
+                    onClick={() => navigate('/admin/schools')}
+                    sx={{ textTransform: 'none' }}
+                  >
+                    Quản Lý Trường
+                  </Button>
+                </Box>
+                <Typography variant="body2" color="text.secondary" sx={{ ml: 6 }}>
+                  Đảm bảo đã có thông tin các trường học để kết nối với chi nhánh.
+                </Typography>
+              </Paper>
+
+              {/* Bước 3: Có Cấp Độ Học Sinh */}
+              <Paper
+                elevation={1}
+                sx={{
+                  p: 2,
+                  borderRadius: 2,
+                  border: '1px solid',
+                  borderColor: 'divider',
+                  backgroundColor: 'background.paper'
+                }}
+              >
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 1 }}>
+                  <Box sx={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    width: 32,
+                    height: 32,
+                    borderRadius: '50%',
+                    backgroundColor: 'primary.main',
+                    color: 'white',
+                    fontWeight: 'bold',
+                    fontSize: '1rem'
+                  }}>
+                    3
+                  </Box>
+                  <Typography variant="h6" sx={{ fontWeight: 600, flex: 1 }}>
+                    Có Cấp Độ Học Sinh
+                  </Typography>
+                  <Button
+                    variant="outlined"
+                    size="small"
+                    onClick={() => navigate('/admin/student-levels')}
+                    sx={{ textTransform: 'none' }}
+                  >
+                    Quản Lý Cấp Độ Học Sinh
+                  </Button>
+                </Box>
+                <Typography variant="body2" color="text.secondary" sx={{ ml: 6 }}>
+                  Đảm bảo đã có các cấp độ học sinh phù hợp (Lớp 1, Lớp 2, THCS, THPT,...).
+                </Typography>
+              </Paper>
+
+              {/* Bước tạo chi nhánh */}
+              <Paper
+                elevation={2}
+                sx={{
+                  p: 2,
+                  borderRadius: 2,
+                  border: '2px solid',
+                  borderColor: 'success.main',
+                  backgroundColor: 'success.50'
+                }}
+              >
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 2 }}>
+                  <Box sx={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    width: 32,
+                    height: 32,
+                    borderRadius: '50%',
+                    backgroundColor: 'success.main',
+                    color: 'white',
+                    fontWeight: 'bold',
+                    fontSize: '1rem'
+                  }}>
+                    ✓
+                  </Box>
+                  <Typography variant="h6" sx={{ fontWeight: 600, flex: 1 }}>
+                    Tạo Chi Nhánh Mới
+                  </Typography>
+                  <Button
+                    variant="contained"
+                    size="small"
+                    color="success"
+                    onClick={() => navigate('/admin/branches/create')}
+                    sx={{ textTransform: 'none' }}
+                  >
+                    Tạo Chi Nhánh Ngay
+                  </Button>
+                </Box>
+                <Box sx={{ ml: 6 }}>
+                  <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
+                    Sau khi đã chuẩn bị đầy đủ các điều kiện trên, tiến hành tạo chi nhánh:
+                  </Typography>
+                  <Box component="ul" sx={{ pl: 3, m: 0 }}>
+                    <li><Typography variant="body2">Nhập thông tin cơ bản của chi nhánh</Typography></li>
+                    <li><Typography variant="body2">Thiết lập địa chỉ và thông tin liên hệ</Typography></li>
+                    <li><Typography variant="body2">Gán các lợi ích có sẵn</Typography></li>
+                    <li><Typography variant="body2">Kết nối với các trường học</Typography></li>
+                    <li><Typography variant="body2">Cấu hình cấp độ học sinh</Typography></li>
+                  </Box>
+                </Box>
+              </Paper>
+            </Box>
+
+            <Alert severity="info" sx={{ mt: 3 }}>
+              <Typography variant="body2">
+                <strong>Lưu ý quan trọng:</strong> Việc chuẩn bị đầy đủ lợi ích, trường học và cấp độ học sinh
+                trước khi tạo chi nhánh sẽ giúp quá trình gán thông tin sau này diễn ra thuận lợi hơn.
+              </Typography>
+            </Alert>
+          </AccordionDetails>
+        </Accordion>
+      </Box>
 
       {/* Error Alert */}
       {error && (

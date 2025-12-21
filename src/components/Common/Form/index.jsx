@@ -592,7 +592,7 @@ const Form = forwardRef(({
             // Convert Date object or ISO string to YYYY-MM-DD format for input
             const formatDateForInput = (dateValue) => {
               if (!dateValue) return '';
-              if (dateValue instanceof Date) {
+              if (dateValue instanceof Date && !isNaN(dateValue.getTime())) {
                 // ✅ Use local date components, NOT UTC (toISOString converts to UTC!)
                 // This prevents timezone issues where selecting Dec 4 shows as Dec 3
                 const year = dateValue.getFullYear();
@@ -601,6 +601,10 @@ const Form = forwardRef(({
                 return `${year}-${month}-${day}`;
               }
               if (typeof dateValue === 'string') {
+                // If it's an incomplete date string being typed by user, return as is
+                if (dateValue.length < 10 && /^\d{0,4}-?\d{0,2}-?\d{0,2}$/.test(dateValue)) {
+                  return dateValue;
+                }
                 // If it's an ISO string, extract date part
                 if (dateValue.includes('T')) {
                   return dateValue.split('T')[0];
@@ -621,10 +625,54 @@ const Form = forwardRef(({
                 }
                 return;
               }
+
+              // Only parse if input is complete YYYY-MM-DD format (10 characters)
+              if (inputValue.length !== 10) {
+                // For incomplete input, store the string value temporarily
+                // This allows user to continue typing without losing input
+                controllerField.onChange(inputValue);
+                if (fieldOnChange) {
+                  fieldOnChange(inputValue);
+                }
+                return;
+              }
+
+              // Validate date format before parsing
+              const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
+              if (!dateRegex.test(inputValue)) {
+                controllerField.onChange(inputValue);
+                if (fieldOnChange) {
+                  fieldOnChange(inputValue);
+                }
+                return;
+              }
+
               // Parse as local date to avoid timezone issues when calculating day of week
               // Format: YYYY-MM-DD
               const [year, month, day] = inputValue.split('-').map(Number);
+
+              // Validate date components
+              if (year < 1900 || year > 2100 || month < 1 || month > 12 || day < 1 || day > 31) {
+                controllerField.onChange(inputValue);
+                if (fieldOnChange) {
+                  fieldOnChange(inputValue);
+                }
+                return;
+              }
+
               const dateValue = new Date(year, month - 1, day); // Month is 0-indexed
+
+              // Check if date is valid (e.g., not Feb 30th)
+              if (dateValue.getFullYear() !== year ||
+                  dateValue.getMonth() !== month - 1 ||
+                  dateValue.getDate() !== day) {
+                controllerField.onChange(inputValue);
+                if (fieldOnChange) {
+                  fieldOnChange(inputValue);
+                }
+                return;
+              }
+
               controllerField.onChange(dateValue);
               if (fieldOnChange) {
                 fieldOnChange(dateValue);
