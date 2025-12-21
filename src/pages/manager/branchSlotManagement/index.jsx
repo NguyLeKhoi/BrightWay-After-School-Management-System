@@ -16,7 +16,8 @@ import {
   List,
   ListItem,
   ListItemIcon,
-  ListItemText
+  ListItemText,
+  Paper
 } from '@mui/material';
 import {
   AccessTime as BranchSlotIcon,
@@ -372,70 +373,202 @@ const ManagerBranchSlotManagement = () => {
           >
             <InfoIcon color="info" />
             <Typography variant="h6" sx={{ fontWeight: 600 }}>
-              Hướng dẫn sử dụng trang Quản lý Ca Giữ Trẻ
+              Quy trình tạo ca giữ trẻ đơn lẻ
             </Typography>
           </AccordionSummary>
           <AccordionDetails>
-            <Typography variant="body1" paragraph sx={{ mb: 2 }}>
-              Trang này giúp bạn quản lý các ca giữ trẻ của chi nhánh. Dưới đây là hướng dẫn chi tiết để sử dụng:
+            <Typography variant="body1" paragraph sx={{ mb: 3 }}>
+              Để tạo ca giữ trẻ đơn lẻ thành công, hãy thực hiện theo thứ tự 4 bước sau:
             </Typography>
 
-            <List>
-              <ListItem>
-                <ListItemIcon>
-                  <AddIcon color="primary" />
-                </ListItemIcon>
-                <ListItemText
-                  primary="Thêm ca giữ trẻ đơn lẻ"
-                  secondary="Nhấn nút 'Thêm Ca Giữ Trẻ Mới' để tạo một ca giữ trẻ cụ thể với thông tin chi tiết về khung giờ, loại ca, phòng và nhân viên."
-                />
-              </ListItem>
+            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+              {/* Bước 1: Có loại ca giữ trẻ */}
+              <Paper
+                elevation={1}
+                sx={{
+                  p: 2,
+                  borderRadius: 2,
+                  border: '1px solid',
+                  borderColor: 'divider',
+                  backgroundColor: 'background.paper'
+                }}
+              >
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 1 }}>
+                  <Box sx={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    width: 32,
+                    height: 32,
+                    borderRadius: '50%',
+                    backgroundColor: 'primary.main',
+                    color: 'white',
+                    fontWeight: 'bold',
+                    fontSize: '1rem'
+                  }}>
+                    1
+                  </Box>
+                  <Typography variant="h6" sx={{ fontWeight: 600, flex: 1 }}>
+                    Có Loại Ca Giữ Trẻ
+                  </Typography>
+                  <Button
+                    variant="outlined"
+                    size="small"
+                    onClick={() => navigate('/manager/slot-types')}
+                    sx={{ textTransform: 'none' }}
+                  >
+                    Quản Lý Loại Ca Giữ Trẻ
+                  </Button>
+                </Box>
+                <Typography variant="body2" color="text.secondary" sx={{ ml: 6 }}>
+                  Đảm bảo đã có loại ca giữ trẻ phù hợp với nhu cầu (Ca Trưa - THCS, Ca Trưa - TH, Ca Tối - TH,...).
+                </Typography>
+              </Paper>
 
-              <ListItem>
-                <ListItemIcon>
-                  <BulkAddIcon color="secondary" />
-                </ListItemIcon>
-                <ListItemText
-                  primary="Tạo nhiều ca cùng lúc (khuyến nghị)"
-                  secondary="Nhấn nút 'Tạo Nhiều Ca Cùng Lúc' để tạo hàng loạt ca giữ trẻ theo lịch định kỳ. Phù hợp cho việc lên lịch dài hạn."
-                />
-              </ListItem>
+              {/* Bước 2: Có Phòng Học */}
+              <Paper
+                elevation={1}
+                sx={{
+                  p: 2,
+                  borderRadius: 2,
+                  border: '1px solid',
+                  borderColor: 'divider',
+                  backgroundColor: 'background.paper'
+                }}
+              >
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 1 }}>
+                  <Box sx={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    width: 32,
+                    height: 32,
+                    borderRadius: '50%',
+                    backgroundColor: 'primary.main',
+                    color: 'white',
+                    fontWeight: 'bold',
+                    fontSize: '1rem'
+                  }}>
+                    2
+                  </Box>
+                  <Typography variant="h6" sx={{ fontWeight: 600, flex: 1 }}>
+                    Có Phòng Học
+                  </Typography>
+                  <Button
+                    variant="outlined"
+                    size="small"
+                    onClick={() => navigate('/manager/rooms')}
+                    sx={{ textTransform: 'none' }}
+                  >
+                    Quản Lý Phòng Học
+                  </Button>
+                </Box>
+                <Typography variant="body2" color="text.secondary" sx={{ ml: 6 }}>
+                  Đảm bảo có phòng học trống với sức chứa phù hợp cho số lượng học sinh dự kiến.
+                </Typography>
+              </Paper>
 
-              <ListItem>
-                <ListItemIcon>
-                  <SearchIcon color="info" />
-                </ListItemIcon>
-                <ListItemText
-                  primary="Tìm kiếm và lọc ca giữ trẻ"
-                  secondary="Sử dụng thanh tìm kiếm để tìm theo tên, hoặc dùng các bộ lọc khung giờ, loại ca và ngày để lọc kết quả."
-                />
-              </ListItem>
+              {/* Bước 3: Có Nhân Viên */}
+              <Paper
+                elevation={1}
+                sx={{
+                  p: 2,
+                  borderRadius: 2,
+                  border: '1px solid',
+                  borderColor: 'divider',
+                  backgroundColor: 'background.paper'
+                }}
+              >
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 1 }}>
+                  <Box sx={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    width: 32,
+                    height: 32,
+                    borderRadius: '50%',
+                    backgroundColor: 'primary.main',
+                    color: 'white',
+                    fontWeight: 'bold',
+                    fontSize: '1rem'
+                  }}>
+                    3
+                  </Box>
+                  <Typography variant="h6" sx={{ fontWeight: 600, flex: 1 }}>
+                    Có Nhân Viên
+                  </Typography>
+                  <Button
+                    variant="outlined"
+                    size="small"
+                    onClick={() => navigate('/manager/staff')}
+                    sx={{ textTransform: 'none' }}
+                  >
+                    Quản Lý Nhân Viên
+                  </Button>
+                </Box>
+                <Typography variant="body2" color="text.secondary" sx={{ ml: 6 }}>
+                  Đảm bảo có nhân viên phù hợp với loại ca giữ trẻ và có kinh nghiệm giảng dạy.
+                </Typography>
+              </Paper>
 
-              <ListItem>
-                <ListItemIcon>
-                  <EditIcon color="warning" />
-                </ListItemIcon>
-                <ListItemText
-                  primary="Chỉnh sửa thông tin ca"
-                  secondary="Nhấn biểu tượng chỉnh sửa để thay đổi thông tin ca giữ trẻ như khung giờ, phòng hoặc nhân viên phụ trách."
-                />
-              </ListItem>
+              {/* Bước tạo ca giữ trẻ */}
+              <Paper
+                elevation={2}
+                sx={{
+                  p: 2,
+                  borderRadius: 2,
+                  border: '2px solid',
+                  borderColor: 'success.main',
+                  backgroundColor: 'success.50'
+                }}
+              >
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 2 }}>
+                  <Box sx={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    width: 32,
+                    height: 32,
+                    borderRadius: '50%',
+                    backgroundColor: 'success.main',
+                    color: 'white',
+                    fontWeight: 'bold',
+                    fontSize: '1rem'
+                  }}>
+                    ✓
+                  </Box>
+                  <Typography variant="h6" sx={{ fontWeight: 600, flex: 1 }}>
+                    Tạo Ca Giữ Trẻ Đơn Lẻ
+                  </Typography>
+                  <Button
+                    variant="contained"
+                    size="small"
+                    color="success"
+                    onClick={() => navigate('/manager/branch-slots/create')}
+                    sx={{ textTransform: 'none' }}
+                  >
+                    Tạo Ca Giữ Trẻ Ngay
+                  </Button>
+                </Box>
+                <Box sx={{ ml: 6 }}>
+                  <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
+                    Sau khi đã chuẩn bị đầy đủ các điều kiện trên, tiến hành tạo ca giữ trẻ:
+                  </Typography>
+                  <Box component="ul" sx={{ pl: 3, m: 0 }}>
+                    <li><Typography variant="body2">Chọn loại ca giữ trẻ đã chuẩn bị</Typography></li>
+                    <li><Typography variant="body2">Chọn phòng học trống phù hợp</Typography></li>
+                    <li><Typography variant="body2">Gán nhân viên phụ trách</Typography></li>
+                    <li><Typography variant="body2">Thiết lập thời gian và ngày học</Typography></li>
+                  </Box>
+                </Box>
+              </Paper>
+            </Box>
 
-              <ListItem>
-                <ListItemIcon>
-                  <DeleteIcon color="error" />
-                </ListItemIcon>
-                <ListItemText
-                  primary="Xóa ca giữ trẻ"
-                  secondary="Nhấn biểu tượng thùng rác để xóa ca giữ trẻ. Lưu ý: chỉ xóa được ca chưa có lịch hẹn."
-                />
-              </ListItem>
-            </List>
-
-            <Alert severity="info" sx={{ mt: 2 }}>
+            <Alert severity="info" sx={{ mt: 3 }}>
               <Typography variant="body2">
-                <strong>Lưu ý:</strong> Để tạo ca giữ trẻ hiệu quả, hãy sử dụng tính năng "Tạo Nhiều Ca Cùng Lúc"
-                cho việc lên lịch định kỳ. Bạn có thể chọn nhiều ngày trong tuần và khoảng thời gian dài hạn.
+                <strong>Lưu ý quan trọng:</strong> Để tạo ca giữ trẻ đơn lẻ thành công, bạn cần đảm bảo
+                đã có đầy đủ <strong>loại ca giữ trẻ</strong>, <strong>phòng học</strong> và <strong>nhân viên</strong> phù hợp.
+                Việc chuẩn bị trước sẽ giúp quá trình tạo ca giữ trẻ diễn ra nhanh chóng và hiệu quả.
               </Typography>
             </Alert>
           </AccordionDetails>
