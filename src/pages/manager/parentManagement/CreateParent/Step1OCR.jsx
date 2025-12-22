@@ -64,7 +64,7 @@ const Step1OCR = React.forwardRef(
         
         processedFile = await imageCompression(file, options);
       } catch (err) {
-        console.error('Error compressing image:', err);
+
         // If compression fails, use original file
         processedFile = file;
       }
@@ -352,4 +352,5 @@ const Step1OCR = React.forwardRef(
 Step1OCR.displayName = 'CreateParentStep1OCR';
 
 export default Step1OCR;
+
 

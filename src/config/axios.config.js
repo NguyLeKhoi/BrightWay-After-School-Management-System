@@ -71,24 +71,25 @@ axiosInstance.interceptors.response.use(
               errorMessage = errorData?.message || 'Token không hợp lệ. Có thể do bạn đã đăng nhập tài khoản khác trong tab khác. Vui lòng đăng nhập lại.';
             }
             
-            // Clear tokens and user data
-            localStorage.removeItem('accessToken');
-            localStorage.removeItem('refreshToken');
-            localStorage.removeItem('user');
-            
-            // Store message in sessionStorage to show dialog on login page
-            sessionStorage.setItem('sessionEndedMessage', errorMessage);
-            
-            // Redirect to login immediately
-            const currentPath = window.location.pathname;
-            if (currentPath !== '/login' && !currentPath.includes('/login')) {
-              window.location.href = '/login';
-            } else {
-              // Already on login page, show dialog immediately
-              if (window.__showSessionEndedDialog) {
-                window.__showSessionEndedDialog(errorMessage);
-              }
+
+          // Clear tokens and user data
+          localStorage.removeItem('accessToken');
+          localStorage.removeItem('refreshToken');
+          localStorage.removeItem('user');
+
+          // Store message in sessionStorage to show dialog on login page
+          sessionStorage.setItem('sessionEndedMessage', errorMessage);
+
+          // Redirect to login immediately
+          const currentPath = window.location.pathname;
+          if (currentPath !== '/login' && !currentPath.includes('/login')) {
+            window.location.href = '/login';
+          } else {
+            // Already on login page, show dialog immediately
+            if (window.__showSessionEndedDialog) {
+              window.__showSessionEndedDialog(errorMessage);
             }
+          }
             
             return Promise.reject(error);
           }
@@ -97,13 +98,16 @@ axiosInstance.interceptors.response.use(
           // Skip refresh for certain endpoints that might return 401 for other reasons
           // Also skip for public endpoints that don't require authentication
           // Also skip for parent creation endpoints to avoid auto-logout during creation
+          // Also skip for branch-transfer approve/reject endpoints to handle business logic errors
           const skipRefreshPaths = [
             '/Auth/login',
             '/Auth/refresh',
             '/ContactRequest/submit',
             '/User/create-parent',
-            '/User/create-parent-with-cccd'
+            '/User/create-parent-with-cccd',
+            '/Student/branch-transfer/requests',
           ];
+
           if (skipRefreshPaths.some(path => originalRequest.url?.includes(path))) {
             return Promise.reject(error);
           }

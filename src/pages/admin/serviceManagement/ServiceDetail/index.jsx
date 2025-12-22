@@ -93,7 +93,7 @@ const ServiceDetail = () => {
         const branches = await branchService.getAllBranches();
         setAllBranches(branches || []);
       } catch (err) {
-        console.error('Error loading branches:', err);
+
         setAllBranches([]);
       } finally {
         setLoadingBranches(false);
@@ -600,4 +600,5 @@ const ServiceDetail = () => {
 };
 
 export default ServiceDetail;
+
 

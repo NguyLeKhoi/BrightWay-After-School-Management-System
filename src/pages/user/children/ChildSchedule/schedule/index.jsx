@@ -135,7 +135,7 @@ const MySchedule = () => {
         name: firstActiveSubscription.packageName || 'Gói không tên'
       };
     } catch (err) {
-      console.error('Error auto-loading package:', err);
+
       return null;
     }
   }, []);
@@ -425,3 +425,4 @@ const MySchedule = () => {
 };
 
 export default MySchedule;
+

@@ -186,7 +186,7 @@ const BulkCreateBranchSlot = () => {
 
       navigate('/manager/branch-slots?refresh=true');
     } catch (error) {
-      console.error('Error bulk creating branch slots:', error);
+
       const errorMessage =
         error?.response?.data?.message || error?.message || 'Có lỗi xảy ra khi tạo ca giữ trẻ hàng loạt';
       toast.error(errorMessage, {
@@ -256,3 +256,4 @@ const BulkCreateBranchSlot = () => {
 };
 
 export default BulkCreateBranchSlot;
+

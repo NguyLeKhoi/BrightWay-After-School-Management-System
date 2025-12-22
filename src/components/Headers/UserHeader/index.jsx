@@ -36,7 +36,7 @@ const UserHeader = () => {
           profilePictureUrl: withCacheBuster(user?.profilePictureUrl || '')
         });
       } catch (error) {
-        console.error('Error fetching current user:', error);
+
         showGlobalError('Không thể tải thông tin người dùng.');
         setUserInfo(null);
       } finally {
@@ -105,4 +105,5 @@ const UserHeader = () => {
 };
 
 export default UserHeader;
+
 

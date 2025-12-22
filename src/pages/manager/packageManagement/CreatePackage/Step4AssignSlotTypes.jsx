@@ -40,7 +40,7 @@ const Step4AssignSlotTypes = React.forwardRef(
             setManagerBranchId(managerBranchId);
           }
         } catch (err) {
-          console.error('Error fetching manager branch:', err);
+
         }
       };
 
@@ -63,7 +63,7 @@ const Step4AssignSlotTypes = React.forwardRef(
           const existing = (data.slotTypeIds || []).filter(Boolean);
           setSelected(existing);
         } catch (err) {
-          console.error('Error loading slot types:', err);
+
           toast.error('Không thể tải danh sách loại ca giữ trẻ', {
             position: 'top-right',
             autoClose: 3000
@@ -150,4 +150,5 @@ const Step4AssignSlotTypes = React.forwardRef(
 Step4AssignSlotTypes.displayName = 'Step4AssignSlotTypes';
 
 export default Step4AssignSlotTypes;
+
 

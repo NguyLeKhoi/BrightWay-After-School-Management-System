@@ -95,7 +95,7 @@ const ChangePassword = () => {
         severity: 'success'
       });
     } catch (err) {
-      console.error('Send reset code error:', err);
+
       const errorMessage = err?.message || err?.error || 'Không thể gửi mã xác nhận. Vui lòng thử lại.';
       showGlobalError(errorMessage);
       addNotification({
@@ -138,7 +138,7 @@ const ChangePassword = () => {
         navigate(profilePath);
       }, 2000);
     } catch (err) {
-      console.error('Reset password error:', err);
+
       const errorMessage = err?.message || err?.error || 'Không thể đổi mật khẩu. Vui lòng kiểm tra lại mã xác nhận.';
       showGlobalError(errorMessage);
       addNotification({
@@ -612,4 +612,5 @@ const ChangePassword = () => {
 };
 
 export default ChangePassword;
+
 

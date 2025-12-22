@@ -19,7 +19,7 @@ const Step5AssignSlotTypes = React.forwardRef(
           const existing = (data.slotTypeIds || []).filter(Boolean);
           setSelected(existing);
         } catch (err) {
-          console.error('Error loading slot types:', err);
+
           toast.error('Không thể tải danh sách loại ca giữ trẻ', {
             position: 'top-right',
             autoClose: 3000
@@ -106,4 +106,5 @@ const Step5AssignSlotTypes = React.forwardRef(
 Step5AssignSlotTypes.displayName = 'Step5AssignSlotTypes';
 
 export default Step5AssignSlotTypes;
+
 

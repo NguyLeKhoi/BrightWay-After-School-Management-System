@@ -117,8 +117,7 @@ const CreateChild = () => {
         const day = String(d.getDate()).padStart(2, '0');
         dateOfBirth = `${year}-${month}-${day}`;
       }
-      
-      console.log('DateOfBirth being sent:', dateOfBirth); // Debug log
+
       if (dateOfBirth) {
         formDataToSend.append('DateOfBirth', dateOfBirth);
       }
@@ -204,4 +203,5 @@ const CreateChild = () => {
 };
 
 export default CreateChild;
+
 

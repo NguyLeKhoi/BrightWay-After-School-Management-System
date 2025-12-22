@@ -75,7 +75,7 @@ const ManagerDashboard = () => {
       const errorMessage = err?.message || 'Không thể tải dữ liệu dashboard';
       setError(errorMessage);
       showGlobalError(errorMessage);
-      console.error('Error loading dashboard:', err);
+
     } finally {
       hideLoading();
     }
@@ -596,3 +596,4 @@ const ManagerDashboard = () => {
 };
 
 export default ManagerDashboard;
+

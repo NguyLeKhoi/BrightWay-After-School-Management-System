@@ -63,7 +63,7 @@ const useBranchSchools = (branchId) => {
       
       setSchools(extractedSchools);
     } catch (err) {
-      console.error('Error fetching branch schools:', err);
+
       const message = err?.response?.data?.message || err?.message || 'Không thể tải danh sách trường học';
       setError(message);
       setSchools([]);
@@ -85,4 +85,5 @@ const useBranchSchools = (branchId) => {
 };
 
 export default useBranchSchools;
+
 

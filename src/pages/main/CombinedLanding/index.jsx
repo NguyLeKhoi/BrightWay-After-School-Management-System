@@ -67,7 +67,7 @@ const CombinedLanding = () => {
         const facilitiesData = Array.isArray(response) ? response : (response.items || []);
         setFacilities(facilitiesData);
       } catch (error) {
-        console.error('Error fetching facilities:', error);
+
         setFacilities([]);
       } finally {
         setLoadingFacilities(false);
@@ -106,7 +106,7 @@ const CombinedLanding = () => {
         }
         setPackageBenefits(benefitsMap);
       } catch (error) {
-        console.error('Error fetching packages:', error);
+
         setPackages([]);
       } finally {
         setLoadingPackages(false);
@@ -161,28 +161,28 @@ const CombinedLanding = () => {
 
   // Activity types with descriptions
   const activities = [
-    { 
-      icon: <SportsIcon />, 
+    {
+      icon: <SportsIcon />,
       name: 'Thể Thao',
-      image: 'https://www.tieuam.com/upload_images/images/1%20(2).jpg',
+      image: import.meta.env.VITE_IMAGE_ACTIVITY_SPORTS || '/images/activities/sports.jpg',
       description: 'Chương trình thể thao đa dạng giúp trẻ phát triển thể chất toàn diện. Các hoạt động bao gồm bóng đá, bóng rổ, bơi lội, võ thuật và nhiều môn thể thao khác. Trẻ sẽ được rèn luyện sức khỏe, tăng cường sự dẻo dai, phát triển kỹ năng vận động và tinh thần đồng đội trong môi trường an toàn và vui vẻ.'
     },
-    { 
-      icon: <ArtIcon />, 
+    {
+      icon: <ArtIcon />,
       name: 'Nghệ Thuật',
-      image: 'https://idesignvietnam.com/wp-content/uploads/2023/02/trang-tri-phong-nghe-thuat-mam-non-11-600x375.jpg',
+      image: import.meta.env.VITE_IMAGE_ACTIVITY_ART || '/images/activities/art.jpg',
       description: 'Khám phá thế giới nghệ thuật đầy màu sắc với các hoạt động vẽ tranh, làm thủ công, âm nhạc và biểu diễn. Chương trình nghệ thuật giúp trẻ phát triển trí tưởng tượng, khả năng sáng tạo, cảm thụ nghệ thuật và thể hiện cảm xúc một cách tích cực. Trẻ sẽ được thỏa sức sáng tạo và phát triển tài năng nghệ thuật của mình.'
     },
-    { 
-      icon: <BookIcon />, 
+    {
+      icon: <BookIcon />,
       name: 'Đọc Sách',
-      image: 'https://i1-vnexpress.vnecdn.net/2022/04/29/image001-4974-1651228881.jpg?w=680&h=0&q=100&dpr=1&fit=crop&s=2E5qSp115rFKxnJWeJoI5g',
+      image: import.meta.env.VITE_IMAGE_ACTIVITY_READING || '/images/activities/reading.jpg',
       description: 'Xây dựng thói quen đọc sách và phát triển ngôn ngữ cho trẻ. Chương trình đọc sách với thư viện phong phú, các hoạt động kể chuyện, đọc hiểu và thảo luận giúp trẻ mở rộng vốn từ, phát triển tư duy logic, khả năng phân tích và yêu thích việc học hỏi. Trẻ sẽ được khuyến khích khám phá thế giới qua những trang sách.'
     },
-    { 
-      icon: <SchoolIcon />, 
+    {
+      icon: <SchoolIcon />,
       name: 'Học Tập',
-      image: 'https://truongsydney.edu.vn/wp-content/uploads/2023/09/jaguars-lan-toa-thong-diep-hoa-binh-trong-ngay-peace-day-3.jpg',
+      image: import.meta.env.VITE_IMAGE_ACTIVITY_STUDY || '/images/activities/study.jpg',
       description: 'Chương trình học tập bổ trợ giúp trẻ củng cố kiến thức và phát triển tư duy. Với phương pháp giảng dạy hiện đại, trẻ sẽ được hỗ trợ làm bài tập, ôn tập kiến thức, phát triển kỹ năng giải quyết vấn đề và tư duy sáng tạo. Môi trường học tập tích cực giúp trẻ tự tin và yêu thích việc học.'
     }
   ];
@@ -426,7 +426,7 @@ const CombinedLanding = () => {
                   }}
                 >
                   <motion.img
-                    src="https://png.pngtree.com/png-clipart/20250507/original/pngtree-cartoon-style-illustration-for-international-children-s-day-png-image_20942616.png"
+                    src={import.meta.env.VITE_IMAGE_HERO_FAMILY || '/images/hero/family.png'}
                     alt="Gia đình vui vẻ tại BRIGHTWAY"
                     style={{
                       width: '100%',
@@ -1487,3 +1487,4 @@ const CombinedLanding = () => {
 };
 
 export default CombinedLanding;
+

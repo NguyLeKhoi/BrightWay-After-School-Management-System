@@ -32,7 +32,7 @@ const usePackageDependencies = () => {
       setStudentLevels(studentLevelsData || []);
       setBranches(branchesData || []);
     } catch (err) {
-      console.error('Error fetching package dependencies:', err);
+
       setError(err.message || 'Có lỗi xảy ra khi tải dữ liệu');
     } finally {
       setLoading(false);
@@ -91,3 +91,4 @@ const usePackageDependencies = () => {
 };
 
 export default usePackageDependencies;
+

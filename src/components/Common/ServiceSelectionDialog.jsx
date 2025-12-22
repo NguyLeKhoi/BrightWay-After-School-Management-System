@@ -126,7 +126,7 @@ const ServiceSelectionDialog = ({ open, onClose, childId, slotId, slotIds }) => 
       const items = Array.isArray(response) ? response : [];
       setChildren(items);
     } catch (err) {
-      console.error('Error loading children:', err);
+
     }
   };
 
@@ -163,7 +163,7 @@ const ServiceSelectionDialog = ({ open, onClose, childId, slotId, slotIds }) => 
 
       setStudentSlots(mapped);
     } catch (err) {
-      console.error('Error loading student slots:', err);
+
     } finally {
       setIsLoadingSlots(false);
     }
@@ -693,4 +693,5 @@ const ServiceSelectionDialog = ({ open, onClose, childId, slotId, slotIds }) => 
 };
 
 export default ServiceSelectionDialog;
+
 

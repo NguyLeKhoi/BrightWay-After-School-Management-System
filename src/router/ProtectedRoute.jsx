@@ -1,6 +1,6 @@
-import React from 'react';
+import React, { useContext } from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
-import { useAuth } from '../contexts/AuthContext';
+import { AuthContext } from '../contexts/AuthContext';
 import Loading from '../components/Common/Loading';
 
 const ROLE_DEFAULT_PATHS = {
@@ -16,7 +16,15 @@ const ROLE_DEFAULT_PATHS = {
  * If authenticated but with insufficient role, redirects to a role-specific default page.
  */
 const ProtectedRoute = ({ allowedRoles = [], redirectTo, children }) => {
-  const { user, isAuthenticated, loading } = useAuth();
+  // Use context directly to avoid useAuth hook error during hot reload
+  const authContext = useContext(AuthContext);
+
+  // If context is not ready, return loading
+  if (!authContext) {
+    return <Loading />;
+  }
+
+  const { user, isAuthenticated, loading } = authContext;
   const location = useLocation();
 
   if (loading) {

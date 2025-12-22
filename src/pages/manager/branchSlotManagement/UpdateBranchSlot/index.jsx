@@ -71,7 +71,7 @@ const UpdateBranchSlot = () => {
           }
         }
       } catch (err) {
-        console.error('Error loading data:', err);
+
         toast.error('Không thể tải dữ liệu ca giữ trẻ', {
           position: "top-right",
           autoClose: 3000,
@@ -117,20 +117,8 @@ const UpdateBranchSlot = () => {
       ...dataFromStepper,
       branchId: dataFromStepper?.branchId || branchSlotData?.branchId || branchSlotData?.branch?.id
     };
-    
-    console.log('handleComplete - Data sources:', {
-      dataFromStepper,
-      branchSlotData: branchSlotData?.slotTypeId,
-      finalData
-    });
-    
+
     if (!finalData.timeframeId || !finalData.slotTypeId || !finalData.date) {
-      console.error('handleComplete - Validation failed:', {
-        timeframeId: finalData.timeframeId,
-        slotTypeId: finalData.slotTypeId,
-        date: finalData.date,
-        status: finalData.status
-      });
       toast.error('Vui lòng điền đầy đủ thông tin cơ bản!', {
         position: "top-right",
         autoClose: 3000,
@@ -192,16 +180,8 @@ const UpdateBranchSlot = () => {
         return;
       }
 
-      console.log('Update BranchSlot - Request data:', {
-        id,
-        submitData,
-        finalData,
-        branchSlotData: branchSlotData?.slotTypeId
-      });
-
       const response = await branchSlotService.updateBranchSlot(id, submitData);
-      
-      console.log('Update BranchSlot - Response:', response);
+
 
       toast.success('Cập nhật ca giữ trẻ thành công!', {
         position: "top-right",
@@ -214,7 +194,7 @@ const UpdateBranchSlot = () => {
         navigate(`/manager/branch-slots?refresh=${Date.now()}`, { replace: false });
       }, 500);
     } catch (err) {
-      console.error('Update BranchSlot - Error:', err);
+
       const errorMessage = err.response?.data?.message || err.message || 'Có lỗi xảy ra khi cập nhật ca giữ trẻ';
       toast.error(errorMessage, {
         position: "top-right",
@@ -277,4 +257,5 @@ const UpdateBranchSlot = () => {
 };
 
 export default UpdateBranchSlot;
+
 

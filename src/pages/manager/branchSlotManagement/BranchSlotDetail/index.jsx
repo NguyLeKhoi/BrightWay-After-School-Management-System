@@ -23,7 +23,7 @@ import {
   Select,
   MenuItem
 } from '@mui/material';
-import { 
+import {
   ArrowBack,
   AccessTime,
   Business,
@@ -33,11 +33,13 @@ import {
   School,
   Delete as DeleteIcon,
   ContentCopy,
-  SwapHoriz
+  SwapHoriz,
+  Event as EventIcon
 } from '@mui/icons-material';
 import { IconButton, Tooltip, InputAdornment } from '@mui/material';
 import { PersonAdd as AssignStaffIcon, MeetingRoomOutlined as AssignRoomIcon, Add as AddIcon, Remove as RemoveIcon, Visibility as VisibilityIcon, Search as SearchIcon } from '@mui/icons-material';
 import ContentLoading from '../../../../components/Common/ContentLoading';
+import { formatDateToUTC7ISO } from '../../../../utils/dateHelper';
 import ConfirmDialog from '../../../../components/Common/ConfirmDialog';
 import ManagementFormDialog from '../../../../components/Management/FormDialog';
 import Form from '../../../../components/Common/Form';
@@ -314,7 +316,7 @@ const BranchSlotDetail = () => {
         allAssignedStaffIds
       }));
     } catch (err) {
-      console.error('Error loading staff assignment data:', err);
+
     } finally {
       setLoadingRooms(false);
     }
@@ -364,7 +366,7 @@ const BranchSlotDetail = () => {
       const roomsData = branchSlot?.rooms || [];
       setAssignedRooms(roomsData.map(room => room.id || room.roomId).filter(Boolean));
     } catch (err) {
-      console.error('Error loading assigned rooms:', err);
+
       setAssignedRooms([]);
     } finally {
       setLoadingAssignedRooms(false);
@@ -413,22 +415,35 @@ const BranchSlotDetail = () => {
   const handleDuplicateSubmit = useCallback(async () => {
     if (!id) return;
 
-    // Filter out null/empty dates and convert to ISO strings
+    // Filter out null/empty dates and convert to ISO strings with UTC+7 timezone
     const datesToSend = duplicateDialog.dates
       .filter(date => date !== null && date !== undefined && date !== '')
       .map(date => {
-        // Convert to ISO string format
+        // Convert to ISO string format as expected by BE with UTC+7 timezone
         if (date instanceof Date) {
-          return date.toISOString();
+          // For Date objects from date picker, use local date components to avoid timezone issues
+          const year = date.getFullYear();
+          const month = String(date.getMonth() + 1).padStart(2, '0');
+          const day = String(date.getDate()).padStart(2, '0');
+          // Format as ISO string with UTC+7 timezone at noon to avoid day boundary issues
+          return `${year}-${month}-${day}T12:00:00.000+07:00`;
         }
         if (typeof date === 'string') {
-          // If already ISO string, use it
-          if (date.includes('T')) {
+          // If already ISO string with timezone, use it
+          if (date.includes('T') && (date.includes('+') || date.includes('Z'))) {
             return date;
           }
-          // If YYYY-MM-DD format, convert to ISO
+          // If YYYY-MM-DD format, convert to ISO with UTC+7 at noon
           if (/^\d{4}-\d{2}-\d{2}$/.test(date)) {
-            return new Date(date + 'T00:00:00').toISOString();
+            return `${date}T12:00:00.000+07:00`;
+          }
+          // Try to parse other formats
+          const parsedDate = new Date(date);
+          if (!isNaN(parsedDate.getTime())) {
+            const year = parsedDate.getFullYear();
+            const month = String(parsedDate.getMonth() + 1).padStart(2, '0');
+            const day = String(parsedDate.getDate()).padStart(2, '0');
+            return `${year}-${month}-${day}T12:00:00.000+07:00`;
           }
         }
         return null;
@@ -528,7 +543,7 @@ const BranchSlotDetail = () => {
         roomId: roomId,
         pageIndex: studentListPage + 1, // API uses 1-based indexing
         pageSize: studentListRowsPerPage,
-        date: studentListDate ? (studentListDate instanceof Date ? studentListDate.toISOString().split('T')[0] : typeof studentListDate === 'string' ? studentListDate.split('T')[0] : studentListDate) : null,
+        date: studentListDate ? (studentListDate instanceof Date ? studentListDate.toLocaleDateString('sv-SE') : typeof studentListDate === 'string' ? studentListDate.split('T')[0] : studentListDate) : null,
         upcomingOnly: false
       });
 
@@ -1417,16 +1432,51 @@ const BranchSlotDetail = () => {
             <Box key={index} sx={{ display: 'flex', gap: 1, mb: 2, alignItems: 'flex-start' }}>
               <TextField
                 type="date"
-                label={`Ngày ${index + 1}`}
-                value={date ? (date instanceof Date ? date.toISOString().split('T')[0] : typeof date === 'string' ? date.split('T')[0] : '') : ''}
+                label={`Ngày ${index + 1} (DD/MM/YYYY)`}
+                value={date ? (date instanceof Date ? (() => {
+                  const year = date.getFullYear();
+                  const month = String(date.getMonth() + 1).padStart(2, '0');
+                  const day = String(date.getDate()).padStart(2, '0');
+                  return `${year}-${month}-${day}`;
+                })() : typeof date === 'string' ? date.split('T')[0] : '') : ''}
                 onChange={(e) => {
                   const newDates = [...duplicateDialog.dates];
-                  if (e.target.value) {
-                    const [year, month, day] = e.target.value.split('-').map(Number);
-                    newDates[index] = new Date(year, month - 1, day);
+                  const value = e.target.value;
+
+                  if (value) {
+                    try {
+                      // Handle YYYY-MM-DD format from calendar picker
+                      if (value.includes('-') && value.length === 10) {
+                        const parts = value.split('-');
+                        if (parts.length === 3) {
+                          const year = parseInt(parts[0], 10);
+                          const month = parseInt(parts[1], 10) - 1; // 0-based
+                          const day = parseInt(parts[2], 10);
+
+                          // Create date at local timezone
+                          const dateObj = new Date(year, month, day);
+
+                          // Validate the date
+                          if (dateObj.getFullYear() === year &&
+                              dateObj.getMonth() === month &&
+                              dateObj.getDate() === day) {
+                            newDates[index] = dateObj;
+                          } else {
+                            newDates[index] = null;
+                          }
+                        } else {
+                          newDates[index] = null;
+                        }
+                      } else {
+                        newDates[index] = null;
+                      }
+                    } catch (error) {
+                      newDates[index] = null;
+                    }
                   } else {
                     newDates[index] = null;
                   }
+
                   setDuplicateDialog({ ...duplicateDialog, dates: newDates });
                 }}
                 fullWidth
@@ -1434,6 +1484,11 @@ const BranchSlotDetail = () => {
                 InputLabelProps={{
                   shrink: true
                 }}
+                inputProps={{
+                  min: '1900-01-01',
+                  max: '2099-12-31'
+                }}
+                helperText="Chọn từ lịch hoặc nhập ngày theo format YYYY-MM-DD"
               />
               {duplicateDialog.dates.length > 1 && (
                 <IconButton
@@ -1590,11 +1645,11 @@ const BranchSlotDetail = () => {
             <TextField
               type="date"
               label="Lọc theo ngày"
-              value={studentListDate ? (studentListDate instanceof Date ? studentListDate.toISOString().split('T')[0] : typeof studentListDate === 'string' ? studentListDate.split('T')[0] : '') : ''}
+              value={studentListDate ? (studentListDate instanceof Date ? studentListDate.toLocaleDateString('sv-SE') : typeof studentListDate === 'string' ? studentListDate.split('T')[0] : '') : ''}
               onChange={(e) => {
                 if (e.target.value) {
-                  const [year, month, day] = e.target.value.split('-').map(Number);
-                  setStudentListDate(new Date(year, month - 1, day));
+                  // Create date in local timezone
+                  setStudentListDate(new Date(e.target.value + 'T00:00:00'));
                 } else {
                   setStudentListDate(null);
                 }
@@ -1760,4 +1815,5 @@ const BranchSlotDetail = () => {
 };
 
 export default BranchSlotDetail;
+
 

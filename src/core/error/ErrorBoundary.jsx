@@ -29,7 +29,7 @@ class ErrorBoundary extends React.Component {
   componentDidCatch(error, errorInfo) {
     // Log error to console in development
     if (import.meta.env.DEV) {
-      console.error('ErrorBoundary caught an error:', error, errorInfo);
+
     }
 
     // Log error to monitoring service in production
@@ -117,3 +117,4 @@ class ErrorBoundary extends React.Component {
 }
 
 export default ErrorBoundary;
+

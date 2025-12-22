@@ -67,7 +67,7 @@ const ManagerRoomManagement = () => {
         // Fetch facility and branch data for form dropdowns
         await fetchAllData();
       } catch (err) {
-        console.error('Error fetching manager branch:', err);
+
       }
     };
     fetchManagerBranch();
@@ -304,3 +304,4 @@ const ManagerRoomManagement = () => {
 };
 
 export default ManagerRoomManagement;
+

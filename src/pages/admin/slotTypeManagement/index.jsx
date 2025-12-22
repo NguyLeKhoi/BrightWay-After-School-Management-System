@@ -53,10 +53,10 @@ const SlotTypeManagement = () => {
         if (managerBranchId) {
           setManagerBranchId(managerBranchId);
         } else {
-          console.warn('Manager không có chi nhánh được gán');
+
         }
       } catch (err) {
-        console.error('Error fetching manager branch:', err);
+
         showGlobalError('Không thể xác định chi nhánh. Vui lòng đăng nhập lại.');
       }
     };
@@ -212,3 +212,4 @@ const SlotTypeManagement = () => {
 };
 
 export default SlotTypeManagement;
+

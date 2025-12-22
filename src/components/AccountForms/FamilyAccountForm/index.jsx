@@ -113,7 +113,7 @@ const FamilyAccountForm = ({ onSubmit, loading = false, defaultValues = null, is
     try {
       await onSubmit(data);
     } catch (error) {
-      console.error('Form submission error:', error);
+
     }
   };
 
@@ -569,3 +569,4 @@ const FamilyAccountForm = ({ onSubmit, loading = false, defaultValues = null, is
 };
 
 export default FamilyAccountForm;
+

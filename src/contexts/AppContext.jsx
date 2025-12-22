@@ -2,11 +2,11 @@ import React, { createContext, useContext, useState, useEffect, useCallback } fr
 import { toast } from 'react-toastify';
 import axiosInstance from '../config/axios.config';
 
-const AppContext = createContext(undefined);
+export const AppContext = createContext(null);
 
 export const useApp = () => {
   const context = useContext(AppContext);
-  if (!context) {
+  if (context === undefined || context === null) {
     throw new Error('useApp must be used within an AppProvider');
   }
   return context;

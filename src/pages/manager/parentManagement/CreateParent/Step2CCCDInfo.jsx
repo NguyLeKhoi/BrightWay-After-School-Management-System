@@ -137,6 +137,49 @@ const Step2CCCDInfo = React.forwardRef(
       [mode]
     );
 
+    // Helper function to handle intelligent date input
+    // Supports formats: ddmmyyyy, dd/mm/yyyy, dd-mm-yyyy, etc.
+    // Also handles partial input gracefully
+    const handleDateInput = (value) => {
+      if (!value) return '';
+
+      // Remove all non-digit characters to get raw input
+      let cleaned = value.replace(/\D/g, '');
+
+      // If user is still typing, allow incomplete input
+      if (cleaned.length < 8) {
+        // Format partial input as dd/mm/yyyy while typing
+        if (cleaned.length <= 2) {
+          return cleaned;
+        } else if (cleaned.length <= 4) {
+          return cleaned.slice(0, 2) + '/' + cleaned.slice(2);
+        } else {
+          return cleaned.slice(0, 2) + '/' + cleaned.slice(2, 4) + '/' + cleaned.slice(4, 8);
+        }
+      }
+
+      // When user completes input (8 digits), format as dd/mm/yyyy
+      if (cleaned.length >= 8) {
+        const day = cleaned.slice(0, 2);
+        const month = cleaned.slice(2, 4);
+        const year = cleaned.slice(4, 8);
+
+        // Validate ranges
+        const dayNum = parseInt(day, 10);
+        const monthNum = parseInt(month, 10);
+        const yearNum = parseInt(year, 10);
+
+        if (dayNum < 1 || dayNum > 31 || monthNum < 1 || monthNum > 12 || yearNum < 1900 || yearNum > 2100) {
+          // Return what we have formatted, validation will catch this
+          return `${day}/${month}/${year}`;
+        }
+
+        return `${day}/${month}/${year}`;
+      }
+
+      return cleaned;
+    };
+
     // Helper function to format date to dd/mm/yyyy
     const formatDateToDDMMYYYY = (dateString) => {
       if (!dateString) return '';

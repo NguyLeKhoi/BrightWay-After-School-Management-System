@@ -120,7 +120,7 @@ const BulkStep3SelectSlot = forwardRef(({ data, updateData, stepIndex, totalStep
 
       setSlots(uniqueSlots);
     } catch (err) {
-      console.error('Error loading available slots:', err);
+
       setError('Lỗi khi tải slots. Vui lòng thử lại.');
     } finally {
       setIsLoading(false);
@@ -225,3 +225,4 @@ const BulkStep3SelectSlot = forwardRef(({ data, updateData, stepIndex, totalStep
 BulkStep3SelectSlot.displayName = 'BulkStep3SelectSlot';
 
 export default BulkStep3SelectSlot;
+

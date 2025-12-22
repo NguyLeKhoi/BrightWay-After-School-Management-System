@@ -188,7 +188,6 @@ const Form = forwardRef(({
       previousErrorMessages.current = {};
       return result !== false; // Return true if result is not false
     } catch (error) {
-      console.error('Form submission error:', error);
       return false; // Return false on error
     }
   };
@@ -213,7 +212,6 @@ const Form = forwardRef(({
           // Return true only if submit was successful
           return result !== false;
         } catch (error) {
-          console.error('Form submit error:', error);
           return false;
         }
       }
@@ -737,45 +735,85 @@ const Form = forwardRef(({
           name={name}
           control={control}
           defaultValue=""
-          render={({ field: controllerField, fieldState }) => (
-            <TextField
-              {...controllerField}
-              type={type}
-              id={name}
-              name={name}
-              variant="standard"
-              placeholder={field.placeholder}
-              required={field.required}
-              disabled={field.disabled}
-              error={!!fieldState.error}
-              helperText={fieldState.error?.message || helperText}
-              fullWidth
-              sx={{
-                '& .MuiInput-underline:before': {
-                  borderBottomColor: 'var(--color-primary)'
-                },
-                '& .MuiInput-underline:hover:before': {
-                  borderBottomColor: 'var(--color-primary-dark)'
-                },
-                '& .MuiInput-underline:after': {
-                  borderBottomColor: 'var(--color-primary)'
-                },
-                '& .MuiInputBase-input': {
-                  color: 'var(--text-primary) !important'
-                },
-                '& .MuiInputLabel-root': {
-                  color: 'rgba(255, 255, 255, 0.7)'
-                },
-                '& .MuiInputLabel-root.Mui-focused': {
-                  color: 'var(--color-primary)'
-                },
-                '& .MuiFormHelperText-root': {
-                  color: 'rgba(255, 255, 255, 0.6)'
+          render={({ field: controllerField, fieldState }) => {
+            // Smart date input mask for fields with date pattern
+            const isDateField = field.pattern && /^\^\\d\{2\}\/\\d\{2\}\/\\d\{4\}\$$/.test(field.pattern);
+            
+            const handleDateChange = (e) => {
+              if (isDateField) {
+                // Apply smart date masking
+                let value = e.target.value;
+                // Remove non-numeric characters
+                let cleaned = value.replace(/\D/g, '');
+
+                let formatted = '';
+                if (cleaned.length <= 2) {
+                  formatted = cleaned;
+                } else if (cleaned.length <= 4) {
+                  formatted = cleaned.slice(0, 2) + '/' + cleaned.slice(2);
+                } else {
+                  formatted = cleaned.slice(0, 2) + '/' + cleaned.slice(2, 4) + '/' + cleaned.slice(4, 8);
                 }
-              }}
-              {...fieldProps}
-            />
-          )}
+
+                // Update form field with formatted value
+                controllerField.onChange(formatted);
+                if (fieldOnChange) {
+                  fieldOnChange(formatted);
+                }
+              } else {
+                // Normal text input
+                controllerField.onChange(e.target.value);
+                if (fieldOnChange) {
+                  fieldOnChange(e.target.value);
+                }
+              }
+            };
+
+            return (
+              <TextField
+                {...controllerField}
+                type={type}
+                id={name}
+                name={name}
+                variant="standard"
+                placeholder={field.placeholder}
+                required={field.required}
+                disabled={field.disabled}
+                error={!!fieldState.error}
+                helperText={fieldState.error?.message || helperText}
+                fullWidth
+                onChange={handleDateChange}
+                InputProps={isDateField ? {
+                  // Remove calendar icon for date text fields
+                  endAdornment: null
+                } : undefined}
+                sx={{
+                  '& .MuiInput-underline:before': {
+                    borderBottomColor: 'var(--color-primary)'
+                  },
+                  '& .MuiInput-underline:hover:before': {
+                    borderBottomColor: 'var(--color-primary-dark)'
+                  },
+                  '& .MuiInput-underline:after': {
+                    borderBottomColor: 'var(--color-primary)'
+                  },
+                  '& .MuiInputBase-input': {
+                    color: 'var(--text-primary) !important'
+                  },
+                  '& .MuiInputLabel-root': {
+                    color: 'rgba(255, 255, 255, 0.7)'
+                  },
+                  '& .MuiInputLabel-root.Mui-focused': {
+                    color: 'var(--color-primary)'
+                  },
+                  '& .MuiFormHelperText-root': {
+                    color: 'rgba(255, 255, 255, 0.6)'
+                  }
+                }}
+                {...fieldProps}
+              />
+            );
+          }}
         />
       );
     }

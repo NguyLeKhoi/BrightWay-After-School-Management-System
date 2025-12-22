@@ -128,7 +128,7 @@ const authService = {
         });
       } catch (apiError) {
         // Continue with local logout even if API call fails
-        console.log('Logout API call completed (or failed):', apiError?.message);
+
       }
       
       // Clear all auth data from localStorage
@@ -247,4 +247,5 @@ const authService = {
 };
 
 export default authService;
+
 

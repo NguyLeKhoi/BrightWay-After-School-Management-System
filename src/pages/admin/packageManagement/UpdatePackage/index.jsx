@@ -105,7 +105,7 @@ const Step2Associations = forwardRef(({ data, updateData }, ref) => {
         const templates = await packageTemplateService.getAllTemplates();
         setTemplateOptions(templates || []);
       } catch (err) {
-        console.error('Error fetching templates:', err);
+
         setTemplateOptions([]);
         toast.error('Không thể tải danh sách mẫu gói', {
           position: 'top-right',
@@ -245,7 +245,7 @@ const Step5AssignSlotTypes = forwardRef(({ data, updateData, packageId }, ref) =
         const existing = (data.slotTypeIds || []).filter(Boolean);
         setSelected(existing);
       } catch (err) {
-        console.error('Error loading slot types:', err);
+
         toast.error('Không thể tải danh sách loại ca giữ trẻ', {
           position: 'top-right',
           autoClose: 3000
@@ -473,7 +473,7 @@ const UpdatePackage = () => {
             benefitIds: benefitIds 
           });
         } catch (benefitErr) {
-          console.error('Error assigning benefits:', benefitErr);
+
           // Don't fail the whole operation if benefits assignment fails
           toast.warning('Gói đã được cập nhật nhưng có lỗi khi gán lợi ích');
         }
@@ -485,7 +485,7 @@ const UpdatePackage = () => {
         try {
           await packageService.assignSlotTypesToPackage(id, { slotTypeIds });
         } catch (slotTypeErr) {
-          console.error('Error assigning slot types:', slotTypeErr);
+
           // Don't fail the whole operation if slot types assignment fails
           toast.warning('Gói đã được cập nhật nhưng có lỗi khi gán loại ca giữ trẻ');
         }
@@ -532,5 +532,6 @@ const UpdatePackage = () => {
 };
 
 export default UpdatePackage;
+
 
 

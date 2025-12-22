@@ -33,7 +33,7 @@ const useLocationData = (options = {}) => {
       
       setProvinces(response || []);
     } catch (err) {
-      console.error('Error fetching provinces:', err);
+
       setError('Không thể tải danh sách tỉnh thành');
     } finally {
       setIsLoading(false);
@@ -54,7 +54,7 @@ const useLocationData = (options = {}) => {
       const response = await locationService.getDistrictsByProvinceId(provinceId);
       setDistricts(response || []);
     } catch (err) {
-      console.error('Error fetching districts:', err);
+
       setError('Không thể tải danh sách quận huyện');
     } finally {
       setIsLoading(false);
@@ -137,4 +137,5 @@ const useLocationData = (options = {}) => {
 };
 
 export default useLocationData;
+
 

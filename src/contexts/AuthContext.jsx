@@ -1,7 +1,7 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import authService from '../services/auth.service';
 
-const AuthContext = createContext();
+export const AuthContext = createContext();
 
 export const useAuth = () => {
   const context = useContext(AuthContext);
@@ -81,7 +81,7 @@ export const AuthProvider = ({ children }) => {
         });
       } catch (apiError) {
         // Continue with local logout even if API call fails
-        console.log('Logout API call completed (or failed):', apiError?.message);
+
       }
       
       // Clear localStorage
@@ -148,3 +148,4 @@ export const AuthProvider = ({ children }) => {
     </AuthContext.Provider>
   );
 };
+
