@@ -19,7 +19,8 @@ import {
   Person as ProfileIcon,
   Lock as LockIcon,
   Category as SlotTypeIcon,
-  CreditCard as NfcCardIcon
+  CreditCard as NfcCardIcon,
+  SwapHoriz as TransferIcon
 } from '@mui/icons-material';
 
 const ManagerLayout = () => {
@@ -65,7 +66,7 @@ const ManagerLayout = () => {
       await authService.logout();
       navigate('/login');
     } catch (error) {
-      console.error('Logout error:', error);
+
       // Force logout even on error
       localStorage.removeItem('accessToken');
       localStorage.removeItem('refreshToken');
@@ -131,6 +132,11 @@ const ManagerLayout = () => {
       path: '/manager/packages',
       label: 'Gói dịch vụ',
       icon: CoursesIcon
+        },
+        {
+          path: '/manager/branch-transfer',
+          label: 'Chuyển chi nhánh',
+          icon: TransferIcon
         }
       ]
     }
@@ -174,3 +180,4 @@ const ManagerLayout = () => {
 };
 
 export default ManagerLayout;
+

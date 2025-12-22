@@ -136,7 +136,7 @@ const UpdatePackage = () => {
         try {
           await packageService.assignSlotTypesToPackage(id, { slotTypeIds });
         } catch (slotTypeErr) {
-          console.error('Error assigning slot types:', slotTypeErr);
+
           // Don't fail the whole operation if slot types assignment fails
           toast.warning('Gói đã được cập nhật nhưng có lỗi khi gán loại ca giữ trẻ', {
             position: 'top-right',
@@ -240,5 +240,6 @@ const UpdatePackage = () => {
 };
 
 export default UpdatePackage;
+
 
 

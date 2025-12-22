@@ -174,12 +174,12 @@ const Step2AddressContact = forwardRef(({ data, updateData }, ref) => {
                 return;
               }
             } catch (err) {
-              console.error(`Error fetching districts for province ${province.id}:`, err);
+
             }
           }
         }
       } catch (err) {
-        console.error('Error finding province:', err);
+
       } finally {
         setIsLoadingLocation(false);
       }
@@ -335,5 +335,6 @@ const UpdateBranch = () => {
 };
 
 export default UpdateBranch;
+
 
 

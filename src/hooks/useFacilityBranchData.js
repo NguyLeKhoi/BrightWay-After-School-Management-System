@@ -20,7 +20,7 @@ const useFacilityBranchData = () => {
       const response = await facilityService.getAllFacilities();
       setFacilities(response || []);
     } catch (err) {
-      console.error('Error fetching facilities:', err);
+
       setError('Không thể tải danh sách cơ sở vật chất');
     }
   }, []);
@@ -31,7 +31,7 @@ const useFacilityBranchData = () => {
       const response = await branchService.getAllBranches();
       setBranches(response || []);
     } catch (err) {
-      console.error('Error fetching branches:', err);
+
       setError('Không thể tải danh sách chi nhánh');
     }
   }, []);
@@ -47,7 +47,7 @@ const useFacilityBranchData = () => {
         fetchBranches()
       ]);
     } catch (err) {
-      console.error('Error fetching data:', err);
+
       setError('Không thể tải dữ liệu');
     } finally {
       setIsLoading(false);
@@ -106,3 +106,4 @@ const useFacilityBranchData = () => {
 };
 
 export default useFacilityBranchData;
+

@@ -202,7 +202,7 @@ const Step1SelectDate = forwardRef(({ data, updateData, stepIndex, totalSteps },
                   };
                 } catch (err) {
                   // Ignore errors for individual date checks
-                  console.debug('Error checking date:', d, err);
+
                   return null;
                 }
               })
@@ -240,7 +240,7 @@ const Step1SelectDate = forwardRef(({ data, updateData, stepIndex, totalSteps },
           setCheckedDates(new Set(checkedDatesSet));
         }
       } catch (err) {
-        console.error('Error loading available dates:', err);
+
         // Don't show error, just don't highlight dates
       } finally {
         if (isMounted) {
@@ -514,4 +514,5 @@ const Step1SelectDate = forwardRef(({ data, updateData, stepIndex, totalSteps },
 Step1SelectDate.displayName = 'Step1SelectDate';
 
 export default Step1SelectDate;
+
 

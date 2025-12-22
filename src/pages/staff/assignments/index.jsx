@@ -406,7 +406,7 @@ const StaffAssignments = () => {
       const errorMessage = err?.response?.data?.message || err?.message || 'Không thể tải lịch giữ trẻ';
       setError(errorMessage);
       showGlobalError(errorMessage);
-      console.error('Error fetching schedule:', err);
+
     } finally {
       setLoading(false);
       hideLoading();
@@ -1024,3 +1024,4 @@ const StaffAssignments = () => {
 };
 
 export default StaffAssignments;
+

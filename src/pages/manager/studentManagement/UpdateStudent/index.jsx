@@ -72,7 +72,7 @@ const UpdateStudent = () => {
           name: student.branch?.branchName || 'Chi nhánh của bạn'
         });
       } catch (err) {
-        console.error('Không thể tải dữ liệu học sinh', err);
+
         const message = err?.response?.data?.message || err.message || 'Không thể tải dữ liệu học sinh';
         toast.error(message, { position: 'top-right', autoClose: 4000 });
         navigate('/manager/students');
@@ -221,5 +221,6 @@ const UpdateStudent = () => {
 };
 
 export default UpdateStudent;
+
 
 

@@ -107,7 +107,7 @@ const ImageUpload = ({
       // Call onChange to pass compressed file to parent
       onChange(compressedFile);
     } catch (error) {
-      console.error('Error compressing image:', error);
+
       alert('Lỗi khi nén ảnh. Vui lòng thử lại.');
     } finally {
       setIsCompressing(false);
@@ -334,4 +334,5 @@ const ImageUpload = ({
 };
 
 export default ImageUpload;
+
 

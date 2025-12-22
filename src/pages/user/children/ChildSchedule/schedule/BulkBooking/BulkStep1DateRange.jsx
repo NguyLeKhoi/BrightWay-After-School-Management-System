@@ -89,6 +89,7 @@ const BulkStep1DateRange = forwardRef(({ data, updateData, stepIndex, totalSteps
   const [calendarKey, setCalendarKey] = useState(0);
   const calendarRef = React.useRef(null);
   const isUserSelectingRef = React.useRef(false);
+  const inputTimeoutRef = React.useRef(null);
 
   const [datesWithSlots, setDatesWithSlots] = useState(new Map());
   const [checkedDates, setCheckedDates] = useState(new Set());
@@ -142,26 +143,29 @@ const BulkStep1DateRange = forwardRef(({ data, updateData, stepIndex, totalSteps
   }));
 
   useEffect(() => {
-    if (data?.startDate && !isUserSelectingRef.current) {
-      const dateObj = normalizeDate(data.startDate);
-      if (dateObj && (!normalizedStart || dateObj.getTime() !== normalizedStart.getTime())) {
-        setStartDate(dateObj);
-        setCalendarKey((prev) => prev + 1);
-        try {
-          const api = calendarRef.current?.getApi?.();
-          if (api) api.gotoDate(dateObj);
-        } catch (err) {
-          // ignore
+    // Only sync from props when not user selecting and data exists
+    if (!isUserSelectingRef.current) {
+      if (data?.startDate) {
+        const dateObj = normalizeDate(data.startDate);
+        if (dateObj && (!normalizedStart || dateObj.getTime() !== normalizedStart.getTime())) {
+          setStartDate(dateObj);
+          setCalendarKey((prev) => prev + 1);
+          try {
+            const api = calendarRef.current?.getApi?.();
+            if (api) api.gotoDate(dateObj);
+          } catch (err) {
+            // ignore
+          }
+        }
+      }
+      if (data?.endDate) {
+        const dateObj = normalizeDate(data.endDate);
+        if (dateObj && (!normalizedEnd || dateObj.getTime() !== normalizedEnd.getTime())) {
+          setEndDate(dateObj);
         }
       }
     }
-    if (data?.endDate && !isUserSelectingRef.current) {
-      const dateObj = normalizeDate(data.endDate);
-      if (dateObj && (!normalizedEnd || dateObj.getTime() !== normalizedEnd.getTime())) {
-        setEndDate(dateObj);
-      }
-    }
-  }, [data?.startDate, data?.endDate]);
+  }, [data?.startDate, data?.endDate, normalizedStart, normalizedEnd]);
 
   useEffect(() => {
     const today = new Date();
@@ -171,6 +175,15 @@ const BulkStep1DateRange = forwardRef(({ data, updateData, stepIndex, totalSteps
     const limit = new Date(today);
     limit.setFullYear(limit.getFullYear() + 1);
     setMaxDate(limit);
+  }, []);
+
+  // Cleanup timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (inputTimeoutRef.current) {
+        clearTimeout(inputTimeoutRef.current);
+      }
+    };
   }, []);
 
   useEffect(() => {
@@ -257,7 +270,7 @@ const BulkStep1DateRange = forwardRef(({ data, updateData, stepIndex, totalSteps
                     slotCount: validSlots.length
                   };
                 } catch (err) {
-                  console.debug('Error checking date:', d, err);
+
                   return null;
                 }
               })
@@ -290,7 +303,7 @@ const BulkStep1DateRange = forwardRef(({ data, updateData, stepIndex, totalSteps
           setCheckedDates(new Set(checkedDatesSet));
         }
       } catch (err) {
-        console.error('Error loading available dates:', err);
+
       } finally {
         if (isMounted) {
           setIsLoadingSlots(false);
@@ -306,6 +319,12 @@ const BulkStep1DateRange = forwardRef(({ data, updateData, stepIndex, totalSteps
   }, [data?.studentId]);
 
   const setRange = (newStart, newEnd = null) => {
+    // Clear any pending sync when programmatically setting range
+    if (inputTimeoutRef.current) {
+      clearTimeout(inputTimeoutRef.current);
+    }
+    isUserSelectingRef.current = true;
+
     const normalizedNewStart = normalizeDate(newStart);
     const normalizedNewEnd = normalizeDate(newEnd);
 
@@ -316,6 +335,11 @@ const BulkStep1DateRange = forwardRef(({ data, updateData, stepIndex, totalSteps
       endDate: formatInputDate(normalizedNewEnd)
     });
     setError('');
+
+    // Allow props sync after a delay
+    inputTimeoutRef.current = setTimeout(() => {
+      isUserSelectingRef.current = false;
+    }, 500);
   };
 
   const dayCellClassNames = React.useCallback(
@@ -463,35 +487,95 @@ const BulkStep1DateRange = forwardRef(({ data, updateData, stepIndex, totalSteps
   );
 
   const handleStartInputChange = (value) => {
+    // Clear any pending sync
+    if (inputTimeoutRef.current) {
+      clearTimeout(inputTimeoutRef.current);
+    }
+
+    // Mark as user selecting
+    isUserSelectingRef.current = true;
+
     if (!value) {
-      setRange(null, null);
+      setStartDate(null);
+      setEndDate(null);
+      updateData({
+        startDate: '',
+        endDate: ''
+      });
+      setError('');
+      isUserSelectingRef.current = false;
       return;
     }
 
     const newStart = normalizeDate(value);
-    if (normalizedEnd && newStart && normalizedEnd < newStart) {
-      setRange(newStart, null);
+    if (!newStart) {
+      isUserSelectingRef.current = false;
       return;
     }
 
-    const limitedStart = newStart && newStart > maxDate ? maxDate : newStart;
-    setRange(limitedStart, normalizedEnd && normalizedEnd > maxDate ? null : normalizedEnd);
+    // Limit to max date
+    const limitedStart = newStart > maxDate ? maxDate : newStart;
+
+    // If end date exists and is before start date, clear end date
+    const newEnd = (normalizedEnd && limitedStart && normalizedEnd < limitedStart) ? null : normalizedEnd;
+
+    setStartDate(limitedStart);
+    setEndDate(newEnd);
+    updateData({
+      startDate: formatInputDate(limitedStart),
+      endDate: newEnd ? formatInputDate(newEnd) : ''
+    });
+    setError('');
+
+    // Allow props sync after a delay
+    inputTimeoutRef.current = setTimeout(() => {
+      isUserSelectingRef.current = false;
+    }, 500);
   };
 
   const handleEndInputChange = (value) => {
+    // Clear any pending sync
+    if (inputTimeoutRef.current) {
+      clearTimeout(inputTimeoutRef.current);
+    }
+
+    // Mark as user selecting
+    isUserSelectingRef.current = true;
+
     if (!value) {
-      setRange(normalizedStart, null);
+      setEndDate(null);
+      updateData({
+        endDate: ''
+      });
+      setError('');
+      isUserSelectingRef.current = false;
       return;
     }
 
     const newEnd = normalizeDate(value);
-    if (normalizedStart && newEnd && newEnd < normalizedStart) {
-      setRange(newEnd, null);
+    if (!newEnd) {
+      isUserSelectingRef.current = false;
       return;
     }
 
-    const limitedEnd = newEnd && newEnd > maxDate ? maxDate : newEnd;
-    setRange(normalizedStart, limitedEnd);
+    // Limit to max date
+    const limitedEnd = newEnd > maxDate ? maxDate : newEnd;
+
+    // If start date exists and is after end date, clear start date
+    const newStart = (normalizedStart && limitedEnd && normalizedStart > limitedEnd) ? null : normalizedStart;
+
+    setStartDate(newStart);
+    setEndDate(limitedEnd);
+    updateData({
+      startDate: newStart ? formatInputDate(newStart) : '',
+      endDate: formatInputDate(limitedEnd)
+    });
+    setError('');
+
+    // Allow props sync after a delay
+    inputTimeoutRef.current = setTimeout(() => {
+      isUserSelectingRef.current = false;
+    }, 500);
   };
 
   const formatDateDisplay = (date) => {
@@ -627,3 +711,4 @@ const BulkStep1DateRange = forwardRef(({ data, updateData, stepIndex, totalSteps
 BulkStep1DateRange.displayName = 'BulkStep1DateRange';
 
 export default BulkStep1DateRange;
+

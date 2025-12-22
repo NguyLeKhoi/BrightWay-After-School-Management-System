@@ -55,7 +55,7 @@ const useBranchSlotDependencies = (branchId = null) => {
       setStaff(staffData || []);
       setStudentLevels(studentLevelsData || []);
     } catch (err) {
-      console.error('Error fetching branch slot dependencies:', err);
+
       setError(err.message || 'Có lỗi xảy ra khi tải dữ liệu');
       // Clear slot types on error to avoid showing stale/all-branch data
       setSlotTypes([]);
@@ -136,4 +136,5 @@ const useBranchSlotDependencies = (branchId = null) => {
 };
 
 export default useBranchSlotDependencies;
+
 

@@ -2,6 +2,7 @@ import React, { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Typography, Box, IconButton } from '@mui/material';
 import { Home as HomeIcon } from '@mui/icons-material';
+import { toast } from 'react-toastify';
 import AuthCard from '@components/Auth/AuthCard';
 import Form from '../../../components/Common/Form';
 import Loading from '../../../components/Common/Loading';
@@ -14,7 +15,7 @@ import styles from './Login.module.css';
 const Login = () => {
   const navigate = useNavigate();
   const { login } = useAuth();
-  const { addNotification, showGlobalError, showSessionEndedDialog } = useApp();
+  const { showSessionEndedDialog } = useApp();
   const { isLoading, showLoading, hideLoading } = useLoading(300);
 
   // Check for session ended message when login page loads
@@ -48,9 +49,9 @@ const Login = () => {
       const user = result.user;
       
       // Show success notification
-      addNotification({
-        message: 'Đăng nhập thành công!',
-        severity: 'success'
+      toast.success('Đăng nhập thành công!', {
+        position: 'top-right',
+        autoClose: 2000
       });
       
       // Redirect based on role (handle both string and number roles)
@@ -68,9 +69,12 @@ const Login = () => {
         navigate('/parent/profile');
       }
     } catch (err) {
-      console.error('Login error:', err);
+
       const errorMessage = err.message || 'Email hoặc mật khẩu không đúng. Vui lòng thử lại.';
-      showGlobalError(errorMessage);
+      toast.error(errorMessage, {
+        position: 'top-right',
+        autoClose: 4000
+      });
     } finally {
       hideLoading();
     }

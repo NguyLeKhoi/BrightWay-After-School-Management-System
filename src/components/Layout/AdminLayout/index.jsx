@@ -35,7 +35,7 @@ const AdminLayout = () => {
       await authService.logout();
       navigate('/login');
     } catch (error) {
-      console.error('Logout error:', error);
+
       // Force logout even on error
       localStorage.removeItem('accessToken');
       localStorage.removeItem('refreshToken');
@@ -170,3 +170,4 @@ const AdminLayout = () => {
 };
 
 export default AdminLayout;
+

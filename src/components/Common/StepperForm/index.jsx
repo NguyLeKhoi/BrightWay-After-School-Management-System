@@ -81,7 +81,7 @@ const StepperForm = ({
         };
       }
     } catch (error) {
-      console.error('Error loading saved form data:', error);
+
     }
     return null;
   }, [enableLocalStorage, getStorageKey]);
@@ -136,7 +136,7 @@ const StepperForm = ({
       };
       sessionStorage.setItem(key, JSON.stringify(toSave));
     } catch (error) {
-      console.error('Error saving form data:', error);
+
     }
   }, [enableLocalStorage, getStorageKey]);
 
@@ -148,7 +148,7 @@ const StepperForm = ({
       const key = getStorageKey();
       sessionStorage.removeItem(key);
     } catch (error) {
-      console.error('Error clearing saved form data:', error);
+
     }
   }, [enableLocalStorage, getStorageKey]);
 
@@ -360,7 +360,7 @@ const StepperForm = ({
         // Wait a bit for state to update
         await new Promise(resolve => setTimeout(resolve, 100));
       } catch (error) {
-        console.error('Step submit error:', error);
+
         setStepErrors(prev => ({ ...prev, [activeStep]: true }));
         return;
       }
@@ -379,7 +379,7 @@ const StepperForm = ({
           return;
         }
       } catch (error) {
-        console.error('Step validation error:', error);
+
         setStepErrors(prev => ({ ...prev, [activeStep]: true }));
         return;
       }
@@ -560,17 +560,17 @@ const StepperForm = ({
                 const isClickable = isStepCompleted || isNextStep || isPreviousStep;
                 
                 return (
-                  <Step 
+                  <Step
                     key={index}
                     completed={isStepCompleted}
-                    error={stepErrors[index]}
                     disabled={!isClickable && index !== activeStep}
                   >
                     <StepLabel
                       onClick={() => isClickable && handleStepChange(index)}
-                      style={{ 
+                      style={{
                         cursor: isClickable ? 'pointer' : 'not-allowed',
-                        opacity: isClickable || index === activeStep ? 1 : 0.5
+                        opacity: isClickable || index === activeStep ? 1 : 0.5,
+                        color: stepErrors[index] ? '#d32f2f' : 'inherit'
                       }}
                     >
                       {step.label}
@@ -694,4 +694,5 @@ const StepperForm = ({
 };
 
 export default StepperForm;
+
 

@@ -22,7 +22,8 @@ import {
   ChildCare as ChildrenWalletIcon,
   History as TransactionHistoryIcon,
   Settings as ManagementIcon,
-  Inventory as PackageIcon
+  Inventory as PackageIcon,
+  SwapHoriz as TransferIcon
 } from '@mui/icons-material';
 
 const UserLayout = () => {
@@ -33,7 +34,7 @@ const UserLayout = () => {
       await authService.logout();
       navigate('/login');
     } catch (error) {
-      console.error('Logout error:', error);
+
       // Force logout even on error
       localStorage.removeItem('accessToken');
       localStorage.removeItem('refreshToken');
@@ -67,6 +68,11 @@ const UserLayout = () => {
           path: '/user/management/schedule',
           label: 'Lịch giữ trẻ',
           icon: ScheduleIcon
+        },
+        {
+          path: '/user/branch-transfer/requests',
+          label: 'Chuyển chi nhánh',
+          icon: TransferIcon
         }
       ]
     },

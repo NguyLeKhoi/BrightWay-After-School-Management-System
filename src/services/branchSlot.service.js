@@ -244,25 +244,9 @@ const branchSlotService = {
    */
   updateBranchSlot: async (branchSlotId, branchSlotData) => {
     try {
-      console.log('updateBranchSlot API call:', {
-        url: `/BranchSlot/${branchSlotId}`,
-        method: 'PUT',
-        data: branchSlotData
-      });
       const response = await axiosInstance.put(`/BranchSlot/${branchSlotId}`, branchSlotData);
-      console.log('updateBranchSlot API response:', {
-        status: response.status,
-        data: response.data,
-        slotTypeId: response.data?.slotTypeId,
-        timeframeId: response.data?.timeframeId
-      });
       return response.data;
     } catch (error) {
-      console.error('updateBranchSlot API error:', {
-        status: error.response?.status,
-        data: error.response?.data,
-        message: error.message
-      });
       throw error.response?.data || error.message;
     }
   },
@@ -302,17 +286,9 @@ const branchSlotService = {
    */
   assignRooms: async (assignmentData) => {
     try {
-      console.log('assignRooms API call:', { 
-        url: '/BranchSlot/assign-rooms', 
-        data: assignmentData,
-        branchSlotId: assignmentData.branchSlotId,
-        roomIdsCount: assignmentData.roomIds?.length || 0
-      });
       const response = await axiosInstance.post('/BranchSlot/assign-rooms', assignmentData);
-      console.log('assignRooms API response:', response.data);
       return response.data;
     } catch (error) {
-      console.error('assignRooms API error:', error.response?.data || error.message);
       throw error.response?.data || error.message;
     }
   },
@@ -331,17 +307,9 @@ const branchSlotService = {
         });
         url = `${url}?${query.toString()}`;
       }
-      console.log('getRoomsByBranchSlot API call:', { url, branchSlotId, pageIndex, pageSize });
       const response = await axiosInstance.get(url);
-      console.log('getRoomsByBranchSlot API response:', { 
-        branchSlotId, 
-        items: response.data?.items?.length || 0,
-        totalCount: response.data?.totalCount || 0,
-        data: response.data
-      });
       return response.data;
     } catch (error) {
-      console.error('getRoomsByBranchSlot API error:', { branchSlotId, error: error.response?.data || error.message });
       throw error.response?.data || error.message;
     }
   },
@@ -384,16 +352,9 @@ const branchSlotService = {
    */
   duplicateBranchSlot: async (sourceSlotId, newDates = []) => {
     try {
-      console.log('duplicateBranchSlot API call:', {
-        url: `/BranchSlot/${sourceSlotId}/duplicate`,
-        method: 'POST',
-        data: newDates
-      });
       const response = await axiosInstance.post(`/BranchSlot/${sourceSlotId}/duplicate`, newDates);
-      console.log('duplicateBranchSlot API response:', response.data);
       return response.data;
     } catch (error) {
-      console.error('duplicateBranchSlot API error:', error.response?.data || error.message);
       throw error.response?.data || error.message;
     }
   },
@@ -522,16 +483,9 @@ const branchSlotService = {
       if (requestBody.weekDatesFlat !== undefined) {
         delete requestBody.weekDatesFlat;
       }
-      console.log('bulkCreateBranchSlots API call:', {
-        url: '/BranchSlot/manager/bulk-create',
-        method: 'POST',
-        data: requestBody
-      });
       const response = await axiosInstance.post('/BranchSlot/manager/bulk-create', requestBody);
-      console.log('bulkCreateBranchSlots API response:', response.data);
       return response.data;
     } catch (error) {
-      console.error('bulkCreateBranchSlots API error:', error.response?.data || error.message);
       throw error.response?.data || error.message;
     }
   },
@@ -545,19 +499,12 @@ const branchSlotService = {
    */
   changeRoom: async (branchSlotId, oldRoomId, newRoomId) => {
     try {
-      console.log('changeRoom API call:', {
-        url: `/BranchSlot/${branchSlotId}/change-room`,
-        method: 'PUT',
-        data: { oldRoomId, newRoomId }
-      });
       const response = await axiosInstance.put(`/BranchSlot/${branchSlotId}/change-room`, {
         oldRoomId,
         newRoomId
       });
-      console.log('changeRoom API response:', response.data);
       return response.data;
     } catch (error) {
-      console.error('changeRoom API error:', error.response?.data || error.message);
       throw error.response?.data || error.message;
     }
   }

@@ -53,7 +53,7 @@ const StaffAccountForm = ({
       }
     } catch (err) {
       // Error handling is done in parent component
-      console.error('Error in handleConfirmCreate:', err);
+
     } finally {
       if (setIsSubmitting) {
         setIsSubmitting(false);
@@ -246,3 +246,4 @@ const StaffAccountForm = ({
 };
 
 export default StaffAccountForm;
+

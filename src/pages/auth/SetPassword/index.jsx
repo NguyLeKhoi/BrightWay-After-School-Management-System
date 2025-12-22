@@ -71,7 +71,7 @@ const SetPassword = () => {
         navigate('/login');
       }, 2000);
     } catch (err) {
-      console.error('Set password error:', err);
+
       const errorMessage = err.message || 'Đặt mật khẩu thất bại. Vui lòng thử lại hoặc liên hệ quản trị viên.';
       showGlobalError(errorMessage);
     } finally {
@@ -159,3 +159,4 @@ const SetPassword = () => {
 };
 
 export default SetPassword;
+

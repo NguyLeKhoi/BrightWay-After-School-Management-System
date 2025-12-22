@@ -87,7 +87,7 @@ const BulkSchedule = () => {
         name: firstActiveSubscription.packageName || 'Gói không tên'
       };
     } catch (err) {
-      console.error('Error auto-loading package:', err);
+
       return null;
     }
   }, []);
@@ -319,3 +319,4 @@ const BulkSchedule = () => {
 };
 
 export default BulkSchedule;
+

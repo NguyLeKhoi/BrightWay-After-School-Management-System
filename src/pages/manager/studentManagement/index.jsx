@@ -220,7 +220,7 @@ const StudentManagement = () => {
             branchId: managerBranchId
           }));
         } else {
-          console.error('Manager không có chi nhánh được gán');
+
           showGlobalError('Quản lý không có chi nhánh được gán. Vui lòng liên hệ quản trị viên.');
         }
       } catch (error) {
@@ -536,7 +536,7 @@ const StudentManagement = () => {
             student: updatedStudent
           }));
         } catch (error) {
-          console.error('Error reloading student:', error);
+
         }
       }
       
@@ -1678,5 +1678,6 @@ const StudentManagement = () => {
 };
 
 export default StudentManagement;
+
 
 

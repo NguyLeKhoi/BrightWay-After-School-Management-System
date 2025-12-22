@@ -33,7 +33,7 @@ const ManagerStaffHeader = () => {
           profilePictureUrl: withCacheBuster(user?.profilePictureUrl || '')
         });
       } catch (error) {
-        console.error('Error fetching current user:', error);
+
         setUserInfo(null);
       } finally {
         setLoading(false);
@@ -133,4 +133,5 @@ const ManagerStaffHeader = () => {
 };
 
 export default ManagerStaffHeader;
+
 

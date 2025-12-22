@@ -57,7 +57,7 @@ const ResetPassword = () => {
         navigate('/login');
       }, 2000);
     } catch (err) {
-      console.error('Reset password error:', err);
+
       const errorMessage = err.message || 'Đặt lại mật khẩu thất bại. Vui lòng thử lại.';
       showGlobalError(errorMessage);
     } finally {
@@ -200,3 +200,4 @@ const ResetPassword = () => {
 };
 
 export default ResetPassword;
+

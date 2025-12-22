@@ -150,7 +150,7 @@ const CreatePackage = () => {
           try {
             await packageService.assignSlotTypesToPackage(created.id, { slotTypeIds });
           } catch (slotTypeErr) {
-            console.error('Error assigning slot types:', slotTypeErr);
+
             // Don't fail the whole operation if slot types assignment fails
             toast.warning('Gói đã được tạo nhưng có lỗi khi gán loại ca giữ trẻ', {
               position: 'top-right',
@@ -247,5 +247,6 @@ const CreatePackage = () => {
 };
 
 export default CreatePackage;
+
 
 

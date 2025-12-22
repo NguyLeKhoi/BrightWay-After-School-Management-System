@@ -187,7 +187,7 @@ const AssignmentDetail = () => {
       const data = await activityTypeService.getAllActivityTypes();
       setActivityTypes(Array.isArray(data) ? data : []);
     } catch (err) {
-      console.error('Error fetching activity types:', err);
+
     } finally {
       setLoadingActivityTypes(false);
     }
@@ -235,7 +235,7 @@ const AssignmentDetail = () => {
     } catch (err) {
       const errorMessage = err?.response?.data?.message || err?.message || 'Không thể tải danh sách học sinh';
       showGlobalError(errorMessage);
-      console.error('Error loading students:', err);
+
     } finally {
       setLoadingStudents(false);
     }
@@ -308,7 +308,7 @@ const AssignmentDetail = () => {
         }
       }
     } catch (err) {
-      console.error('Error loading activities:', err);
+
       setActivitiesByStudent(prev => ({
         ...prev,
         [studentSlotId]: []
@@ -377,11 +377,11 @@ const AssignmentDetail = () => {
       const errorStatus = err?.response?.status;
       if (errorStatus === 401 || errorStatus === 403) {
         // Nếu là lỗi quyền, chỉ set empty array, không throw
-        console.warn('Không có quyền truy cập thông tin người giám hộ');
+
         setGuardians([]);
       } else {
         // Các lỗi khác cũng chỉ set empty array
-        console.warn('Không thể tải thông tin người giám hộ:', err?.message || err);
+
         setGuardians([]);
       }
     } finally {
@@ -788,7 +788,7 @@ const AssignmentDetail = () => {
         position: 'top-right',
         autoClose: 4000
       });
-      console.error('Error creating activity:', err);
+
     } finally {
       setSubmittingActivity(false);
     }
@@ -853,7 +853,7 @@ const AssignmentDetail = () => {
         position: 'top-right',
         autoClose: 4000
       });
-      console.error('Error updating activity:', err);
+
     } finally {
       setSubmittingActivity(false);
     }
@@ -902,7 +902,7 @@ const AssignmentDetail = () => {
         position: 'top-right',
         autoClose: 4000
       });
-      console.error('Error deleting activity:', err);
+
     } finally {
       setDeletingActivity(false);
     }

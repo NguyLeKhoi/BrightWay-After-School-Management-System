@@ -39,7 +39,7 @@ const Step1PackageBasic = forwardRef(({ data, updateData }, ref) => {
         const templates = await packageTemplateService.getAllTemplates();
         setTemplateOptions(templates || []);
       } catch (err) {
-        console.error('Error fetching templates:', err);
+
         setTemplateOptions([]);
         toast.error('Không thể tải danh sách mẫu gói');
       } finally {
@@ -203,7 +203,7 @@ const Step3PricingSlots = forwardRef(({ data, updateData }, ref) => {
           const template = await packageTemplateService.getTemplateById(templateId);
           setSelectedTemplate(template);
         } catch (err) {
-          console.error('Error fetching template:', err);
+
         }
       }
     };
@@ -435,7 +435,7 @@ const CreatePackage = () => {
             benefitIds: benefitIds 
           });
         } catch (benefitErr) {
-          console.error('Error assigning benefits:', benefitErr);
+
           // Don't fail the whole operation if benefits assignment fails
           toast.warning('Gói đã được tạo nhưng có lỗi khi gán lợi ích');
         }
@@ -447,7 +447,7 @@ const CreatePackage = () => {
         try {
           await packageService.assignSlotTypesToPackage(created.id, { slotTypeIds });
         } catch (slotTypeErr) {
-          console.error('Error assigning slot types:', slotTypeErr);
+
           // Don't fail the whole operation if slot types assignment fails
           toast.warning('Gói đã được tạo nhưng có lỗi khi gán loại ca giữ trẻ');
         }
@@ -483,3 +483,4 @@ const CreatePackage = () => {
 };
 
 export default CreatePackage;
+

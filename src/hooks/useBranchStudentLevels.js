@@ -63,7 +63,7 @@ const useBranchStudentLevels = (branchId) => {
       
       setStudentLevels(extractedLevels);
     } catch (err) {
-      console.error('Error fetching branch studentLevels:', err);
+
       const message = err?.response?.data?.message || err?.message || 'Không thể tải cấp độ học sinh';
       setError(message);
       setStudentLevels([]);
@@ -85,4 +85,5 @@ const useBranchStudentLevels = (branchId) => {
 };
 
 export default useBranchStudentLevels;
+
 

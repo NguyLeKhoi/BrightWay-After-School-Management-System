@@ -38,6 +38,11 @@ import PaymentCancel from '../pages/user/paymentCancel';
 import ScheduleSelect from '../pages/user/management/ScheduleSelect';
 import PackageSelect from '../pages/user/management/PackageSelect';
 
+// Branch Transfer Pages
+import CreateTransferRequest from '../pages/user/branch-transfer/request';
+import TransferRequestsList from '../pages/user/branch-transfer/requests';
+import TransferRequestDetail from '../pages/user/branch-transfer/requests/[id]';
+
 // Admin Pages
 import AdminDashboard from '../pages/admin/dashboard';
 import BranchManagement from '../pages/admin/branchManagement';
@@ -91,6 +96,10 @@ import CreateStudent from '../pages/manager/studentManagement/CreateStudent';
 import UpdateStudent from '../pages/manager/studentManagement/UpdateStudent';
 import NfcCardManagement from '../pages/manager/nfcCardManagement';
 import NfcCardDetail from '../pages/manager/nfcCardManagement/NfcCardDetail';
+
+// Branch Transfer Pages
+import ManagerTransferRequests from '../pages/manager/branch-transfer';
+import ManagerTransferRequestDetail from '../pages/manager/branch-transfer/[id]';
 
 
 // Staff Pages
@@ -268,6 +277,18 @@ export const routes = createBrowserRouter([
       {
         path: 'payment/cancel',
         element: <PaymentCancel />,
+      },
+      {
+        path: 'branch-transfer/request',
+        element: <CreateTransferRequest />,
+      },
+      {
+        path: 'branch-transfer/requests',
+        element: <TransferRequestsList />,
+      },
+      {
+        path: 'branch-transfer/requests/:id',
+        element: <TransferRequestDetail />,
       },
     ],
   },
@@ -488,6 +509,14 @@ export const routes = createBrowserRouter([
       {
         path: 'nfc-cards/detail/:studentId',
         element: <NfcCardDetail />,
+      },
+      {
+        path: 'branch-transfer',
+        element: <ManagerTransferRequests />,
+      },
+      {
+        path: 'branch-transfer/:id',
+        element: <ManagerTransferRequestDetail />,
       },
       {
         path: 'profile',

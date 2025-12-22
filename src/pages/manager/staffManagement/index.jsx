@@ -99,7 +99,7 @@ const StaffManagement = () => {
         }));
         setBranchOptions(options);
       } catch (err) {
-        console.error('Error fetching branches:', err);
+
         setBranchOptions([]);
       } finally {
         setBranchLoading(false);
@@ -310,3 +310,4 @@ const StaffManagement = () => {
 };
 
 export default StaffManagement;
+

@@ -1,10 +1,18 @@
-import React from 'react';
+import React, { useContext } from 'react';
 import { Alert, Snackbar, IconButton } from '@mui/material';
 import { Close as CloseIcon } from '@mui/icons-material';
-import { useApp } from '../../contexts/AppContext';
+import { AppContext } from '../../contexts/AppContext';
 
 const GlobalErrorHandler = () => {
-  const { globalError, hideGlobalError } = useApp();
+  // Use context directly to avoid useApp hook error during hot reload
+  const appContext = useContext(AppContext);
+
+  // If context is not ready, return null
+  if (!appContext) {
+    return null;
+  }
+
+  const { globalError, hideGlobalError } = appContext;
 
   const handleClose = (event, reason) => {
     if (reason === 'clickaway') {
