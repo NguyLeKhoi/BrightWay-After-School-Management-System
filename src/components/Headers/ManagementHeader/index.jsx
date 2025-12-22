@@ -12,6 +12,7 @@ import {
   Business as BusinessIcon
 } from '@mui/icons-material';
 import userService from '../../../services/user.service.js';
+import ManagerNotificationDropdown from './NotificationDropdown';
 
 const withCacheBuster = (url) => {
   if (!url) return '';
@@ -74,6 +75,9 @@ const ManagerStaffHeader = () => {
       }}
     >
       <Toolbar sx={{ justifyContent: 'flex-end', pr: 2 }}>
+        {/* Notification Dropdown */}
+        <ManagerNotificationDropdown />
+
         {/* User Info */}
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, ml: 'auto' }}>
           {/* Branch Info */}

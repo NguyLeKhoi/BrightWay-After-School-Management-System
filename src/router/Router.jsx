@@ -78,6 +78,7 @@ import SlotTypeDetail from '../pages/admin/slotTypeManagement/SlotTypeDetail';
 import ManagerDashboard from '../pages/manager/dashboard';
 import ManagerRoomManagement from '../pages/manager/roomManagement';
 import ManagerRoomDetail from '../pages/manager/roomManagement/RoomDetail';
+import ManagerNotifications from '../pages/manager/notifications';
 import StaffManagement from '../pages/manager/staffManagement';
 import StaffDetail from '../pages/manager/staffManagement/StaffDetail';
 import ParentManagement from '../pages/manager/parentManagement';
@@ -421,6 +422,10 @@ export const routes = createBrowserRouter([
       {
         path: 'dashboard',
         element: <ManagerDashboard />,
+      },
+      {
+        path: 'notifications',
+        element: <ManagerNotifications />,
       },
       {
         path: 'staff',
