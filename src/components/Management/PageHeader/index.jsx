@@ -9,6 +9,7 @@ import styles from './ManagementPageHeader.module.css';
  */
 const ManagementPageHeader = ({
   title,
+  icon,
   createButtonText = 'Thêm mới',
   onCreateClick,
   children
@@ -19,7 +20,10 @@ const ManagementPageHeader = ({
     animate={{ opacity: 1, y: 0 }}
     transition={{ duration: 0.4 }}
   >
-    <h1 className={styles.title}>{title}</h1>
+    <div className={styles.titleWrapper}>
+      {icon && <span className={styles.icon}>{icon}</span>}
+      <h1 className={styles.title}>{title}</h1>
+    </div>
     <div className={styles.actions}>
       {onCreateClick && (
         <motion.div

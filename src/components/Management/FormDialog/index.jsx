@@ -6,12 +6,13 @@ const ManagementFormDialog = ({
   onClose,
   mode,
   title,
+  rawTitle,
   icon: Icon,
   loading = false,
   children,
   maxWidth = 'sm'
 }) => {
-  const dialogTitle = mode === 'create' ? `Thêm ${title} mới` : `Chỉnh sửa ${title}`;
+  const dialogTitle = rawTitle || (mode === 'create' ? `Thêm ${title} mới` : `Chỉnh sửa ${title}`);
 
   return (
     <Dialog

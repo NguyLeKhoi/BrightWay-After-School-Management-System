@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useImperativeHandle, forwardRef } from 'react';
 import { useForm, Controller, useWatch } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
-import { Grid, Switch, Box, Typography, TextField, Checkbox, InputAdornment, IconButton, ListItemText } from '@mui/material';
+import { Grid, Switch, Box, Typography, TextField, Checkbox, InputAdornment, IconButton, ListItemText, MenuItem } from '@mui/material';
 import Autocomplete from '@mui/material/Autocomplete';
 import CheckBoxOutlineBlankIcon from '@mui/icons-material/CheckBoxOutlineBlank';
 import CheckBoxIcon from '@mui/icons-material/CheckBox';
@@ -723,6 +723,126 @@ const Form = forwardRef(({
                   }
                 }}
                 {...fieldProps}
+              />
+            );
+          }}
+        />
+      );
+    } else if (type === 'time') {
+      // Support custom 24-hour selector when requested via fieldProps.use24Hour
+      inputElement = (
+        <Controller
+          name={name}
+          control={control}
+          render={({ field: controllerField, fieldState }) => {
+            if (fieldProps.use24Hour) {
+              // Value expected as 'HH:mm' string. Provide two small text inputs for hour and minute
+              const parseValue = (val) => {
+                if (!val || typeof val !== 'string') return { hour: '', minute: '' };
+                const parts = val.split(':');
+                return { hour: parts[0] || '', minute: parts[1] || '' };
+              };
+              const { hour, minute } = parseValue(controllerField.value || '');
+
+              const handleHourInput = (raw) => {
+                const cleaned = String(raw).replace(/\D/g, '').slice(0, 2); // only digits, max 2
+                // allow empty
+                const hh = cleaned === '' ? '' : String(Math.max(0, Math.min(23, parseInt(cleaned, 10) || 0))).padStart(2, '0');
+                const mm = minute || '00';
+                controllerField.onChange(hh ? `${hh}:${mm}` : '');
+              };
+
+              const handleMinuteInput = (raw) => {
+                const cleaned = String(raw).replace(/\D/g, '').slice(0, 2);
+                const mmVal = cleaned === '' ? '' : String(Math.max(0, Math.min(59, parseInt(cleaned, 10) || 0))).padStart(2, '0');
+                const hh = hour || '00';
+                controllerField.onChange(mmVal ? `${hh}:${mmVal}` : '');
+              };
+
+              const handleHourBlur = (e) => {
+                const v = e.target.value.replace(/\D/g, '');
+                if (v === '') return;
+                const hh = String(Math.max(0, Math.min(23, parseInt(v, 10) || 0))).padStart(2, '0');
+                const mm = minute || '00';
+                controllerField.onChange(`${hh}:${mm}`);
+                if (fieldOnChange) fieldOnChange(`${hh}:${mm}`);
+              };
+
+              const handleMinuteBlur = (e) => {
+                const v = e.target.value.replace(/\D/g, '');
+                if (v === '') return;
+                const mm = String(Math.max(0, Math.min(59, parseInt(v, 10) || 0))).padStart(2, '0');
+                const hh = hour || '00';
+                controllerField.onChange(`${hh}:${mm}`);
+                if (fieldOnChange) fieldOnChange(`${hh}:${mm}`);
+              };
+
+              return (
+                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5 }}>
+                  <Box sx={{ display: 'flex', gap: 1, alignItems: 'center', justifyContent: 'flex-start' }}>
+                    <TextField
+                      size="small"
+                      value={hour || ''}
+                      onChange={(e) => handleHourInput(e.target.value)}
+                      onBlur={handleHourBlur}
+                      sx={{ width: 80 }}
+                      error={!!fieldState.error}
+                      placeholder="HH"
+                      inputProps={{ inputMode: 'numeric', pattern: '[0-9]*', maxLength: 2 }}
+                    />
+
+                    <Box>-</Box>
+
+                    <TextField
+                      size="small"
+                      value={minute || ''}
+                      onChange={(e) => handleMinuteInput(e.target.value)}
+                      onBlur={handleMinuteBlur}
+                      sx={{ width: 80 }}
+                      error={!!fieldState.error}
+                      placeholder="mm"
+                      inputProps={{ inputMode: 'numeric', pattern: '[0-9]*', maxLength: 2 }}
+                    />
+                  </Box>
+                  {helperText && (
+                    <Typography variant="caption" color="text.secondary" sx={{ mt: 0.5 }}>
+                      {helperText}
+                    </Typography>
+                  )}
+                </Box>
+              );
+            }
+
+            // fallback: use native time input
+            return (
+              <TextField
+                {...controllerField}
+                type="time"
+                id={name}
+                name={name}
+                variant="standard"
+                placeholder={field.placeholder}
+                required={field.required}
+                disabled={field.disabled}
+                error={!!fieldState.error}
+                helperText={fieldState.error?.message || helperText}
+                fullWidth
+                InputLabelProps={{ shrink: true }}
+                inputProps={fieldProps.inputProps}
+                sx={{
+                  '& .MuiInput-underline:before': {
+                    borderBottomColor: 'var(--color-primary)'
+                  },
+                  '& .MuiInput-underline:hover:before': {
+                    borderBottomColor: 'var(--color-primary-dark)'
+                  },
+                  '& .MuiInput-underline:after': {
+                    borderBottomColor: 'var(--color-primary)'
+                  },
+                  '& .MuiInputBase-input': {
+                    color: 'var(--text-primary) !important'
+                  }
+                }}
               />
             );
           }}
