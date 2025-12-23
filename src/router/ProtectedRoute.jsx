@@ -19,16 +19,19 @@ const ProtectedRoute = ({ allowedRoles = [], redirectTo, children }) => {
   // Use context directly to avoid useAuth hook error during hot reload
   const authContext = useContext(AuthContext);
 
-  // If context is not ready, return loading
+  // If context is not ready, allow children to mount so pages/layouts
+  // can control content-level loading themselves. Do not render full-page Loading here.
   if (!authContext) {
-    return <Loading />;
+    return children;
   }
 
   const { user, isAuthenticated, loading } = authContext;
   const location = useLocation();
 
+  // While auth is initializing, allow child components to mount and
+  // display content-level loading overlays from layouts/pages if needed.
   if (loading) {
-    return <Loading />;
+    return children;
   }
 
   if (!isAuthenticated || !user) {

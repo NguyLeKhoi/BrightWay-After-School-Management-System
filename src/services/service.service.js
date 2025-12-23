@@ -13,6 +13,18 @@ const serviceService = {
       throw error.response?.data || error.message;
     }
   },
+  /**
+   * Get all services for the manager's current branch (Manager)
+   * @returns {Promise<Array>} List of services for current branch
+   */
+  getServicesForCurrentBranch: async () => {
+    try {
+      const response = await axiosInstance.get('/Service/branch/current');
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || error.message;
+    }
+  },
 
   /**
    * Create a new service (Admin only)
