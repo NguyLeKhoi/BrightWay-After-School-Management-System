@@ -73,12 +73,12 @@ import ServiceManagement from '../pages/admin/serviceManagement';
 import ServiceDetail from '../pages/admin/serviceManagement/ServiceDetail';
 import SlotTypeManagement from '../pages/admin/slotTypeManagement';
 import SlotTypeDetail from '../pages/admin/slotTypeManagement/SlotTypeDetail';
+import TimeframeManagement from '../pages/admin/timeframeManagement';
 
 // Manager Pages
 import ManagerDashboard from '../pages/manager/dashboard';
 import ManagerRoomManagement from '../pages/manager/roomManagement';
 import ManagerRoomDetail from '../pages/manager/roomManagement/RoomDetail';
-import ManagerNotifications from '../pages/manager/notifications';
 import StaffManagement from '../pages/manager/staffManagement';
 import StaffDetail from '../pages/manager/staffManagement/StaffDetail';
 import ParentManagement from '../pages/manager/parentManagement';
@@ -403,6 +403,10 @@ export const routes = createBrowserRouter([
         path: 'services/detail/:id',
         element: <ServiceDetail />,
       },
+      {
+        path: 'timeframes',
+        element: <TimeframeManagement />,
+      },
     ],
   },
 
@@ -422,10 +426,6 @@ export const routes = createBrowserRouter([
       {
         path: 'dashboard',
         element: <ManagerDashboard />,
-      },
-      {
-        path: 'notifications',
-        element: <ManagerNotifications />,
       },
       {
         path: 'staff',

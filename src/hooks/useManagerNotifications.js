@@ -29,7 +29,6 @@ const useManagerNotifications = () => {
     } catch (err) {
       const errorMessage = err?.message || 'Không thể tải thông báo';
       setError(errorMessage);
-      console.error('Error fetching notifications:', err);
     } finally {
       setIsLoading(false);
     }
@@ -43,7 +42,7 @@ const useManagerNotifications = () => {
       const count = await notificationService.getUnreadCount();
       setUnreadCount(count || 0);
     } catch (err) {
-      console.error('Error fetching unread count:', err);
+      // Silent fail for unread count
     }
   }, []);
 
@@ -64,7 +63,6 @@ const useManagerNotifications = () => {
       // Cập nhật số lượng thông báo chưa đọc
       setUnreadCount(prev => Math.max(0, prev - 1));
     } catch (err) {
-      console.error('Error marking notification as read:', err);
       throw err;
     }
   }, []);
@@ -84,7 +82,6 @@ const useManagerNotifications = () => {
       // Reset số lượng thông báo chưa đọc
       setUnreadCount(0);
     } catch (err) {
-      console.error('Error marking all notifications as read:', err);
       throw err;
     }
   }, []);
@@ -104,7 +101,7 @@ const useManagerNotifications = () => {
         notificationService.handleActionUrl(notification.actionUrl, navigate);
       }
     } catch (err) {
-      console.error('Error handling notification click:', err);
+      // Silent fail for notification click
     }
   }, [markAsRead]);
 
