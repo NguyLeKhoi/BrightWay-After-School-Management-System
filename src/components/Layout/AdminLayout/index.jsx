@@ -80,7 +80,7 @@ const AdminLayout = () => {
     },
     {
       path: '/admin/student-levels',
-      label: 'Cấp Độ Học Sinh',
+      label: 'Cấp Độ Trẻ em',
       icon: StudentLevelIcon
     },
     {

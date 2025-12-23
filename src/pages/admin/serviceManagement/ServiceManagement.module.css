@@ -1,5 +1,16 @@
 .container {
   padding: 24px;
+}
+
+.tableContainer {
+  margin-top: 16px;
+}
+
+.errorAlert {
+  margin-bottom: 12px;
+}
+.container {
+  padding: 24px;
   background: var(--bg-secondary);
   min-height: calc(100vh - 64px);
 }

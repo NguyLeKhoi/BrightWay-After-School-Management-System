@@ -1,6 +1,7 @@
 import React, { useMemo, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Schedule as TimeframeIcon } from '@mui/icons-material';
+import { Box, Typography } from '@mui/material';
 import DataTable from '../../../components/Common/DataTable';
 import Form from '../../../components/Common/Form';
 import ConfirmDialog from '../../../components/Common/ConfirmDialog';
@@ -21,7 +22,14 @@ const TimeframeManagement = () => {
     {
       key: 'name',
       header: 'Tên khung giờ',
-      render: (value) => value || 'N/A',
+      render: (value) => (
+        <Box display="flex" alignItems="center" gap={1}>
+          <TimeframeIcon fontSize="small" color="primary" />
+          <Typography variant="subtitle2" fontWeight={600}>
+            {value || 'N/A'}
+          </Typography>
+        </Box>
+      ),
     },
     {
       key: 'description',

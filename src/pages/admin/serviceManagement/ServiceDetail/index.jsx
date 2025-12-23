@@ -11,15 +11,6 @@ import {
   CardContent,
   Avatar,
   Chip,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
-  Autocomplete,
-  TextField,
-  Checkbox,
-  ListItemText,
-  CircularProgress,
   IconButton,
   Tooltip,
   Grid
@@ -40,9 +31,7 @@ import {
 import { toast } from 'react-toastify';
 import ContentLoading from '../../../../components/Common/ContentLoading';
 import serviceService from '../../../../services/service.service';
-import branchService from '../../../../services/branch.service';
 import { useApp } from '../../../../contexts/AppContext';
-import { getErrorMessage } from '../../../../utils/errorHandler';
 import styles from './ServiceDetail.module.css';
 
 const ServiceDetail = () => {
@@ -53,12 +42,7 @@ const ServiceDetail = () => {
   const [service, setService] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [allBranches, setAllBranches] = useState([]);
-  const [loadingBranches, setLoadingBranches] = useState(false);
-  const [assignDialogOpen, setAssignDialogOpen] = useState(false);
-  const [unassignDialogOpen, setUnassignDialogOpen] = useState(false);
-  const [selectedBranches, setSelectedBranches] = useState([]);
-  const [actionLoading, setActionLoading] = useState(false);
+  // Branch assign dialogs removed from detail page; keep detail read-only
 
   useEffect(() => {
     const loadData = async () => {
@@ -86,101 +70,11 @@ const ServiceDetail = () => {
     loadData();
   }, [id, showGlobalError]);
 
-  useEffect(() => {
-    const loadBranches = async () => {
-      try {
-        setLoadingBranches(true);
-        const branches = await branchService.getAllBranches();
-        setAllBranches(branches || []);
-      } catch (err) {
-
-        setAllBranches([]);
-      } finally {
-        setLoadingBranches(false);
-      }
-    };
-
-    if (assignDialogOpen || unassignDialogOpen) {
-      loadBranches();
-    }
-  }, [assignDialogOpen, unassignDialogOpen]);
-
   const handleBack = () => {
     navigate('/admin/services');
   };
 
-  const handleOpenAssignDialog = () => {
-    setSelectedBranches([]);
-    setAssignDialogOpen(true);
-  };
-
-  const handleOpenUnassignDialog = () => {
-    const assignedBranchIds = (service?.branches || []).map(b => b.id);
-    setSelectedBranches(assignedBranchIds);
-    setUnassignDialogOpen(true);
-  };
-
-  const handleCloseAssignDialog = () => {
-    setAssignDialogOpen(false);
-    setSelectedBranches([]);
-  };
-
-  const handleCloseUnassignDialog = () => {
-    setUnassignDialogOpen(false);
-    setSelectedBranches([]);
-  };
-
-  const handleAssignBranches = async () => {
-    if (!id || selectedBranches.length === 0) {
-      toast.error('Vui lòng chọn ít nhất một chi nhánh');
-      return;
-    }
-
-    try {
-      setActionLoading(true);
-      await serviceService.assignServiceToBranches(id, selectedBranches);
-      toast.success(`Đã gán dịch vụ vào ${selectedBranches.length} chi nhánh thành công!`);
-      handleCloseAssignDialog();
-      
-      // Reload service data
-      const serviceData = await serviceService.getServiceById(id);
-      setService(serviceData);
-    } catch (err) {
-      const errorMessage = getErrorMessage(err) || 'Không thể gán dịch vụ vào chi nhánh';
-      toast.error(errorMessage);
-      showGlobalError(errorMessage);
-    } finally {
-      setActionLoading(false);
-    }
-  };
-
-  const handleUnassignBranches = async () => {
-    if (!id || selectedBranches.length === 0) {
-      toast.error('Vui lòng chọn ít nhất một chi nhánh');
-      return;
-    }
-
-    try {
-      setActionLoading(true);
-      await serviceService.unassignServiceFromBranches(id, selectedBranches);
-      toast.success(`Đã hủy gán dịch vụ khỏi ${selectedBranches.length} chi nhánh thành công!`);
-      handleCloseUnassignDialog();
-      
-      // Reload service data
-      const serviceData = await serviceService.getServiceById(id);
-      setService(serviceData);
-    } catch (err) {
-      const errorMessage = getErrorMessage(err) || 'Không thể hủy gán dịch vụ khỏi chi nhánh';
-      toast.error(errorMessage);
-      showGlobalError(errorMessage);
-    } finally {
-      setActionLoading(false);
-    }
-  };
-
   const assignedBranchIds = (service?.branches || []).map(b => b.id);
-  const availableBranchesForAssign = allBranches.filter(b => !assignedBranchIds.includes(b.id));
-  const assignedBranches = allBranches.filter(b => assignedBranchIds.includes(b.id));
 
   if (loading) {
     return (
@@ -399,30 +293,7 @@ const ServiceDetail = () => {
               <Typography variant="h6" sx={{ fontWeight: 600 }}>
                 Chi Nhánh Được Gán
               </Typography>
-              <Box sx={{ display: 'flex', gap: 1 }}>
-                <Button
-                  startIcon={<Add />}
-                  variant="contained"
-                  color="primary"
-                  size="small"
-                  onClick={handleOpenAssignDialog}
-                  sx={{ textTransform: 'none' }}
-                >
-                  Gán Chi Nhánh
-                </Button>
-                {assignedBranchIds.length > 0 && (
-                  <Button
-                    startIcon={<Remove />}
-                    variant="outlined"
-                    color="error"
-                    size="small"
-                    onClick={handleOpenUnassignDialog}
-                    sx={{ textTransform: 'none' }}
-                  >
-                    Hủy Gán
-                  </Button>
-                )}
-              </Box>
+              {/* Actions removed: assign/unassign buttons moved to Services list */}
             </Box>
 
             {service?.branches && service.branches.length > 0 ? (
@@ -441,159 +312,13 @@ const ServiceDetail = () => {
               </Grid>
             ) : (
               <Alert severity="info">
-                Dịch vụ chưa được gán vào chi nhánh nào. Nhấn "Gán Chi Nhánh" để thêm.
+                Dịch vụ chưa được gán vào chi nhánh nào.
               </Alert>
             )}
           </CardContent>
         </Card>
 
-        {/* Assign Branches Dialog */}
-        <Dialog
-          open={assignDialogOpen}
-          onClose={handleCloseAssignDialog}
-          maxWidth="md"
-          fullWidth
-        >
-          <DialogTitle>
-            Gán Dịch Vụ Vào Chi Nhánh
-          </DialogTitle>
-          <DialogContent>
-            {loadingBranches ? (
-              <Box display="flex" justifyContent="center" alignItems="center" minHeight="200px">
-                <CircularProgress />
-              </Box>
-            ) : (
-              <Box sx={{ mt: 2 }}>
-                <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-                  Chọn các chi nhánh để gán dịch vụ này vào:
-                </Typography>
-                <Autocomplete
-                  multiple
-                  options={availableBranchesForAssign}
-                  getOptionLabel={(option) => option.branchName || option.name || 'N/A'}
-                  value={allBranches.filter(b => selectedBranches.includes(b.id))}
-                  onChange={(event, newValue) => {
-                    setSelectedBranches(newValue.map(b => b.id));
-                  }}
-                  disableCloseOnSelect
-                  renderOption={(props, option) => {
-                    const isSelected = selectedBranches.includes(option.id);
-                    return (
-                      <Box component="li" {...props}>
-                        <Checkbox
-                          icon={<CheckBoxOutlineBlank />}
-                          checkedIcon={<CheckBoxIcon />}
-                          checked={isSelected}
-                        />
-                        <ListItemText
-                          primary={option.branchName || option.name || 'N/A'}
-                          secondary={option.address || 'Không có địa chỉ'}
-                        />
-                      </Box>
-                    );
-                  }}
-                  renderInput={(params) => (
-                    <TextField
-                      {...params}
-                      placeholder="Tìm và chọn chi nhánh..."
-                      variant="outlined"
-                    />
-                  )}
-                />
-                <Typography variant="body2" color="text.secondary" sx={{ mt: 2 }}>
-                  Đã chọn: <strong>{selectedBranches.length}</strong> chi nhánh
-                </Typography>
-              </Box>
-            )}
-          </DialogContent>
-          <DialogActions>
-            <Button onClick={handleCloseAssignDialog} disabled={actionLoading}>
-              Hủy
-            </Button>
-            <Button
-              onClick={handleAssignBranches}
-              variant="contained"
-              color="primary"
-              disabled={actionLoading || selectedBranches.length === 0}
-            >
-              {actionLoading ? <CircularProgress size={24} /> : 'Gán'}
-            </Button>
-          </DialogActions>
-        </Dialog>
-
-        {/* Unassign Branches Dialog */}
-        <Dialog
-          open={unassignDialogOpen}
-          onClose={handleCloseUnassignDialog}
-          maxWidth="md"
-          fullWidth
-        >
-          <DialogTitle>
-            Hủy Gán Dịch Vụ Khỏi Chi Nhánh
-          </DialogTitle>
-          <DialogContent>
-            {loadingBranches ? (
-              <Box display="flex" justifyContent="center" alignItems="center" minHeight="200px">
-                <CircularProgress />
-              </Box>
-            ) : (
-              <Box sx={{ mt: 2 }}>
-                <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-                  Chọn các chi nhánh để hủy gán dịch vụ này:
-                </Typography>
-                <Autocomplete
-                  multiple
-                  options={assignedBranches}
-                  getOptionLabel={(option) => option.branchName || option.name || 'N/A'}
-                  value={allBranches.filter(b => selectedBranches.includes(b.id))}
-                  onChange={(event, newValue) => {
-                    setSelectedBranches(newValue.map(b => b.id));
-                  }}
-                  disableCloseOnSelect
-                  renderOption={(props, option) => {
-                    const isSelected = selectedBranches.includes(option.id);
-                    return (
-                      <Box component="li" {...props}>
-                        <Checkbox
-                          icon={<CheckBoxOutlineBlank />}
-                          checkedIcon={<CheckBoxIcon />}
-                          checked={isSelected}
-                        />
-                        <ListItemText
-                          primary={option.branchName || option.name || 'N/A'}
-                          secondary={option.address || 'Không có địa chỉ'}
-                        />
-                      </Box>
-                    );
-                  }}
-                  renderInput={(params) => (
-                    <TextField
-                      {...params}
-                      placeholder="Tìm và chọn chi nhánh..."
-                      variant="outlined"
-                    />
-                  )}
-                />
-                <Typography variant="body2" color="text.secondary" sx={{ mt: 2 }}>
-                  Đã chọn: <strong>{selectedBranches.length}</strong> chi nhánh
-                </Typography>
-              </Box>
-            )}
-          </DialogContent>
-          <DialogActions>
-            <Button onClick={handleCloseUnassignDialog} disabled={actionLoading}>
-              Hủy
-            </Button>
-            <Button
-              onClick={handleUnassignBranches}
-              variant="contained"
-              color="error"
-              disabled={actionLoading || selectedBranches.length === 0}
-            >
-              {actionLoading ? <CircularProgress size={24} /> : 'Hủy Gán'}
-            </Button>
-          </DialogActions>
-        </Dialog>
+        {/* Assign/unassign dialogs removed from detail page (moved to list view) */}
       </div>
     </div>
   );

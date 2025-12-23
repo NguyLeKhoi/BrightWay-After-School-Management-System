@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { Alert } from '@mui/material';
+import { Alert, Dialog, DialogTitle, DialogContent, DialogActions, Button, Autocomplete, TextField, Checkbox, ListItemText, CircularProgress, Box } from '@mui/material';
 import { LocalOffer as ServiceIcon } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
@@ -26,8 +26,13 @@ const ServiceManagement = () => {
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(10);
   const [openDialog, setOpenDialog] = useState(false);
+  const [assignDialogOpen, setAssignDialogOpen] = useState(false);
+  const [unassignDialogOpen, setUnassignDialogOpen] = useState(false);
   const [actionLoading, setActionLoading] = useState(false);
   const [selectedService, setSelectedService] = useState(null);
+  const [allBranches, setAllBranches] = useState([]);
+  const [loadingBranches, setLoadingBranches] = useState(false);
+  const [selectedBranches, setSelectedBranches] = useState([]);
   const [dialogMode, setDialogMode] = useState('create');
   const [confirmDialog, setConfirmDialog] = useState({
     open: false,
@@ -143,6 +148,93 @@ const ServiceManagement = () => {
     });
   };
 
+  // Assign / Unassign branches handlers (from list)
+  const handleOpenAssignDialog = async (service) => {
+    setSelectedService(service);
+    // Prefill selectedBranches with branches already assigned to the service
+    const assigned = (service?.branches || []).map(b => b.id);
+    setSelectedBranches(assigned);
+    setAssignDialogOpen(true);
+  };
+
+  const handleOpenUnassignDialog = async (service) => {
+    // Load latest service data, but do NOT pre-select branches.
+    try {
+      setLoadingBranches(true);
+      const svc = await serviceService.getServiceById(service.id);
+      setSelectedService(svc);
+      setSelectedBranches([]);
+    } catch (err) {
+      // fallback to provided service if fetch fails
+      setSelectedService(service);
+      setSelectedBranches([]);
+    } finally {
+      setLoadingBranches(false);
+      setUnassignDialogOpen(true);
+    }
+  };
+
+  const loadAllBranches = async () => {
+    try {
+      setLoadingBranches(true);
+      const branches = await (await import('../../../services/branch.service')).default.getAllBranches();
+      setAllBranches(branches || []);
+    } catch (err) {
+      setAllBranches([]);
+    } finally {
+      setLoadingBranches(false);
+    }
+  };
+
+  // Load branches when assign/unassign dialog opens
+  useEffect(() => {
+    if (assignDialogOpen || unassignDialogOpen) {
+      loadAllBranches();
+    }
+  }, [assignDialogOpen, unassignDialogOpen]);
+
+  const handleAssignBranches = async () => {
+    if (!selectedService || selectedBranches.length === 0) {
+      toast.error('Vui lòng chọn ít nhất một chi nhánh');
+      return;
+    }
+
+    try {
+      setActionLoading(true);
+      await serviceService.assignServiceToBranches(selectedService.id, selectedBranches);
+      toast.success(`Đã gán dịch vụ vào ${selectedBranches.length} chi nhánh thành công!`);
+      setAssignDialogOpen(false);
+      setSelectedService(null);
+      await loadServices();
+    } catch (err) {
+      const message = err?.message || err?.response?.data?.message || 'Không thể gán dịch vụ';
+      toast.error(message);
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  const handleUnassignBranches = async () => {
+    if (!selectedService || selectedBranches.length === 0) {
+      toast.error('Vui lòng chọn ít nhất một chi nhánh');
+      return;
+    }
+
+    try {
+      setActionLoading(true);
+      await serviceService.unassignServiceFromBranches(selectedService.id, selectedBranches);
+      toast.success(`Đã hủy gán dịch vụ khỏi ${selectedBranches.length} chi nhánh thành công!`);
+      setUnassignDialogOpen(false);
+      setSelectedService(null);
+      await loadServices();
+    } catch (err) {
+      const message = err?.message || err?.response?.data?.message || 'Không thể hủy gán dịch vụ';
+      toast.error(message);
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
   const handleFormSubmit = async (formData) => {
     setActionLoading(true);
     setError(null);
@@ -245,6 +337,8 @@ const ServiceManagement = () => {
           onView={handleView}
           onEdit={handleEdit}
           onDelete={handleDelete}
+          onAssignBranches={handleOpenAssignDialog}
+          onUnassignBranches={handleOpenUnassignDialog}
           emptyMessage="Không có dịch vụ nào. Hãy thêm dịch vụ đầu tiên để bắt đầu."
         />
       </div>
@@ -300,6 +394,91 @@ const ServiceManagement = () => {
         cancelText="Hủy"
         confirmColor="error"
       />
+
+      {/* Assign Branches Dialog (shared ManagementFormDialog) */}
+      <ManagementFormDialog
+        open={assignDialogOpen}
+        onClose={() => { setAssignDialogOpen(false); setSelectedService(null); }}
+        title="Gán chi nhánh"
+        rawTitle={selectedService ? `Gán chi nhánh cho: ${selectedService.name}` : 'Gán chi nhánh'}
+        icon={ServiceIcon}
+        maxWidth="sm"
+      >
+        {loadingBranches ? (
+          <Box display="flex" justifyContent="center" my={2}>
+            <CircularProgress />
+          </Box>
+        ) : (
+          <Autocomplete
+            multiple
+            options={allBranches}
+            getOptionLabel={(option) => option.branchName || option.name || option.displayName || ''}
+            value={allBranches.filter(b => selectedBranches.includes(b.id))}
+            onChange={(e, value) => setSelectedBranches(value.map(v => v.id))}
+            renderOption={(props, option, { selected }) => (
+              <li {...props}>
+                <Checkbox
+                  style={{ marginRight: 8 }}
+                  checked={selectedBranches.includes(option.id)}
+                />
+                <ListItemText primary={option.branchName || option.name || option.displayName} />
+              </li>
+            )}
+            renderInput={(params) => (
+              <TextField {...params} label="Chọn chi nhánh" placeholder="Tìm chi nhánh" />
+            )}
+          />
+        )}
+        <Box display="flex" justifyContent="flex-end" gap={2} mt={3}>
+          <Button onClick={() => { setAssignDialogOpen(false); setSelectedService(null); }}>Hủy</Button>
+          <Button variant="contained" onClick={handleAssignBranches} disabled={actionLoading}>
+            {actionLoading ? 'Đang xử lý...' : 'Gán chi nhánh'}
+          </Button>
+        </Box>
+      </ManagementFormDialog>
+
+      {/* Unassign Branches Dialog (shared ManagementFormDialog) */}
+      <ManagementFormDialog
+        open={unassignDialogOpen}
+        onClose={() => { setUnassignDialogOpen(false); setSelectedService(null); }}
+        title="Hủy gán chi nhánh"
+        rawTitle={selectedService ? `Hủy gán chi nhánh cho: ${selectedService.name}` : 'Hủy gán chi nhánh'}
+        icon={ServiceIcon}
+        maxWidth="sm"
+      >
+        {loadingBranches ? (
+          <Box display="flex" justifyContent="center" my={2}>
+            <CircularProgress />
+          </Box>
+        ) : (
+          <Autocomplete
+            multiple
+            // Show only branches that are currently assigned to the service
+            options={allBranches.filter(b => (selectedService?.branches || []).some(sb => sb.id === b.id))}
+            getOptionLabel={(option) => option.branchName || option.name || option.displayName || ''}
+            value={allBranches.filter(b => selectedBranches.includes(b.id))}
+            onChange={(e, value) => setSelectedBranches(value.map(v => v.id))}
+            renderOption={(props, option, { selected }) => (
+              <li {...props}>
+                <Checkbox
+                  style={{ marginRight: 8 }}
+                  checked={selectedBranches.includes(option.id)}
+                />
+                <ListItemText primary={option.branchName || option.name || option.displayName} />
+              </li>
+            )}
+            renderInput={(params) => (
+              <TextField {...params} label="Chọn chi nhánh" placeholder="Tìm chi nhánh" />
+            )}
+          />
+        )}
+        <Box display="flex" justifyContent="flex-end" gap={2} mt={3}>
+          <Button onClick={() => { setUnassignDialogOpen(false); setSelectedService(null); }}>Hủy</Button>
+          <Button variant="contained" color="error" onClick={handleUnassignBranches} disabled={actionLoading}>
+            {actionLoading ? 'Đang xử lý...' : 'Hủy gán'}
+          </Button>
+        </Box>
+      </ManagementFormDialog>
     </div>
   );
 };

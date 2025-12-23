@@ -93,11 +93,8 @@ const GenericDrawer = ({
         sessionStorage.removeItem(key);
       }
     });
-
-    // Force full page reload to ensure clean navigation
-    setTimeout(() => {
-      window.location.href = path;
-    }, 50);
+    // Use react-router navigation to avoid full page reloads
+    navigate(path);
   };
 
   const handleLogout = () => {

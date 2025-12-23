@@ -61,7 +61,8 @@ const useBaseCRUD = ({
   const prevFiltersStringRef = useRef(filtersString);
   
   // Load data
-  const loadData = useCallback(async (showLoadingIndicator = true) => {
+  // By default we do not show loading indicator unless caller requests it.
+  const loadData = useCallback(async (showLoadingIndicator = false) => {
     if (!loadFunction) return;
     
     if (showLoadingIndicator) {
@@ -115,15 +116,29 @@ const useBaseCRUD = ({
   }, [page, rowsPerPage, keyword, filtersString, loadFunction, showLoading, hideLoading, showGlobalError]);
   
   // Load data when page, rowsPerPage, or filters change
+  // Show loading only on initial mount; subsequent changes trigger load without showing the overlay
   useEffect(() => {
-    if (loadOnMount) {
-      // Only load if filters actually changed (deep comparison via JSON.stringify)
-      const filtersChanged = prevFiltersStringRef.current !== filtersString;
-      if (filtersChanged) {
+    if (!loadOnMount) return;
+
+    const mountedRef = prevFiltersStringRef.current === null ? { current: false } : { current: false };
+
+    // We want to show loading only the first time this effect runs for this hook instance
+    // Track with a local mounted flag
+    let firstRun = true;
+
+    const doLoad = async () => {
+      if (firstRun) {
+        firstRun = false;
         prevFiltersStringRef.current = filtersString;
+        await loadData(true);
+      } else {
+        prevFiltersStringRef.current = filtersString;
+        await loadData(false);
       }
-      loadData();
-    }
+    };
+
+    doLoad();
+
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [page, rowsPerPage, filtersString]); // Removed loadData from dependencies to prevent infinite loop
   
