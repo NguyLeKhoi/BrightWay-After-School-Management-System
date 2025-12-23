@@ -51,17 +51,17 @@ const UserLayout = () => {
     },
     {
       groupKey: 'management',
-      label: 'Con',
+      label: 'Trẻ em',
       icon: ChildIcon,
       children: [
         {
           path: '/user/management/children',
-          label: 'Hồ sơ của các con',
+          label: 'Hồ sơ của các trẻ',
           icon: ChildIcon
         },
         {
           path: '/user/management/packages',
-          label: 'Mua gói',
+          label: 'Quản lý gói của các trẻ',
           icon: PackageIcon
         },
         {

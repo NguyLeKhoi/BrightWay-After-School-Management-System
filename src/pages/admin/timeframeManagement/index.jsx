@@ -64,12 +64,20 @@ const TimeframeManagement = () => {
       label: 'Giờ bắt đầu',
       type: 'time',
       required: true,
+      helperText: 'Định dạng HH:mm',
+      inputProps: { step: 60 },
+      use24Hour: true,
+      gridSize: 6
     },
     {
       name: 'endTime',
       label: 'Giờ kết thúc',
       type: 'time',
       required: true,
+      helperText: 'Định dạng HH:mm',
+      inputProps: { step: 60 },
+      use24Hour: true,
+      gridSize: 6
     },
   ], []);
 
@@ -163,12 +171,48 @@ const TimeframeManagement = () => {
   // Handle form submit
   const handleFormSubmitWithValidation = useCallback(async (formData) => {
     try {
+      // Normalize time fields: form provides HH:mm (no seconds). API expects HH:mm:ss
+      const normalizeTime = (t) => {
+        if (!t) return '';
+        // If already contains seconds, keep as is
+        if (t.split(':').length === 3) return t;
+        // Otherwise append :00
+        return `${t}:00`;
+      };
+
+      const toSeconds = (t) => {
+        if (!t) return null;
+        const parts = t.split(':').map((p) => parseInt(p, 10) || 0);
+        // parts: [hh, mm] or [hh, mm, ss]
+        const hh = parts[0] || 0;
+        const mm = parts[1] || 0;
+        const ss = parts[2] || 0;
+        return hh * 3600 + mm * 60 + ss;
+      };
+
+      const startTimeNorm = normalizeTime(formData.startTime);
+      const endTimeNorm = normalizeTime(formData.endTime);
+
+      // Validate start < end
+      const sSec = toSeconds(startTimeNorm);
+      const eSec = toSeconds(endTimeNorm);
+      if (sSec === null || eSec === null) {
+        showGlobalError('Vui lòng nhập cả giờ bắt đầu và giờ kết thúc');
+        return;
+      }
+      if (sSec >= eSec) {
+        showGlobalError('Giờ bắt đầu phải nhỏ hơn giờ kết thúc');
+        return;
+      }
+
+      const payload = { ...formData, startTime: startTimeNorm, endTime: endTimeNorm };
+
       if (selectedTimeframe?.id) {
         // Update mode
-        await timeframeService.updateTimeframe(selectedTimeframe.id, formData);
+        await timeframeService.updateTimeframe(selectedTimeframe.id, payload);
       } else {
         // Create mode
-        await timeframeService.createTimeframe(formData);
+        await timeframeService.createTimeframe(payload);
       }
       setOpenDialog(false);
       loadData(false);
@@ -186,9 +230,9 @@ const TimeframeManagement = () => {
         {/* Header */}
         <ManagementPageHeader
           title="Quản lý khung giờ"
-          description="Quản lý các khung giờ hoạt động của trung tâm"
-          icon={TimeframeIcon}
-          onCreateNew={handleCreateNew}
+          icon={<TimeframeIcon fontSize="large" color="primary" />}
+          createButtonText="Thêm khung giờ"
+          onCreateClick={handleCreateNew}
         />
 
         {/* Search Section */}

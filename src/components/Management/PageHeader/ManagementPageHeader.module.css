@@ -5,6 +5,20 @@
   align-items: center;
 }
 
+.titleWrapper {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-primary);
+  font-size: 28px;
+}
+
 .title {
   font-size: var(--font-size-4xl);
   font-weight: var(--font-weight-extrabold);

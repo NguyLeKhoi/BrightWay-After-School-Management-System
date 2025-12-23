@@ -228,23 +228,10 @@ export const createBranchColumns = ({
               transformOrigin={{ horizontal: 'right', vertical: 'top' }}
               anchorOrigin={{ horizontal: 'right', vertical: 'bottom' }}
             >
-              {onViewBranch && (
-                <MenuItem onClick={() => handleMenuAction(() => onViewBranch(item))}>
-                  <ListItemIcon>
-                    <VisibilityIcon fontSize="small" color="info" />
-                  </ListItemIcon>
-                  <ListItemText>Xem chi tiết</ListItemText>
-                </MenuItem>
-              )}
-              <MenuItem onClick={() => handleMenuAction(() => onAssignBenefits(item))}>
-                <ListItemIcon>
-                  <AssignIcon fontSize="small" color="info" />
-                </ListItemIcon>
-                <ListItemText>Gán lợi ích</ListItemText>
-              </MenuItem>
+              {/** 'Xem chi tiết' moved further down to sit above Edit ('Sửa') */}
               <MenuItem onClick={() => handleMenuAction(() => onAssignSchools(item))}>
                 <ListItemIcon>
-                  <SchoolIcon fontSize="small" color="success" />
+                  <SchoolIcon fontSize="small" color="primary" />
                 </ListItemIcon>
                 <ListItemText>Gán trường</ListItemText>
               </MenuItem>
@@ -254,6 +241,20 @@ export const createBranchColumns = ({
                 </ListItemIcon>
                 <ListItemText>Gán cấp độ học sinh</ListItemText>
               </MenuItem>
+              <MenuItem onClick={() => handleMenuAction(() => onAssignBenefits(item))}>
+                <ListItemIcon>
+                  <AssignIcon fontSize="small" color="success" />
+                </ListItemIcon>
+                <ListItemText>Gán lợi ích</ListItemText>
+              </MenuItem>
+              {onViewBranch && (
+                <MenuItem onClick={() => handleMenuAction(() => onViewBranch(item))}>
+                  <ListItemIcon>
+                    <VisibilityIcon fontSize="small" color="info" />
+                  </ListItemIcon>
+                  <ListItemText>Xem chi tiết</ListItemText>
+                </MenuItem>
+              )}
               {onEditBranch && (
                 <MenuItem onClick={() => handleMenuAction(() => onEditBranch(item))}>
                   <ListItemIcon>

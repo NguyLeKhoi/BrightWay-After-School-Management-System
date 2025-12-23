@@ -22,14 +22,12 @@ const useManagerPackageDependencies = () => {
     setLoading(true);
     setError(null);
     try {
-      const benefitPromise = managerBranchId
-        ? benefitService.getBenefitsByBranchId(managerBranchId)
-        : benefitService.getAllBenefits();
-
+      // Use the manager-specific endpoint which relies on current auth to return branch benefits.
+      // This avoids relying on `user.branchId` being populated synchronously.
       const [templateData, studentLevelData, benefitData] = await Promise.all([
         packageTemplateService.getAllTemplates(),
         studentLevelService.getAllStudentLevels(),
-        benefitPromise
+        benefitService.getMyBranchBenefits()
       ]);
       setTemplates(templateData || []);
       setStudentLevels(studentLevelData || []);

@@ -19,6 +19,19 @@ const benefitService = {
   },
 
   /**
+   * Get all benefits assigned to the current user's branch (manager endpoint)
+   * @returns {Promise} List of assigned benefits
+   */
+  getMyBranchBenefits: async () => {
+    try {
+      const response = await axiosInstance.get('/Benefit/my-branch');
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || error.message;
+    }
+  },
+
+  /**
    * Get benefit by ID
    * @param {string} benefitId - Benefit ID
    * @returns {Promise} Benefit details
