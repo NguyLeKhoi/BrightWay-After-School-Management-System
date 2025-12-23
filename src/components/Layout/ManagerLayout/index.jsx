@@ -78,12 +78,12 @@ const ManagerLayout = () => {
   const menuItems = [
     {
       path: '/manager/dashboard',
-      label: 'Dashboard',
+      label: 'Tổng quan',
       icon: DashboardIcon
     },
     {
       groupKey: 'user-management',
-      label: 'Quản lý Người dùng',
+      label: 'Tài khoản & thẻ NFC',
       icon: PeopleGroupIcon,
       children: [
     {
@@ -93,7 +93,7 @@ const ManagerLayout = () => {
     },
     {
       path: '/manager/parents',
-      label: 'Người dùng',
+      label: 'Phụ huynh',
       icon: ParentIcon
     },
     {
@@ -110,7 +110,7 @@ const ManagerLayout = () => {
     },
     {
       groupKey: 'facility-service-management',
-      label: 'Quản lý Cơ sở & Dịch vụ',
+      label: 'Cơ sở & Dịch vụ',
       icon: FacilityServiceIcon,
       children: [
     {

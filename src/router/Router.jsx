@@ -71,8 +71,8 @@ import SchoolManagement from '../pages/admin/schoolManagement';
 import SchoolDetail from '../pages/admin/schoolManagement/SchoolDetail';
 import ServiceManagement from '../pages/admin/serviceManagement';
 import ServiceDetail from '../pages/admin/serviceManagement/ServiceDetail';
-import SlotTypeManagement from '../pages/admin/slotTypeManagement';
-import SlotTypeDetail from '../pages/admin/slotTypeManagement/SlotTypeDetail';
+import SlotTypeManagement from '../pages/manager/slotTypeManagement';
+import SlotTypeDetail from '../pages/manager/slotTypeManagement/SlotTypeDetail';
 import TimeframeManagement from '../pages/admin/timeframeManagement';
 
 // Manager Pages

@@ -48,29 +48,29 @@ const AdminLayout = () => {
   const menuItems = [
     {
       path: '/admin/dashboard',
-      label: 'Dashboard',
+      label: 'Tổng quan',
       icon: DashboardIcon
     },
     {
       groupKey: 'user-management',
-      label: 'Quản lý Người dùng',
+      label: 'Tài khoản',
       icon: GroupIcon,
       children: [
     {
       path: '/admin/staffAndManager',
-      label: 'Nhân Viên',
+      label: 'Người quản lý',
       icon: UserIcon
     },
     {
       path: '/admin/users',
-      label: 'Người Dùng',
+      label: 'Phụ Huynh',
       icon: PeopleIcon
         }
       ]
     },
     {
       groupKey: 'system-management',
-      label: 'Quản lý Hệ thống',
+      label: 'Hệ thống',
       icon: SystemIcon,
       children: [
     {
@@ -92,7 +92,7 @@ const AdminLayout = () => {
     },
     {
       groupKey: 'branch-management',
-      label: 'Quản lý Chi nhánh',
+      label: 'Chi nhánh',
       icon: BranchGroupIcon,
       children: [
     {
@@ -109,7 +109,7 @@ const AdminLayout = () => {
     },
     {
       groupKey: 'service-management',
-      label: 'Quản lý Dịch vụ',
+      label: 'Gói & Dịch vụ',
       icon: ServiceIcon,
       children: [
     {

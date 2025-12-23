@@ -27,7 +27,8 @@ import {
   ExpandLess as ExpandLessIcon,
   MoreVert as MoreVertIcon,
   MeetingRoomOutlined as RoomIcon,
-  PersonAdd as StaffIcon
+  PersonAdd as StaffIcon,
+  Inventory as PackageIcon
 } from '@mui/icons-material';
 
 const DataTable = ({
@@ -44,6 +45,7 @@ const DataTable = ({
   onDelete,
   onAssignRooms,
   onAssignStaff,
+  onAssignPackages,
   emptyMessage = "Không có dữ liệu",
   showActions = true,
   expandableConfig = null,
@@ -62,7 +64,7 @@ const DataTable = ({
     }));
   }, []);
 
-  const hasAnyAction = Boolean(onView || onEdit || onDelete || onAssignRooms || onAssignStaff);
+  const hasAnyAction = Boolean(onView || onEdit || onDelete || onAssignRooms || onAssignStaff || onAssignPackages);
 
   // Action Menu Component for each row
   const ActionMenu = ({ item }) => {
@@ -138,6 +140,14 @@ const DataTable = ({
                 <StaffIcon fontSize="small" color="primary" />
               </ListItemIcon>
               <ListItemText>Gán nhân viên</ListItemText>
+            </MenuItem>
+          )}
+          {onAssignPackages && (
+            <MenuItem onClick={() => handleMenuAction(onAssignPackages)}>
+              <ListItemIcon>
+                <PackageIcon fontSize="small" color="primary" />
+              </ListItemIcon>
+              <ListItemText>Gán gói</ListItemText>
             </MenuItem>
           )}
           {onDelete && (
