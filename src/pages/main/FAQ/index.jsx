@@ -158,14 +158,14 @@ const FAQ = () => {
                 expanded={expanded === `panel${index}`}
                 onChange={handleChange(`panel${index}`)}
                 sx={{
-                  mb: 2,
+                  mb: 4,
                   borderRadius: '12px !important',
                   boxShadow: 2,
                   '&:before': {
                     display: 'none'
                   },
                   '&.Mui-expanded': {
-                    margin: '0 0 16px 0',
+                    margin: '0 0 32px 0',
                     boxShadow: 4
                   },
                   transition: 'all 0.3s ease',

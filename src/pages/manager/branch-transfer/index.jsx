@@ -36,6 +36,7 @@ import { useApp } from '../../../contexts/AppContext';
 import useContentLoading from '../../../hooks/useContentLoading';
 import { toast } from 'react-toastify';
 import { formatDateOnlyUTC7 } from '../../../utils/dateHelper';
+import userService from '../../../services/user.service';
 
 const ManagerTransferRequests = () => {
   const navigate = useNavigate();
@@ -43,18 +44,29 @@ const ManagerTransferRequests = () => {
   const { isLoading, loadingText, showLoading, hideLoading } = useContentLoading();
 
   const [requests, setRequests] = useState([]);
-  const [tabValue, setTabValue] = useState(0); // 0: All, 1: Incoming (target branch), 2: Outgoing (current branch)
+  const [managerBranchId, setManagerBranchId] = useState(null);
+  const [tabValue, setTabValue] = useState(0); // 0: All, 1: Từ chi nhánh (old branch), 2: Đến chi nhánh (new branch)
   const [stats, setStats] = useState({
     all: 0,
     incoming: 0,
-    outgoing: 0,
     pending: 0
   });
 
 
   useEffect(() => {
+    loadManagerBranch();
     loadRequests();
   }, []);
+
+  const loadManagerBranch = async () => {
+    try {
+      const currentUser = await userService.getCurrentUser();
+      const branchId = currentUser?.managerProfile?.branchId || currentUser?.branchId;
+      setManagerBranchId(branchId);
+    } catch (error) {
+      showGlobalError('Không thể xác định chi nhánh của quản lý');
+    }
+  };
 
   const loadRequests = async () => {
     showLoading();
@@ -70,12 +82,13 @@ const ManagerTransferRequests = () => {
 
       setRequests(requestsList);
 
-      // Calculate stats
+      // Calculate stats - filter by manager's branch
       const stats = {
         all: requestsList.length,
-        incoming: requestsList.filter(r => r.canApprove && r.status === 'Pending').length, // Chi nhánh cũ duyệt
-        pending: requestsList.filter(r => r.canApprove && r.status === 'ReadyToTransfer').length, // Chi nhánh mới duyệt
-        outgoing: requestsList.filter(r => !r.canApprove).length // Yêu cầu đã gửi
+        // Chi nhánh cũ duyệt: where manager's branch is the current/from branch
+        incoming: requestsList.filter(r => r.currentBranchId === managerBranchId && r.status === 'Pending').length,
+        // Chi nhánh mới duyệt: where manager's branch is the target/to branch
+        pending: requestsList.filter(r => r.targetBranchId === managerBranchId && r.status === 'ReadyToTransfer').length
       };
       setStats(stats);
     } catch (error) {
@@ -119,18 +132,16 @@ const ManagerTransferRequests = () => {
 
   const getFilteredRequests = () => {
     switch (tabValue) {
-      case 1: // Chi nhánh cũ duyệt (clear data)
-        return requests.filter(r => r.canApprove && r.status === 'Pending');
-      case 2: // Chi nhánh mới duyệt (add student)
-        return requests.filter(r => r.canApprove && r.status === 'ReadyToTransfer');
-      case 3: // Yêu cầu đã gửi
-        return requests.filter(r => !r.canApprove);
+      case 1: // Chi nhánh cũ duyệt - manager manages the from branch
+        return requests.filter(r => r.currentBranchId === managerBranchId && r.status === 'Pending');
+      case 2: // Chi nhánh mới duyệt - manager manages the to branch
+        return requests.filter(r => r.targetBranchId === managerBranchId && r.status === 'ReadyToTransfer');
       default: // Tất cả
         return requests;
     }
   };
 
-  const filteredRequests = useMemo(() => getFilteredRequests(), [requests, tabValue]);
+  const filteredRequests = useMemo(() => getFilteredRequests(), [requests, tabValue, managerBranchId]);
 
   const hasConflicts = (request) => {
     return (request.activeSubscriptionsCount > 0 ||
@@ -165,16 +176,12 @@ const ManagerTransferRequests = () => {
             <Typography variant="body2" color="text.secondary">Tất cả</Typography>
           </Paper>
           <Paper sx={{ p: 2, minWidth: 120 }}>
-            <Typography variant="h6" color="warning.main">{stats.pending}</Typography>
-            <Typography variant="body2" color="text.secondary">Chờ duyệt</Typography>
-          </Paper>
-          <Paper sx={{ p: 2, minWidth: 120 }}>
             <Typography variant="h6" color="success.main">{stats.incoming}</Typography>
-            <Typography variant="body2" color="text.secondary">Có thể duyệt</Typography>
+            <Typography variant="body2" color="text.secondary">Chi nhánh cũ duyệt</Typography>
           </Paper>
           <Paper sx={{ p: 2, minWidth: 120 }}>
-            <Typography variant="h6" color="info.main">{stats.outgoing}</Typography>
-            <Typography variant="body2" color="text.secondary">Gửi đi</Typography>
+            <Typography variant="h6" color="warning.main">{stats.pending}</Typography>
+            <Typography variant="body2" color="text.secondary">Chi nhánh mới duyệt</Typography>
           </Paper>
         </Box>
 
@@ -269,33 +276,6 @@ const ManagerTransferRequests = () => {
                   </Badge>
                 }
               />
-              <Tab
-                label={
-                  <Badge
-                    badgeContent={stats.outgoing}
-                    color="info"
-                    max={999}
-                    anchorOrigin={{
-                      vertical: 'top',
-                      horizontal: 'right',
-                    }}
-                    sx={{
-                      '& .MuiBadge-badge': {
-                        fontSize: '0.75rem',
-                        height: '20px',
-                        minWidth: '20px',
-                        borderRadius: '10px',
-                        transform: 'translate(12px, -6px)',
-                        fontWeight: 'bold'
-                      }
-                    }}
-                  >
-                    <Typography variant="body1" sx={{ pr: 2 }}>
-                      Yêu cầu đã gửi
-                    </Typography>
-                  </Badge>
-                }
-              />
             </Tabs>
           </Paper>
         </AnimatedCard>
@@ -308,7 +288,6 @@ const ManagerTransferRequests = () => {
               <Typography variant="h6" color="text.secondary" gutterBottom>
                 {tabValue === 1 ? 'Không có yêu cầu nào cần chi nhánh cũ duyệt' :
                  tabValue === 2 ? 'Không có yêu cầu nào cần chi nhánh mới duyệt' :
-                 tabValue === 3 ? 'Không có yêu cầu nào đã gửi' :
                  'Không có yêu cầu chuyển chi nhánh nào'}
               </Typography>
             </Box>

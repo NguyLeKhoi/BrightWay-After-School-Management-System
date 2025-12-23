@@ -24,7 +24,8 @@ import {
   BusinessCenter as SystemIcon,
   LocationCity as BranchGroupIcon,
   LocalOffer as ServiceIcon,
-  AccessTime as SlotTypeIcon
+  AccessTime as SlotTypeIcon,
+  Schedule as TimeframeIcon
 } from '@mui/icons-material';
 
 const AdminLayout = () => {
@@ -81,6 +82,11 @@ const AdminLayout = () => {
       path: '/admin/student-levels',
       label: 'Cấp Độ Học Sinh',
       icon: StudentLevelIcon
+    },
+    {
+      path: '/admin/timeframes',
+      label: 'Khung Giờ',
+      icon: TimeframeIcon
         }
       ]
     },

@@ -164,25 +164,25 @@ const CombinedLanding = () => {
     {
       icon: <SportsIcon />,
       name: 'Thể Thao',
-      image: import.meta.env.VITE_IMAGE_ACTIVITY_SPORTS || '/images/activities/sports.jpg',
+      image: '/images/TheThao.jpg',
       description: 'Chương trình thể thao đa dạng giúp trẻ phát triển thể chất toàn diện. Các hoạt động bao gồm bóng đá, bóng rổ, bơi lội, võ thuật và nhiều môn thể thao khác. Trẻ sẽ được rèn luyện sức khỏe, tăng cường sự dẻo dai, phát triển kỹ năng vận động và tinh thần đồng đội trong môi trường an toàn và vui vẻ.'
     },
     {
       icon: <ArtIcon />,
       name: 'Nghệ Thuật',
-      image: import.meta.env.VITE_IMAGE_ACTIVITY_ART || '/images/activities/art.jpg',
+      image: '/images/Nghethuat.jpg',
       description: 'Khám phá thế giới nghệ thuật đầy màu sắc với các hoạt động vẽ tranh, làm thủ công, âm nhạc và biểu diễn. Chương trình nghệ thuật giúp trẻ phát triển trí tưởng tượng, khả năng sáng tạo, cảm thụ nghệ thuật và thể hiện cảm xúc một cách tích cực. Trẻ sẽ được thỏa sức sáng tạo và phát triển tài năng nghệ thuật của mình.'
     },
     {
       icon: <BookIcon />,
       name: 'Đọc Sách',
-      image: import.meta.env.VITE_IMAGE_ACTIVITY_READING || '/images/activities/reading.jpg',
+      image: '/images/Docsach.webp',
       description: 'Xây dựng thói quen đọc sách và phát triển ngôn ngữ cho trẻ. Chương trình đọc sách với thư viện phong phú, các hoạt động kể chuyện, đọc hiểu và thảo luận giúp trẻ mở rộng vốn từ, phát triển tư duy logic, khả năng phân tích và yêu thích việc học hỏi. Trẻ sẽ được khuyến khích khám phá thế giới qua những trang sách.'
     },
     {
       icon: <SchoolIcon />,
       name: 'Học Tập',
-      image: import.meta.env.VITE_IMAGE_ACTIVITY_STUDY || '/images/activities/study.jpg',
+      image: '/images/Hoctap.jpg',
       description: 'Chương trình học tập bổ trợ giúp trẻ củng cố kiến thức và phát triển tư duy. Với phương pháp giảng dạy hiện đại, trẻ sẽ được hỗ trợ làm bài tập, ôn tập kiến thức, phát triển kỹ năng giải quyết vấn đề và tư duy sáng tạo. Môi trường học tập tích cực giúp trẻ tự tin và yêu thích việc học.'
     }
   ];
@@ -426,11 +426,12 @@ const CombinedLanding = () => {
                   }}
                 >
                   <motion.img
-                    src={import.meta.env.VITE_IMAGE_HERO_FAMILY || '/images/hero/family.png'}
+                    src="/images/Anh1homepage.png"
                     alt="Gia đình vui vẻ tại BRIGHTWAY"
                     style={{
-                      width: '100%',
-                      height: '100%',
+                      width: '90%',
+                      height: 'auto',
+                      maxWidth: '450px',
                       objectFit: 'contain',
                       borderRadius: '20px',
                       position: 'relative',

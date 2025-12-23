@@ -20,8 +20,7 @@ import {
   Lock as LockIcon,
   Category as SlotTypeIcon,
   CreditCard as NfcCardIcon,
-  SwapHoriz as TransferIcon,
-  Notifications as NotificationsIcon
+  SwapHoriz as TransferIcon
 } from '@mui/icons-material';
 
 const ManagerLayout = () => {
@@ -140,11 +139,6 @@ const ManagerLayout = () => {
           icon: TransferIcon
         }
       ]
-    },
-    {
-      path: '/manager/notifications',
-      label: 'Thông báo',
-      icon: NotificationsIcon
     }
   ];
 

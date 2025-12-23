@@ -46,7 +46,6 @@ const ManagerNotificationDropdown = () => {
       await handleNotificationClick(notification, navigate);
       handleCloseMenu();
     } catch (error) {
-      console.error('Error handling notification click:', error);
     }
   };
 
