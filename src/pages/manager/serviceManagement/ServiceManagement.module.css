@@ -1,0 +1,11 @@
+.container {
+  padding: 24px;
+}
+
+.tableContainer {
+  margin-top: 16px;
+}
+
+.errorAlert {
+  margin-bottom: 12px;
+}

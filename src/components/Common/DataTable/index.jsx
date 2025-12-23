@@ -29,6 +29,8 @@ import {
   MeetingRoomOutlined as RoomIcon,
   PersonAdd as StaffIcon,
   Inventory as PackageIcon
+  ,
+  Business as BranchIcon
 } from '@mui/icons-material';
 
 const DataTable = ({
@@ -46,6 +48,8 @@ const DataTable = ({
   onAssignRooms,
   onAssignStaff,
   onAssignPackages,
+  onAssignBranches,
+  onUnassignBranches,
   emptyMessage = "Không có dữ liệu",
   showActions = true,
   expandableConfig = null,
@@ -132,6 +136,22 @@ const DataTable = ({
                 <RoomIcon fontSize="small" color="secondary" />
               </ListItemIcon>
               <ListItemText>Gán phòng</ListItemText>
+            </MenuItem>
+          )}
+          {onAssignBranches && (
+            <MenuItem onClick={() => handleMenuAction(onAssignBranches)}>
+              <ListItemIcon>
+                <BranchIcon fontSize="small" color="primary" />
+              </ListItemIcon>
+              <ListItemText>Gán chi nhánh</ListItemText>
+            </MenuItem>
+          )}
+          {onUnassignBranches && (
+            <MenuItem onClick={() => handleMenuAction(onUnassignBranches)}>
+              <ListItemIcon>
+                <BranchIcon fontSize="small" color="warning" />
+              </ListItemIcon>
+              <ListItemText>Hủy gán chi nhánh</ListItemText>
             </MenuItem>
           )}
           {onAssignStaff && (

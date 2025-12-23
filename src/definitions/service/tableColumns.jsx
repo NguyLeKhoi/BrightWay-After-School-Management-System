@@ -51,6 +51,22 @@ export const createServiceColumns = () => [
     )
   },
   {
+    key: 'branches',
+    header: 'Số Chi Nhánh',
+    align: 'center',
+    render: (value, item) => {
+      const count = Array.isArray(item?.branches) ? item.branches.length : (item.branchesCount ?? 0);
+      return (
+        <Chip
+          label={count}
+          color="primary"
+          size="small"
+          variant="outlined"
+        />
+      );
+    }
+  },
+  {
     key: 'price',
     header: 'Giá',
     align: 'right',

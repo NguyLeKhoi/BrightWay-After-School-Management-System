@@ -87,6 +87,7 @@ import ManagerPackageManagement from '../pages/manager/packageManagement';
 import ManagerPackageDetail from '../pages/manager/packageManagement/PackageDetail';
 import CreatePackage from '../pages/manager/packageManagement/CreatePackage';
 import UpdatePackage from '../pages/manager/packageManagement/UpdatePackage';
+import ManagerServiceManagement from '../pages/manager/serviceManagement';
 import ManagerStudentManagement from '../pages/manager/studentManagement';
 import ManagerBranchSlotManagement from '../pages/manager/branchSlotManagement';
 import CreateBranchSlot from '../pages/manager/branchSlotManagement/CreateBranchSlot';
@@ -428,6 +429,10 @@ export const routes = createBrowserRouter([
         element: <ManagerDashboard />,
       },
       {
+        path: 'notifications',
+        element: <Notifications />,
+      },
+      {
         path: 'staff',
         element: <StaffManagement />,
       },
@@ -462,6 +467,10 @@ export const routes = createBrowserRouter([
       {
         path: 'packages',
         element: <ManagerPackageManagement />,
+      },
+      {
+        path: 'services',
+        element: <ManagerServiceManagement />,
       },
       {
         path: 'packages/detail/:id',

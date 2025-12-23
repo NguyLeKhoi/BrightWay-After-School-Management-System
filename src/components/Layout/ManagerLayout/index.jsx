@@ -17,10 +17,13 @@ import {
   People as PeopleGroupIcon,
   BusinessCenter as FacilityServiceIcon,
   Person as ProfileIcon,
+  LocalOffer as ServiceIcon,
   Lock as LockIcon,
   Category as SlotTypeIcon,
   CreditCard as NfcCardIcon,
   SwapHoriz as TransferIcon
+  ,
+  Notifications as NotificationsIcon
 } from '@mui/icons-material';
 
 const ManagerLayout = () => {
@@ -105,12 +108,17 @@ const ManagerLayout = () => {
           path: '/manager/nfc-cards',
           label: 'Thẻ NFC',
           icon: NfcCardIcon
+        },
+        {
+          path: '/manager/branch-transfer',
+          label: 'Chuyển chi nhánh',
+          icon: TransferIcon
         }
       ]
     },
     {
       groupKey: 'facility-service-management',
-      label: 'Cơ sở & Dịch vụ',
+      label: 'Cơ sở & Lịch giữ trẻ',
       icon: FacilityServiceIcon,
       children: [
     {
@@ -128,18 +136,30 @@ const ManagerLayout = () => {
           label: 'Loại Ca Giữ Trẻ',
           icon: SlotTypeIcon
         },
-    {
+      ]
+    },
+     {
+      groupKey: 'PackageServiceManagement',
+      label: 'Gói & Dịch vụ',
+      icon: FacilityServiceIcon,
+      children: [
+         {
       path: '/manager/packages',
       label: 'Gói dịch vụ',
       icon: CoursesIcon
         },
         {
-          path: '/manager/branch-transfer',
-          label: 'Chuyển chi nhánh',
-          icon: TransferIcon
-        }
+          path: '/manager/services',
+          label: 'Dịch Vụ',
+          icon: ServiceIcon
+        },
       ]
-    }
+        },
+     {
+      path: '/manager/notifications',
+      label: 'Thông báo',
+      icon: NotificationsIcon
+    },
   ];
 
   return (

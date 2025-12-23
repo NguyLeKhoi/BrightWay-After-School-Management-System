@@ -10,6 +10,7 @@ import {
   CircularProgress
 } from '@mui/material';
 import { toast } from 'react-toastify';
+import adminService from '../../../services/admin.service';
 import ManagementPageHeader from '../../../components/Management/PageHeader';
 import ContentLoading from '../../../components/Common/ContentLoading';
 import { getErrorMessage } from '../../../utils/errorHandler';
@@ -44,25 +45,34 @@ const SettingManagement = () => {
   const loadSettings = async () => {
     try {
       setLoading(true);
-      // TODO: Replace with actual API calls
-      // const slotCancellation = await axios.get('/api/Admin/slot-cancellation-deadline');
-      // const refundSettings = await axios.get('/api/Admin/package-refund-settings');
-      // const renewalSettings = await axios.get('/api/Admin/package-renewal-settings');
-      
-      // Mock data for now
-      const mockSettings = {
-        deadlineHours: 168,
-        slotCancellationDescription: 'Học sinh chỉ có thể hủy slot trong 7 ngày trước khi slot bắt đầu',
-        fullRefundDays: 365,
-        partialRefundMaxSlots: 1000,
-        fullRefundMaxSlots: 1000,
-        refundDescription: 'Chính sách hoàn tiền gói',
-        minSlotsPercentage: 100,
-        renewalDeadlineDays: 365,
-        renewalDescription: 'Hạn chót gia hạn gói là 365 ngày trước khi gói hết hạn'
+
+      // Try to fetch real settings from API via adminService
+      const [slotRes, refundRes, renewalRes] = await Promise.allSettled([
+        adminService.getSlotCancellation(),
+        adminService.getPackageRefundSettings(),
+        adminService.getPackageRenewalSettings()
+      ]);
+
+      const slotData = slotRes.status === 'fulfilled' ? slotRes.value : null;
+      const refundData = refundRes.status === 'fulfilled' ? refundRes.value : null;
+      const renewalData = renewalRes.status === 'fulfilled' ? renewalRes.value : null;
+
+      const loaded = {
+        deadlineHours: slotData?.deadlineHours ?? settings.deadlineHours,
+        slotCancellationDescription: slotData?.description ?? settings.slotCancellationDescription,
+
+        fullRefundDays: refundData?.fullRefundDays ?? settings.fullRefundDays,
+        partialRefundMaxSlots: refundData?.partialRefundMaxSlots ?? settings.partialRefundMaxSlots,
+        fullRefundMaxSlots: refundData?.fullRefundMaxSlots ?? settings.fullRefundMaxSlots,
+        refundDescription: refundData?.description ?? settings.refundDescription,
+
+        minSlotsPercentage: renewalData?.minSlotsPercentage ?? settings.minSlotsPercentage,
+        renewalDeadlineDays: renewalData?.renewalDeadlineDays ?? settings.renewalDeadlineDays,
+        renewalDescription: renewalData?.description ?? settings.renewalDescription
       };
-      setSettings(mockSettings);
-      setOriginalSettings(mockSettings);
+
+      setSettings(loaded);
+      setOriginalSettings(loaded);
     } catch (err) {
       const errorMessage = getErrorMessage(err) || 'Không thể tải cài đặt';
       toast.error(errorMessage);
@@ -123,14 +133,32 @@ const SettingManagement = () => {
 
     try {
       setSubmitting(true);
-      // TODO: Replace with actual API calls
-      // await axios.put('/api/Admin/slot-cancellation-deadline', { deadlineHours, description });
-      // await axios.put('/api/Admin/package-refund-settings', { fullRefundDays, partialRefundMaxSlots, fullRefundMaxSlots, description });
-      // await axios.put('/api/Admin/package-renewal-settings', { minSlotsPercentage, renewalDeadlineDays, description });
-      
-      // Mock API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
+      // Prepare payloads (ensure numbers)
+      const slotPayload = {
+        deadlineHours: Number(settings.deadlineHours),
+        description: settings.slotCancellationDescription || ''
+      };
+
+      const refundPayload = {
+        fullRefundDays: Number(settings.fullRefundDays),
+        partialRefundMaxSlots: Number(settings.partialRefundMaxSlots),
+        fullRefundMaxSlots: Number(settings.fullRefundMaxSlots),
+        description: settings.refundDescription || ''
+      };
+
+      const renewalPayload = {
+        minSlotsPercentage: Number(settings.minSlotsPercentage),
+        renewalDeadlineDays: Number(settings.renewalDeadlineDays),
+        description: settings.renewalDescription || ''
+      };
+
+      // Send requests in parallel via adminService
+      await Promise.all([
+        adminService.updateSlotCancellation(slotPayload),
+        adminService.updatePackageRefundSettings(refundPayload),
+        adminService.updatePackageRenewalSettings(renewalPayload)
+      ]);
+
       setOriginalSettings(settings);
       toast.success('Cập nhật cài đặt thành công');
     } catch (err) {

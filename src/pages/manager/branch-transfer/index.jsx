@@ -5,12 +5,6 @@ import {
   Typography,
   Chip,
   Paper,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
   IconButton,
   Tooltip,
   Tabs,
@@ -31,6 +25,7 @@ import {
 import AnimatedCard from '../../../components/Common/AnimatedCard';
 import ContentLoading from '../../../components/Common/ContentLoading';
 import ConfirmDialog from '../../../components/Common/ConfirmDialog';
+import DataTable from '../../../components/Common/DataTable';
 import branchTransferService from '../../../services/branchTransfer.service';
 import { useApp } from '../../../contexts/AppContext';
 import useContentLoading from '../../../hooks/useContentLoading';
@@ -42,6 +37,9 @@ const ManagerTransferRequests = () => {
   const navigate = useNavigate();
   const { showGlobalError } = useApp();
   const { isLoading, loadingText, showLoading, hideLoading } = useContentLoading();
+
+  const [page, setPage] = useState(0);
+  const [rowsPerPage, setRowsPerPage] = useState(10);
 
   const [requests, setRequests] = useState([]);
   const [managerBranchId, setManagerBranchId] = useState(null);
@@ -102,6 +100,15 @@ const ManagerTransferRequests = () => {
     navigate(`/manager/branch-transfer/${requestId}`);
   };
 
+  const handlePageChange = (event, newPage) => {
+    setPage(newPage);
+  };
+
+  const handleRowsPerPageChange = (event) => {
+    setRowsPerPage(parseInt(event.target.value, 10));
+    setPage(0);
+  };
+
 
 
   const handleTabChange = (event, newValue) => {
@@ -155,241 +162,145 @@ const ManagerTransferRequests = () => {
 
       <Box sx={{ minHeight: 'calc(100vh - 64px - 48px)', p: 3 }}>
         {/* Header */}
-        <Box sx={{ mb: 4 }}>
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 2 }}>
-            <TransferIcon sx={{ fontSize: 32, color: 'primary.main' }} />
+        <Box sx={{ mb: 3 }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 1 }}>
+            <TransferIcon sx={{ fontSize: 28, color: 'primary.main' }} />
             <Box>
-              <Typography variant="h4" component="h1" gutterBottom>
+              <Typography variant="h3" component="h1" gutterBottom sx={{ color: 'var(--color-primary)', fontWeight: 700 }}>
                 Quản lý chuyển chi nhánh
               </Typography>
-              <Typography variant="body1" color="text.secondary">
+              <Typography variant="body2" color="text.secondary">
                 Xem xét và duyệt các yêu cầu chuyển chi nhánh học sinh
               </Typography>
             </Box>
           </Box>
         </Box>
 
-        {/* Stats Cards */}
-        <Box sx={{ display: 'flex', gap: 2, mb: 3, flexWrap: 'wrap' }}>
-          <Paper sx={{ p: 2, minWidth: 120 }}>
-            <Typography variant="h6" color="primary">{stats.all}</Typography>
-            <Typography variant="body2" color="text.secondary">Tất cả</Typography>
-          </Paper>
-          <Paper sx={{ p: 2, minWidth: 120 }}>
-            <Typography variant="h6" color="success.main">{stats.incoming}</Typography>
-            <Typography variant="body2" color="text.secondary">Chi nhánh cũ duyệt</Typography>
-          </Paper>
-          <Paper sx={{ p: 2, minWidth: 120 }}>
-            <Typography variant="h6" color="warning.main">{stats.pending}</Typography>
-            <Typography variant="body2" color="text.secondary">Chi nhánh mới duyệt</Typography>
-          </Paper>
-        </Box>
+        {/* Stats Cards removed per request */}
 
         {/* Tabs */}
         <AnimatedCard delay={0.1}>
-          <Paper sx={{ mb: 3 }}>
+          <Paper sx={{ mb: 3, borderRadius: 3, boxShadow: 1, px: 1 }}>
             <Tabs
               value={tabValue}
               onChange={handleTabChange}
               indicatorColor="primary"
               textColor="primary"
               variant="fullWidth"
+              TabIndicatorProps={{ style: { height: 3, borderRadius: 3 } }}
             >
               <Tab
-                label={
-                  <Badge
-                    badgeContent={stats.all}
-                    color="primary"
-                    max={999}
-                    anchorOrigin={{
-                      vertical: 'top',
-                      horizontal: 'right',
-                    }}
-                    sx={{
-                      '& .MuiBadge-badge': {
-                        fontSize: '0.75rem',
-                        height: '20px',
-                        minWidth: '20px',
-                        borderRadius: '10px',
-                        transform: 'translate(12px, -6px)',
-                        fontWeight: 'bold'
-                      }
-                    }}
-                  >
-                    <Typography variant="body1" sx={{ pr: 2 }}>
-                      Tất cả yêu cầu
-                    </Typography>
-                  </Badge>
-                }
+                sx={{ textTransform: 'none', minHeight: 64, py: 1, fontWeight: tabValue === 0 ? 700 : 500, color: tabValue === 0 ? 'primary.main' : 'text.secondary' }}
+                label={<Typography variant="body1" sx={{ pr: 2 }}>Tất cả yêu cầu</Typography>}
               />
               <Tab
-                label={
-                  <Badge
-                    badgeContent={stats.incoming}
-                    color="success"
-                    max={999}
-                    anchorOrigin={{
-                      vertical: 'top',
-                      horizontal: 'right',
-                    }}
-                    sx={{
-                      '& .MuiBadge-badge': {
-                        fontSize: '0.75rem',
-                        height: '20px',
-                        minWidth: '20px',
-                        borderRadius: '10px',
-                        transform: 'translate(12px, -6px)',
-                        fontWeight: 'bold'
-                      }
-                    }}
-                  >
-                    <Typography variant="body1" sx={{ pr: 2 }}>
-                      Chi nhánh cũ duyệt
-                    </Typography>
-                  </Badge>
-                }
+                sx={{ textTransform: 'none', minHeight: 64, py: 1, fontWeight: tabValue === 1 ? 700 : 500, color: tabValue === 1 ? 'primary.main' : 'text.secondary' }}
+                label={<Typography variant="body1" sx={{ pr: 2 }}>Chi nhánh cũ duyệt</Typography>}
               />
               <Tab
-                label={
-                  <Badge
-                    badgeContent={stats.pending || 0}
-                    color="warning"
-                    max={999}
-                    anchorOrigin={{
-                      vertical: 'top',
-                      horizontal: 'right',
-                    }}
-                    sx={{
-                      '& .MuiBadge-badge': {
-                        fontSize: '0.75rem',
-                        height: '20px',
-                        minWidth: '20px',
-                        borderRadius: '10px',
-                        transform: 'translate(12px, -6px)',
-                        fontWeight: 'bold'
-                      }
-                    }}
-                  >
-                    <Typography variant="body1" sx={{ pr: 2 }}>
-                      Chi nhánh mới duyệt
-                    </Typography>
-                  </Badge>
-                }
+                sx={{ textTransform: 'none', minHeight: 64, py: 1, fontWeight: tabValue === 2 ? 700 : 500, color: tabValue === 2 ? 'primary.main' : 'text.secondary' }}
+                label={<Typography variant="body1" sx={{ pr: 2 }}>Chi nhánh mới duyệt</Typography>}
               />
             </Tabs>
           </Paper>
         </AnimatedCard>
 
-        {/* Requests Table */}
+        {/* Requests Table (DataTable) */}
         <AnimatedCard delay={0.2}>
-          {filteredRequests.length === 0 ? (
-            <Box sx={{ textAlign: 'center', py: 8 }}>
-              <TransferIcon sx={{ fontSize: 64, color: 'text.disabled', mb: 2 }} />
-              <Typography variant="h6" color="text.secondary" gutterBottom>
-                {tabValue === 1 ? 'Không có yêu cầu nào cần chi nhánh cũ duyệt' :
-                 tabValue === 2 ? 'Không có yêu cầu nào cần chi nhánh mới duyệt' :
-                 'Không có yêu cầu chuyển chi nhánh nào'}
-              </Typography>
-            </Box>
-          ) : (
-            <TableContainer component={Paper} elevation={0}>
-              <Table>
-                <TableHead>
-                  <TableRow>
-                    <TableCell><strong>Học sinh</strong></TableCell>
-                    <TableCell><strong>Phụ huynh</strong></TableCell>
-                    <TableCell><strong>Từ chi nhánh</strong></TableCell>
-                    <TableCell><strong>Đến chi nhánh</strong></TableCell>
-                    <TableCell><strong>Thay đổi</strong></TableCell>
-                    <TableCell><strong>Ngày tạo</strong></TableCell>
-                    <TableCell><strong>Trạng thái</strong></TableCell>
-                    <TableCell><strong>Conflict</strong></TableCell>
-                    <TableCell align="center"><strong>Thao tác</strong></TableCell>
-                  </TableRow>
-                </TableHead>
-                <TableBody>
-                  {filteredRequests.map((request) => (
-                    <TableRow key={request.id} hover>
-                      <TableCell>
-                        <Typography variant="body2">
-                          {request.studentName || request.student?.name || request.student?.userName || 'N/A'}
-                        </Typography>
-                      </TableCell>
-                      <TableCell>
-                        <Typography variant="body2">
-                          {request.requestedByName || request.parent?.name || request.parent?.userName || 'N/A'}
-                        </Typography>
-                      </TableCell>
-                      <TableCell>
-                        <Typography variant="body2">
-                          {request.currentBranchName || request.currentBranch?.branchName || 'N/A'}
-                        </Typography>
-                      </TableCell>
-                      <TableCell>
-                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                          <BranchIcon fontSize="small" color="success" />
-                          <Typography variant="body2">
-                            {request.targetBranchName || request.targetBranch?.branchName || 'N/A'}
-                          </Typography>
-                          {request.canApprove && (
-                            <Chip label="Có thể duyệt" size="small" color="success" variant="outlined" />
-                          )}
-                        </Box>
-                      </TableCell>
-                      <TableCell>
-                        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5 }}>
-                          {request.changeSchool && (
-                            <Chip label="Trường học" size="small" color="info" variant="outlined" />
-                          )}
-                          {request.changeLevel && (
-                            <Chip label="Cấp độ" size="small" color="secondary" variant="outlined" />
-                          )}
-                          {!request.changeSchool && !request.changeLevel && (
-                            <Typography variant="caption" color="text.secondary">
-                              Chỉ chuyển chi nhánh
-                            </Typography>
-                          )}
-                        </Box>
-                      </TableCell>
-                      <TableCell>
-                        <Typography variant="body2">
-                          {formatDateOnlyUTC7(request.createdTime || request.createdAt)}
-                        </Typography>
-                      </TableCell>
-                      <TableCell>
-                        {getStatusChip(request.status)}
-                      </TableCell>
-                      <TableCell>
-                        {hasConflicts(request) ? (
-                          <Tooltip title={`Có ${request.activeSubscriptionsCount + request.futureSlotsCount + request.pendingOrdersCount} conflict`}>
-                            <ConflictIcon color="warning" />
-                          </Tooltip>
-                        ) : (
-                          <Typography variant="caption" color="success.main">
-                            Không có
-                          </Typography>
-                        )}
-                      </TableCell>
-                      <TableCell align="center">
-                        <Box sx={{ display: 'flex', gap: 0.5, justifyContent: 'center' }}>
-                          <Tooltip title="Xem chi tiết">
-                            <IconButton
-                              size="small"
-                              onClick={() => handleViewRequest(request.id)}
-                              color="primary"
-                            >
-                              <ViewIcon fontSize="small" />
-                            </IconButton>
-                          </Tooltip>
-                          {/* Approve/Reject buttons moved to detail page */}
-                        </Box>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </TableContainer>
-          )}
+          <DataTable
+            data={filteredRequests}
+            columns={[
+              {
+                key: 'studentName',
+                header: 'Học sinh',
+                render: (_, item) => (
+                  <Typography variant="body2">{item.studentName || item.student?.name || item.student?.userName || 'N/A'}</Typography>
+                )
+              },
+              {
+                key: 'parentName',
+                header: 'Phụ huynh',
+                render: (_, item) => (
+                  <Typography variant="body2">{item.requestedByName || item.parent?.name || item.parent?.userName || 'N/A'}</Typography>
+                )
+              },
+              {
+                key: 'fromBranch',
+                header: 'Từ chi nhánh',
+                render: (_, item) => (
+                  <Typography variant="body2">{item.currentBranchName || item.currentBranch?.branchName || 'N/A'}</Typography>
+                )
+              },
+              {
+                key: 'toBranch',
+                header: 'Đến chi nhánh',
+                render: (_, item) => (
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                    <BranchIcon fontSize="small" color="success" />
+                    <Typography variant="body2">{item.targetBranchName || item.targetBranch?.branchName || 'N/A'}</Typography>
+                    {item.canApprove && (
+                      <Chip label="Có thể duyệt" size="small" color="success" variant="outlined" />
+                    )}
+                  </Box>
+                )
+              },
+              {
+                key: 'changes',
+                header: 'Thay đổi',
+                render: (_, item) => (
+                  <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5 }}>
+                    {item.changeSchool && (
+                      <Chip label="Trường học" size="small" color="info" variant="outlined" />
+                    )}
+                    {item.changeLevel && (
+                      <Chip label="Cấp độ" size="small" color="secondary" variant="outlined" />
+                    )}
+                    {!item.changeSchool && !item.changeLevel && (
+                      <Typography variant="caption" color="text.secondary">Chỉ chuyển chi nhánh</Typography>
+                    )}
+                  </Box>
+                )
+              },
+              {
+                key: 'createdTime',
+                header: 'Ngày tạo',
+                render: (_, item) => (
+                  <Typography variant="body2">{formatDateOnlyUTC7(item.createdTime || item.createdAt)}</Typography>
+                )
+              },
+              {
+                key: 'status',
+                header: 'Trạng thái',
+                render: (_, item) => getStatusChip(item.status)
+              },
+              {
+                key: 'conflict',
+                header: 'Conflict',
+                render: (_, item) => (
+                  hasConflicts(item) ? (
+                    <Tooltip title={`Có ${item.activeSubscriptionsCount + item.futureSlotsCount + item.pendingOrdersCount} conflict`}>
+                      <ConflictIcon color="warning" />
+                    </Tooltip>
+                  ) : (
+                    <Typography variant="caption" color="success.main">Không có</Typography>
+                  )
+                )
+              }
+            ]}
+            loading={isLoading}
+            page={page}
+            rowsPerPage={rowsPerPage}
+            totalCount={filteredRequests.length}
+            onPageChange={handlePageChange}
+            onRowsPerPageChange={handleRowsPerPageChange}
+            onView={(item) => handleViewRequest(item.id)}
+            emptyMessage={
+              tabValue === 1 ? 'Không có yêu cầu nào cần chi nhánh cũ duyệt' :
+              tabValue === 2 ? 'Không có yêu cầu nào cần chi nhánh mới duyệt' :
+              'Không có yêu cầu chuyển chi nhánh nào'
+            }
+            showActions={true}
+          />
         </AnimatedCard>
 
       </Box>
