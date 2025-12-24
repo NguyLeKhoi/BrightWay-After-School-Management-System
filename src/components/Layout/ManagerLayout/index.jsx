@@ -116,6 +116,23 @@ const ManagerLayout = () => {
         }
       ]
     },
+     {
+      groupKey: 'PackageServiceManagement',
+      label: 'Gói & Dịch vụ',
+      icon: FacilityServiceIcon,
+      children: [
+         {
+      path: '/manager/packages',
+      label: 'Gói dịch vụ',
+      icon: CoursesIcon
+        },
+        {
+          path: '/manager/services',
+          label: 'Dịch Vụ',
+          icon: ServiceIcon
+        },
+      ]
+        },
     {
       groupKey: 'facility-service-management',
       label: 'Cơ sở & Lịch giữ trẻ',
@@ -138,23 +155,6 @@ const ManagerLayout = () => {
         },
       ]
     },
-     {
-      groupKey: 'PackageServiceManagement',
-      label: 'Gói & Dịch vụ',
-      icon: FacilityServiceIcon,
-      children: [
-         {
-      path: '/manager/packages',
-      label: 'Gói dịch vụ',
-      icon: CoursesIcon
-        },
-        {
-          path: '/manager/services',
-          label: 'Dịch Vụ',
-          icon: ServiceIcon
-        },
-      ]
-        },
      {
       path: '/manager/notifications',
       label: 'Thông báo',

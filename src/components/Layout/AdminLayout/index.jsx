@@ -52,23 +52,6 @@ const AdminLayout = () => {
       icon: DashboardIcon
     },
     {
-      groupKey: 'user-management',
-      label: 'Tài khoản',
-      icon: GroupIcon,
-      children: [
-    {
-      path: '/admin/staffAndManager',
-      label: 'Người quản lý',
-      icon: UserIcon
-    },
-    {
-      path: '/admin/users',
-      label: 'Phụ Huynh',
-      icon: PeopleIcon
-        }
-      ]
-    },
-    {
       groupKey: 'system-management',
       label: 'Hệ thống',
       icon: SystemIcon,
@@ -87,7 +70,12 @@ const AdminLayout = () => {
       path: '/admin/timeframes',
       label: 'Khung Giờ',
       icon: TimeframeIcon
-        }
+    },
+     {
+      path: '/admin/benefits',
+      label: 'Lợi Ích',
+      icon: BenefitIcon
+    },
       ]
     },
     {
@@ -114,13 +102,8 @@ const AdminLayout = () => {
       children: [
     {
       path: '/admin/packages',
-      label: 'Gói Bán',
+      label: 'Mẫu Gói & Gói Bán',
       icon: PackageIcon
-    },
-    {
-      path: '/admin/benefits',
-      label: 'Lợi Ích',
-      icon: BenefitIcon
     },
     {
       path: '/admin/services',
@@ -128,7 +111,24 @@ const AdminLayout = () => {
       icon: ServiceIcon
         }
       ]
-    }
+    },
+    {
+      groupKey: 'user-management',
+      label: 'Tài khoản',
+      icon: GroupIcon,
+      children: [
+    {
+      path: '/admin/staffAndManager',
+      label: 'Người quản lý',
+      icon: UserIcon
+    },
+    {
+      path: '/admin/users',
+      label: 'Phụ Huynh',
+      icon: PeopleIcon
+        }
+      ]
+    },
   ];
 
   const bottomMenuItems = [
