@@ -83,9 +83,9 @@ const ManagerTransferRequests = () => {
       // Calculate stats - filter by manager's branch
       const stats = {
         all: requestsList.length,
-        // Chi nhánh cũ duyệt: where manager's branch is the current/from branch
-        incoming: requestsList.filter(r => r.currentBranchId === managerBranchId && r.status === 'Pending').length,
-        // Chi nhánh mới duyệt: where manager's branch is the target/to branch
+        // Chi nhánh cũ duyệt: where manager's branch is the current/from branch AND status !== 'ReadyToTransfer'
+        incoming: requestsList.filter(r => r.currentBranchId === managerBranchId && r.status !== 'ReadyToTransfer').length,
+        // Chi nhánh mới duyệt: where manager's branch is the target/to branch AND status === 'ReadyToTransfer'
         pending: requestsList.filter(r => r.targetBranchId === managerBranchId && r.status === 'ReadyToTransfer').length
       };
       setStats(stats);
@@ -139,9 +139,9 @@ const ManagerTransferRequests = () => {
 
   const getFilteredRequests = () => {
     switch (tabValue) {
-      case 1: // Chi nhánh cũ duyệt - manager manages the from branch
-        return requests.filter(r => r.currentBranchId === managerBranchId && r.status === 'Pending');
-      case 2: // Chi nhánh mới duyệt - manager manages the to branch
+      case 1: // Chi nhánh cũ duyệt - manager manages the from branch AND status is NOT 'ReadyToTransfer'
+        return requests.filter(r => r.currentBranchId === managerBranchId && r.status !== 'ReadyToTransfer');
+      case 2: // Chi nhánh mới duyệt - manager manages the to branch AND status === 'ReadyToTransfer'
         return requests.filter(r => r.targetBranchId === managerBranchId && r.status === 'ReadyToTransfer');
       default: // Tất cả
         return requests;
