@@ -45,7 +45,6 @@ const serviceService = {
         formData.append('Name', serviceData.name || '');
         formData.append('Description', serviceData.description || '');
         formData.append('Price', serviceData.price ? String(serviceData.price) : '0');
-        formData.append('Stock', serviceData.stock !== undefined ? String(serviceData.stock) : '0');
         formData.append('Status', serviceData.status !== undefined ? String(serviceData.status) : 'true');
         formData.append('ServiceType', serviceData.serviceType || 'AddOn');
         
@@ -146,7 +145,6 @@ const serviceService = {
         formData.append('Name', serviceData.name || serviceData.Name || '');
         formData.append('Description', serviceData.description || serviceData.Description || '');
         formData.append('Price', serviceData.price !== undefined ? String(serviceData.price) : (serviceData.Price !== undefined ? String(serviceData.Price) : '0'));
-        formData.append('Stock', serviceData.stock !== undefined ? String(serviceData.stock) : (serviceData.Stock !== undefined ? String(serviceData.Stock) : '0'));
         formData.append('Status', serviceData.status !== undefined ? String(serviceData.status) : (serviceData.Status !== undefined ? String(serviceData.Status) : 'true'));
         formData.append('ServiceType', serviceData.serviceType || serviceData.ServiceType || 'AddOn');
         
@@ -215,6 +213,21 @@ const serviceService = {
         headers: {
           'Content-Type': 'application/json'
         }
+      });
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || error.message;
+    }
+  }
+  ,
+  /**
+   * Update branch-level config for a service (enable/disable, override price, stock)
+   * @param {Object} payload - { branchId, serviceId, isActive, priceOverride, stock }
+   */
+  updateBranchServiceConfig: async (payload) => {
+    try {
+      const response = await axiosInstance.put('/Service/branch/config', payload, {
+        headers: { 'Content-Type': 'application/json' }
       });
       return response.data;
     } catch (error) {

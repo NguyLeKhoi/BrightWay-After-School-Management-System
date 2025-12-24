@@ -15,12 +15,6 @@ export const serviceSchema = yup.object({
     .required('Giá là bắt buộc')
     .min(0, 'Giá phải lớn hơn hoặc bằng 0')
     .typeError('Giá phải là số'),
-  stock: yup
-    .number()
-    .required('Tồn kho là bắt buộc')
-    .min(0, 'Tồn kho phải lớn hơn hoặc bằng 0')
-    .integer('Tồn kho phải là số nguyên')
-    .typeError('Tồn kho phải là số'),
   status: yup
     .boolean()
     .default(true),

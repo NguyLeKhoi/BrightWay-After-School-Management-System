@@ -247,22 +247,7 @@ const ServiceDetail = () => {
                 </Box>
               </Box>
 
-              <Divider />
-
-              {/* Stock */}
-              <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 2 }}>
-                <LocalOffer sx={{ color: 'var(--text-secondary)', fontSize: 24, mt: 0.5 }} />
-                <Box sx={{ flex: 1 }}>
-                  <Typography variant="body2" color="text.secondary" sx={{ fontSize: '0.875rem', mb: 0.5 }}>
-                    Tồn kho
-                  </Typography>
-                  <Typography variant="h6" fontWeight="medium">
-                    {service.stock !== null && service.stock !== undefined ? service.stock : 'N/A'}
-                  </Typography>
-                </Box>
-              </Box>
-
-              <Divider />
+              
 
               {/* Status */}
               <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 2 }}>

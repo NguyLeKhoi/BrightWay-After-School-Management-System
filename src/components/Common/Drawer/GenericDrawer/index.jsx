@@ -111,11 +111,16 @@ const GenericDrawer = ({
         width: currentWidth,
         flexShrink: 0,
         transition: 'width 0.3s ease',
+        display: 'flex',
+        flexDirection: 'column',
         '& .MuiDrawer-paper': {
           width: currentWidth,
           boxSizing: 'border-box',
           transition: 'width 0.3s ease',
           overflowX: 'hidden',
+          display: 'flex',
+          flexDirection: 'column',
+          height: '100vh'
         },
       }}
     >
@@ -210,7 +215,7 @@ const GenericDrawer = ({
       </motion.div>
 
       {/* Navigation Menu */}
-      <List sx={{ flexGrow: 1, pt: 1 }}>
+      <List sx={{ flex: '1 1 auto', overflowY: 'auto', pt: 1 }}>
         <AnimatePresence>
           {menuItems.map((item, index) => {
             const Icon = item.icon;

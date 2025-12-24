@@ -209,10 +209,11 @@ const approveStudent = async (studentId) => {
  * @param {boolean} approve - true to approve, false to reject
  * @returns {Promise} Updated document
  */
-const approveDocument = async (documentId, approve = true) => {
+const approveDocument = async (documentId, action) => {
   try {
     const response = await axiosInstance.post(
-      `${STUDENT_BASE_PATH}/documents/${documentId}/approve?approve=${approve}`
+      `${STUDENT_BASE_PATH}/documents/${documentId}/approve`,
+      { action } // Send enum value in request body
     );
     return response.data;
   } catch (error) {

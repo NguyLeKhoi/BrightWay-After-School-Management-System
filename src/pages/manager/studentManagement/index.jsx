@@ -520,11 +520,12 @@ const StudentManagement = () => {
   // Handle document approve/reject
   const handleApproveDocument = useCallback(async (documentId, approve = true) => {
     if (!documentId) return;
-    
+
     setApprovingDocumentId(documentId);
-    
+
     try {
-      await studentService.approveDocument(documentId, approve);
+      const action = approve ? 'Approved' : 'Rejected';
+      await studentService.approveDocument(documentId, action);
       toast.success(approve ? 'Đã phê duyệt tài liệu thành công!' : 'Đã từ chối tài liệu thành công!');
       
       // Reload student data to get updated documents
