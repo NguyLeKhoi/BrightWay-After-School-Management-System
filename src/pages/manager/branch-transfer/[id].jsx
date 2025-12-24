@@ -138,10 +138,10 @@ const ManagerTransferRequestDetail = () => {
     setApproveDialog({
       open: true,
       data: {
-        // Only show clear options for old branch approval
-        autoCancelSubscriptions: isOldBranchApproval ? false : undefined,
-        autoCancelSlots: isOldBranchApproval ? false : undefined,
-        autoCancelOrders: isOldBranchApproval ? false : undefined,
+        // Set default values to true to handle conflicts automatically
+        autoCancelSubscriptions: isOldBranchApproval ? true : undefined,
+        autoCancelSlots: isOldBranchApproval ? true : undefined,
+        autoCancelOrders: isOldBranchApproval ? true : undefined,
         approveOnlyIfNoConflicts: isOldBranchApproval ? false : undefined,
         managerNotes: ''
       },
@@ -781,76 +781,236 @@ const ManagerTransferRequestDetail = () => {
               }
             </Typography>
 
+            {/* Conflict Summary */}
             {hasConflicts && (
-              <Alert severity="warning" sx={{ my: 2 }}>
-                Có xung đột cần xử lý. Vui lòng chọn cách xử lý:
-              </Alert>
+              <Box sx={{ mt: 2, mb: 2 }}>
+                <Box sx={{
+                  p: 2,
+                  bgcolor: 'warning.50',
+                  borderRadius: 1,
+                  border: '2px solid',
+                  borderColor: 'warning.main',
+                  mb: 2
+                }}>
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
+                    <WarningIcon sx={{ color: 'warning.main' }} />
+                    <Typography variant="subtitle2" sx={{ fontWeight: 600 }}>
+                      Xung đột cần xử lý ({activeSubscriptionsCount + futureSlotsCount + pendingOrdersCount} items)
+                    </Typography>
+                    {hasRefundInfo && conflicts.estimatedRefundAmount > 0 && (
+                      <Typography variant="body2" sx={{ color: 'success.main', fontWeight: 600, ml: 'auto' }}>
+                        Hoàn tiền: {conflicts.estimatedRefundAmount?.toLocaleString('vi-VN')} VNĐ
+                      </Typography>
+                    )}
+                  </Box>
+                  
+                  {/* Refund Rules */}
+                  {hasRefundInfo && (
+                    <Alert severity="info" sx={{ mb: 2 }}>
+                      <Typography variant="subtitle2" gutterBottom>
+                        Quy tắc hoàn tiền:
+                      </Typography>
+                      <Typography variant="body2">
+                        • Tự động tính toán dựa trên slots đã dùng và thời gian<br/>
+                        • Ước tính số tiền hoàn lại: {conflicts.estimatedRefundAmount?.toLocaleString('vi-VN') || 0} VNĐ
+                      </Typography>
+                    </Alert>
+                  )}
+
+                  {/* Conflict Details List */}
+                  <List sx={{ py: 0 }}>
+                    {activeSubscriptionsCount > 0 && (
+                      <ListItem sx={{ py: 1 }}>
+                        <ListItemIcon sx={{ minWidth: 36 }}>
+                          <MoneyIcon color="warning" />
+                        </ListItemIcon>
+                        <ListItemText
+                          primary={`${activeSubscriptionsCount} gói dịch vụ đang hoạt động`}
+                          secondary={
+                            <Box sx={{ mt: 1 }}>
+                              {hasRefundInfo && (
+                                <Typography variant="caption" color="text.secondary">
+                                  Dự kiến hoàn tiền: {conflicts.estimatedRefundAmount?.toLocaleString('vi-VN') || 0} VNĐ
+                                </Typography>
+                              )}
+                              <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 0.5 }}>
+                                Chi tiết từng gói:
+                              </Typography>
+                              {conflicts.activeSubscriptions?.map((sub, index) => (
+                                <Typography key={index} variant="caption" component="div" color="text.secondary">
+                                  • {sub.packageName}: {sub.priceFinal?.toLocaleString('vi-VN')} VNĐ ({sub.usedSlot}/{sub.totalSlots} slots)
+                                </Typography>
+                              ))}
+                            </Box>
+                          }
+                        />
+                      </ListItem>
+                    )}
+                    {futureSlotsCount > 0 && (
+                      <ListItem sx={{ py: 1 }}>
+                        <ListItemIcon sx={{ minWidth: 36 }}>
+                          <SlotIcon color="warning" />
+                        </ListItemIcon>
+                        <ListItemText
+                          primary={`${futureSlotsCount} slot học tập sắp tới`}
+                          secondary={
+                            <Box sx={{ mt: 1 }}>
+                              <Typography variant="caption" color="text.secondary">
+                                Chi tiết:
+                              </Typography>
+                              {conflicts.futureSlots?.slice(0, 3).map((slot, index) => (
+                                <Typography key={index} variant="caption" component="div" color="text.secondary">
+                                  • {slot.timeframeName} - {slot.roomName} ({new Date(slot.date).toLocaleDateString('vi-VN')})
+                                </Typography>
+                              ))}
+                              {futureSlotsCount > 3 && (
+                                <Typography variant="caption" color="text.secondary">
+                                  ... và {futureSlotsCount - 3} slot khác
+                                </Typography>
+                              )}
+                            </Box>
+                          }
+                        />
+                      </ListItem>
+                    )}
+                    {pendingOrdersCount > 0 && (
+                      <ListItem sx={{ py: 1 }}>
+                        <ListItemIcon sx={{ minWidth: 36 }}>
+                          <OrderIcon color="warning" />
+                        </ListItemIcon>
+                        <ListItemText
+                          primary={`${pendingOrdersCount} đơn hàng đang xử lý`}
+                          secondary={
+                            <Box sx={{ mt: 1 }}>
+                              <Typography variant="caption" color="text.secondary">
+                                Chi tiết:
+                              </Typography>
+                              {conflicts.pendingOrders?.slice(0, 2).map((order, index) => (
+                                <Typography key={index} variant="caption" component="div" color="text.secondary">
+                                  • {order.itemCount} items - {order.totalAmount?.toLocaleString('vi-VN')} VNĐ ({new Date(order.createdDate).toLocaleDateString('vi-VN')})
+                                </Typography>
+                              ))}
+                              {pendingOrdersCount > 2 && (
+                                <Typography variant="caption" color="text.secondary">
+                                  ... và {pendingOrdersCount - 2} đơn khác
+                                </Typography>
+                              )}
+                            </Box>
+                          }
+                        />
+                      </ListItem>
+                    )}
+                  </List>
+                </Box>
+              </Box>
             )}
 
-            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, mt: 2 }}>
-                        {/* Only show clear options for old branch approval */}
-                        {approveDialog.isOldBranchApproval && conflicts?.activeSubscriptionsCount > 0 && (
-                <FormControlLabel
-                  control={
-                    <Switch
-                      checked={approveDialog.data.autoCancelSubscriptions}
-                      onChange={(e) => setApproveDialog({
-                        ...approveDialog,
-                        data: { ...approveDialog.data, autoCancelSubscriptions: e.target.checked }
-                      })}
-                    />
-                  }
-                  label={
-                    hasRefundInfo ?
-                      `Tự động hủy ${activeSubscriptionsCount} gói dịch vụ và hoàn tiền (ước tính: ${conflicts.estimatedRefundAmount?.toLocaleString('vi-VN')} VNĐ)` :
-                      `Tự động hủy ${activeSubscriptionsCount} gói dịch vụ và hoàn tiền`
-                  }
-                />
-              )}
+            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+              {/* Conflict handling options section */}
+              {approveDialog.isOldBranchApproval && (
+                <Box sx={{ p: 2, bgcolor: 'action.hover', borderRadius: 1, border: '1px solid', borderColor: 'divider' }}>
+                  <Typography variant="subtitle2" gutterBottom sx={{ fontWeight: 600, mb: 2 }}>
+                    Xử lý xung đột:
+                  </Typography>
 
-                        {conflicts?.futureSlotsCount > 0 && (
-                <FormControlLabel
-                  control={
-                    <Switch
-                      checked={approveDialog.data.autoCancelSlots}
-                      onChange={(e) => setApproveDialog({
-                        ...approveDialog,
-                        data: { ...approveDialog.data, autoCancelSlots: e.target.checked }
-                      })}
+                  {/* Subscriptions conflict */}
+                  {conflicts?.activeSubscriptionsCount > 0 && (
+                    <FormControlLabel
+                      control={
+                        <Switch
+                          checked={approveDialog.data.autoCancelSubscriptions}
+                          onChange={(e) => setApproveDialog({
+                            ...approveDialog,
+                            data: { ...approveDialog.data, autoCancelSubscriptions: e.target.checked }
+                          })}
+                        />
+                      }
+                      label={
+                        <Box>
+                          <Typography variant="body2">
+                            {approveDialog.data.autoCancelSubscriptions ? '✓ Chấp nhận: ' : '✗ Từ chối: '}
+                            Hủy {activeSubscriptionsCount} gói dịch vụ
+                          </Typography>
+                          {hasRefundInfo && (
+                            <Typography variant="caption" color="success.main" sx={{ display: 'block' }}>
+                              💰 Hoàn tiền: {conflicts.estimatedRefundAmount?.toLocaleString('vi-VN')} VNĐ
+                            </Typography>
+                          )}
+                        </Box>
+                      }
+                      sx={{ display: 'flex', alignItems: 'flex-start', mb: 2 }}
                     />
-                  }
-                  label={`Tự động hủy ${futureSlotsCount} slot học tập sắp tới`}
-                />
-              )}
+                  )}
 
-              {conflicts?.pendingOrdersCount > 0 && (
-                <FormControlLabel
-                  control={
-                    <Switch
-                      checked={approveDialog.data.autoCancelOrders}
-                      onChange={(e) => setApproveDialog({
-                        ...approveDialog,
-                        data: { ...approveDialog.data, autoCancelOrders: e.target.checked }
-                      })}
+                  {/* Future slots conflict */}
+                  {conflicts?.futureSlotsCount > 0 && (
+                    <FormControlLabel
+                      control={
+                        <Switch
+                          checked={approveDialog.data.autoCancelSlots}
+                          onChange={(e) => setApproveDialog({
+                            ...approveDialog,
+                            data: { ...approveDialog.data, autoCancelSlots: e.target.checked }
+                          })}
+                        />
+                      }
+                      label={
+                        <Box>
+                          <Typography variant="body2">
+                            {approveDialog.data.autoCancelSlots ? '✓ Chấp nhận: ' : '✗ Từ chối: '}
+                            Hủy {futureSlotsCount} slot học tập sắp tới
+                          </Typography>
+                        </Box>
+                      }
+                      sx={{ display: 'flex', alignItems: 'flex-start', mb: 2 }}
                     />
-                  }
-                  label={`Tự động hủy ${pendingOrdersCount} đơn hàng đang xử lý`}
-                />
-              )}
+                  )}
 
-              {hasConflicts && approveDialog.isOldBranchApproval && (
-                <FormControlLabel
-                  control={
-                    <Switch
-                      checked={approveDialog.data.approveOnlyIfNoConflicts}
-                      onChange={(e) => setApproveDialog({
-                        ...approveDialog,
-                        data: { ...approveDialog.data, approveOnlyIfNoConflicts: e.target.checked }
-                      })}
+                  {/* Pending orders conflict */}
+                  {conflicts?.pendingOrdersCount > 0 && (
+                    <FormControlLabel
+                      control={
+                        <Switch
+                          checked={approveDialog.data.autoCancelOrders}
+                          onChange={(e) => setApproveDialog({
+                            ...approveDialog,
+                            data: { ...approveDialog.data, autoCancelOrders: e.target.checked }
+                          })}
+                        />
+                      }
+                      label={
+                        <Box>
+                          <Typography variant="body2">
+                            {approveDialog.data.autoCancelOrders ? '✓ Chấp nhận: ' : '✗ Từ chối: '}
+                            Hủy {pendingOrdersCount} đơn hàng đang xử lý
+                          </Typography>
+                        </Box>
+                      }
+                      sx={{ display: 'flex', alignItems: 'flex-start', mb: 2 }}
                     />
-                  }
-                  label="Chỉ duyệt nếu không có xung đột"
-                />
+                  )}
+
+                  {/* Only approve if no conflicts option */}
+                  {hasConflicts && (
+                    <FormControlLabel
+                      control={
+                        <Switch
+                          checked={approveDialog.data.approveOnlyIfNoConflicts}
+                          onChange={(e) => setApproveDialog({
+                            ...approveDialog,
+                            data: { ...approveDialog.data, approveOnlyIfNoConflicts: e.target.checked }
+                          })}
+                        />
+                      }
+                      label={
+                        <Typography variant="body2" color="error">
+                          Duyệt nếu và chỉ khi không có bất kỳ xung đột nào
+                        </Typography>
+                      }
+                      sx={{ display: 'flex', alignItems: 'flex-start' }}
+                    />
+                  )}
+                </Box>
               )}
 
               <TextField
