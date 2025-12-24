@@ -347,7 +347,7 @@ const UserDashboard = () => {
       text: 'Xem lịch giữ trẻ',
       icon: <ScheduleIcon />,
       primary: false,
-      onClick: () => navigate('/user/management/children')
+      onClick: () => navigate('/user/management/schedule')
     }
   ];
 

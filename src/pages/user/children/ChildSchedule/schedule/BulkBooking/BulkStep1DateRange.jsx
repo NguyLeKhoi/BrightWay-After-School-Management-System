@@ -437,7 +437,7 @@ const BulkStep1DateRange = forwardRef(({ data, updateData, stepIndex, totalSteps
             <span className={styles.dateNumber}>{info.dayNumberText}</span>
             <CheckCircle className={styles.checkIcon} />
             {hasSlots && <span className={styles.slotCountBadge}>{slotCount}</span>}
-            <span style={{ fontSize: 10, fontWeight: 700, color: '#fff' }}>
+            <span style={{ fontSize: 10, fontWeight: 700, color: 'var(--text-inverse)' }}>
               {isStart ? 'Bắt đầu' : 'Kết thúc'}
             </span>
           </div>
@@ -449,14 +449,14 @@ const BulkStep1DateRange = forwardRef(({ data, updateData, stepIndex, totalSteps
           <div
             className={styles.dateCellWithSlots}
             style={{
-              backgroundColor: '#e0f2fe',
+              backgroundColor: 'var(--color-primary-50)',
               borderRadius: 8,
-              border: '1px solid #bfdbfe',
+              border: '1px solid var(--color-primary-100)',
               width: '100%',
               height: '100%'
             }}
           >
-            <span className={styles.dateNumber} style={{ color: '#0f172a' }}>
+            <span className={styles.dateNumber} style={{ color: 'var(--text-primary)' }}>
               {info.dayNumberText}
             </span>
             {hasSlots && (
@@ -600,13 +600,13 @@ const BulkStep1DateRange = forwardRef(({ data, updateData, stepIndex, totalSteps
   return (
     <Box sx={{ p: 3 }}>
       <Box sx={{ mb: 3, display: 'flex', alignItems: 'center', gap: 1 }}>
-        <CalendarIcon sx={{ color: 'primary.main' }} />
-        <Typography variant="h6" sx={{ fontWeight: 600 }}>
+        <CalendarIcon sx={{ color: 'var(--color-primary)' }} />
+        <Typography variant="h6" sx={{ fontWeight: 600, color: 'var(--text-primary)' }}>
           Bước {stepIndex}/{totalSteps}: Chọn khoảng thời gian
         </Typography>
       </Box>
 
-      <Paper sx={{ p: 3, backgroundColor: '#f5f5f5', mb: 3 }}>
+      <Paper sx={{ p: 3, backgroundColor: 'var(--bg-primary)', mb: 3 }}>
         <Alert severity="info" sx={{ mb: 2 }}>
           Chọn ngày bắt đầu và ngày kết thúc bằng cách click vào lịch. Hệ thống chỉ cho phép chọn những ngày còn slot khả dụng.
         </Alert>
@@ -639,7 +639,7 @@ const BulkStep1DateRange = forwardRef(({ data, updateData, stepIndex, totalSteps
               />
             </div>
             {isLoadingSlots && (
-              <Typography variant="body2" sx={{ mt: 1, color: '#6b7280' }}>
+              <Typography variant="body2" sx={{ mt: 1, color: 'var(--text-secondary)' }}>
                 Đang tải thông tin slot...
               </Typography>
             )}
@@ -658,7 +658,7 @@ const BulkStep1DateRange = forwardRef(({ data, updateData, stepIndex, totalSteps
                   min: minDate.toISOString().split('T')[0],
                   max: maxDate.toISOString().split('T')[0]
                 }}
-                sx={{ '& .MuiOutlinedInput-root': { backgroundColor: '#fff' } }}
+                sx={{ '& .MuiOutlinedInput-root': { backgroundColor: 'var(--bg-primary)' } }}
               />
 
               <TextField
@@ -672,12 +672,12 @@ const BulkStep1DateRange = forwardRef(({ data, updateData, stepIndex, totalSteps
                   min: formatInputDate(normalizedStart) || minDate.toISOString().split('T')[0],
                   max: maxDate.toISOString().split('T')[0]
                 }}
-                sx={{ '& .MuiOutlinedInput-root': { backgroundColor: '#fff' } }}
+                sx={{ '& .MuiOutlinedInput-root': { backgroundColor: 'var(--bg-primary)' } }}
               />
 
               <Divider />
 
-              <Box sx={{ p: 2, backgroundColor: '#e3f2fd', borderRadius: 1 }}>
+              <Box sx={{ p: 2, backgroundColor: 'var(--color-primary-50)', borderRadius: 1 }}>
                 <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 1 }}>
                   Tóm tắt
                 </Typography>

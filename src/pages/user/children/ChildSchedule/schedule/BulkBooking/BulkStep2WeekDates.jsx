@@ -15,14 +15,19 @@ import { Schedule as ScheduleIcon } from '@mui/icons-material';
 import styles from '../Schedule.module.css';
 
 const WEEKDAYS = [
-  { value: 0, label: 'Chủ nhật', color: '#ff6b6b' },
-  { value: 1, label: 'Thứ hai', color: '#4ecdc4' },
-  { value: 2, label: 'Thứ ba', color: '#45b7d1' },
-  { value: 3, label: 'Thứ tư', color: '#96ceb4' },
-  { value: 4, label: 'Thứ năm', color: '#ffeaa7' },
-  { value: 5, label: 'Thứ sáu', color: '#dfe6e9' },
-  { value: 6, label: 'Thứ bảy', color: '#a29bfe' }
+  { value: 0, label: 'Chủ nhật' },
+  { value: 1, label: 'Thứ hai' },
+  { value: 2, label: 'Thứ ba' },
+  { value: 3, label: 'Thứ tư' },
+  { value: 4, label: 'Thứ năm' },
+  { value: 5, label: 'Thứ sáu' },
+  { value: 6, label: 'Thứ bảy' }
 ];
+
+// Unified selected color for weekday cards (use theme token)
+const WEEKDAY_SELECTED_BG = 'var(--color-primary)';
+const WEEKDAY_SELECTED_BORDER = 'var(--color-primary-dark)';
+const WEEKDAY_SELECTED_TEXT = 'var(--text-inverse)';
 
 const getAvailableWeekDays = (startDate, endDate) => {
   if (!startDate || !endDate) return new Set();
@@ -143,13 +148,13 @@ const BulkStep2WeekDates = forwardRef(({ data, updateData, stepIndex, totalSteps
   return (
     <Box sx={{ p: 3 }}>
       <Box sx={{ mb: 3, display: 'flex', alignItems: 'center', gap: 1 }}>
-        <ScheduleIcon sx={{ color: 'primary.main' }} />
-        <Typography variant="h6" sx={{ fontWeight: 600 }}>
+        <ScheduleIcon sx={{ color: 'var(--color-primary)' }} />
+        <Typography variant="h6" sx={{ fontWeight: 600, color: 'var(--text-primary)' }}>
           Bước {stepIndex}/{totalSteps}: Chọn ngày trong tuần
         </Typography>
       </Box>
 
-      <Paper sx={{ p: 3, backgroundColor: '#f5f5f5', mb: 3 }}>
+      <Paper sx={{ p: 3, backgroundColor: 'var(--bg-primary)', mb: 3 }}>
         <Alert severity="info" sx={{ mb: 3 }}>
           Chọn những ngày trong tuần mà bạn muốn đặt lịch. Ví dụ: nếu chọn Thứ hai và Thứ tư, hệ thống sẽ tạo slot cho tất cả các Thứ hai và Thứ tư trong khoảng ngày đã chọn.
         </Alert>
@@ -167,9 +172,9 @@ const BulkStep2WeekDates = forwardRef(({ data, updateData, stepIndex, totalSteps
                       sx={{
                         cursor: isDisabled ? 'not-allowed' : 'pointer',
                         transition: 'all 0.3s ease',
-                        backgroundColor: weekDates.includes(day.value) ? day.color : '#fff',
+                        backgroundColor: weekDates.includes(day.value) ? WEEKDAY_SELECTED_BG : 'var(--bg-primary)',
                         border: weekDates.includes(day.value) ? '3px solid' : '2px solid',
-                        borderColor: weekDates.includes(day.value) ? day.color : isDisabled ? '#bdbdbd' : '#e0e0e0',
+                        borderColor: weekDates.includes(day.value) ? WEEKDAY_SELECTED_BORDER : isDisabled ? 'var(--border-medium)' : 'var(--border-light)',
                         opacity: isDisabled ? 0.5 : 1,
                         '&:hover': !isDisabled ? {
                           transform: 'translateY(-4px)',
@@ -194,7 +199,7 @@ const BulkStep2WeekDates = forwardRef(({ data, updateData, stepIndex, totalSteps
                                 variant="body1"
                                 sx={{
                                   fontWeight: 600,
-                                  color: weekDates.includes(day.value) ? '#fff' : isDisabled ? '#9e9e9e' : 'inherit'
+                                  color: weekDates.includes(day.value) ? WEEKDAY_SELECTED_TEXT : isDisabled ? 'var(--text-tertiary)' : 'inherit'
                                 }}
                               >
                                 {day.label}
@@ -213,8 +218,8 @@ const BulkStep2WeekDates = forwardRef(({ data, updateData, stepIndex, totalSteps
         </Grid>
 
         {weekDates.length > 0 && (
-          <Box sx={{ mt: 3, p: 2, backgroundColor: '#e3f2fd', borderRadius: 1 }}>
-            <Typography variant="body2" color="primary" sx={{ fontWeight: 600 }}>
+          <Box sx={{ mt: 3, p: 2, backgroundColor: 'var(--color-primary-50)', borderRadius: 1 }}>
+            <Typography variant="body2" sx={{ color: 'var(--color-primary)', fontWeight: 600 }}>
               ✓ Đã chọn {weekDates.length} ngày: {weekDates.map(d => WEEKDAYS.find(w => w.value === d)?.label).join(', ')}
             </Typography>
           </Box>

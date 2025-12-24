@@ -25,13 +25,13 @@
   margin: 0;
   font-size: 32px;
   font-weight: 700;
-  color: #1a1a1a;
+  color: var(--text-primary);
 }
 
 .subtitle {
   margin: 0;
   font-size: 15px;
-  color: #6b7280;
+  color: var(--text-secondary);
 }
 
 .card {
@@ -60,12 +60,12 @@
   margin: 0;
   font-size: 20px;
   font-weight: 600;
-  color: #111827;
+  color: var(--text-primary);
 }
 
 .sectionSubtitle {
   margin: 6px 0 0 0;
-  color: #6b7280;
+  color: var(--text-secondary);
   font-size: 14px;
 }
 
@@ -79,39 +79,39 @@
 .selectorLabel {
   font-size: 14px;
   font-weight: 600;
-  color: #374151;
+  color: var(--text-primary);
 }
 
 .selector {
   width: 100%;
   padding: 12px 16px;
-  border: 1px solid #d1d5db;
+  border: 1px solid var(--border-medium);
   border-radius: 10px;
   font-size: 15px;
-  color: #111827;
-  background: #f9fafb;
+  color: var(--text-primary);
+  background: var(--bg-secondary);
   outline: none;
 }
 
 .selector:focus {
-  border-color: #2563eb;
-  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px rgba(92, 189, 185, 0.1);
 }
 
 .secondaryButton {
-  border: 1px solid #d1d5db;
+  border: 1px solid var(--border-medium);
   border-radius: 10px;
   padding: 10px 18px;
   font-size: 14px;
   font-weight: 500;
-  background: white;
-  color: #374151;
+  background: var(--bg-primary);
+  color: var(--text-primary);
   cursor: pointer;
   transition: background-color 0.2s ease;
 }
 
 .secondaryButton:hover {
-  background-color: #f3f4f6;
+  background-color: var(--bg-secondary);
 }
 
 .primaryButton {
@@ -151,54 +151,31 @@
   padding: 32px 0;
 }
 
+/* errorState and retryButton replaced by theme-variable based definitions further below */
+
 .errorState {
   text-align: center;
   padding: 40px 20px;
   border-radius: 12px;
-  border: 1px solid #ffe4e6;
-  background: #fff1f2;
-  color: #b91c1c;
+  border: 1px solid var(--color-error-light);
+  background: var(--bg-primary);
+  color: var(--color-error);
 }
-
 .retryButton {
   margin-top: 16px;
   border: none;
   border-radius: 6px;
   padding: 10px 20px;
-  background: #ef4444;
-  color: white;
+  background: var(--color-error);
+  color: var(--text-inverse);
   font-weight: 500;
   cursor: pointer;
 }
 
 .retryButton:hover {
-  background: #dc2626;
+  background: var(--color-error-dark);
 }
-
-.emptyState {
-  text-align: center;
-  padding: 48px 16px;
-  border: 1px dashed #e2e8f0;
-  border-radius: 12px;
-  background: #f9fafb;
-}
-
-.emptyIcon {
-  font-size: 48px;
-  margin-bottom: 12px;
-}
-
-.scheduleGrid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-  gap: 16px;
-}
-
-.roomsGrid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-  gap: 16px;
-}
+ 
 
 .scheduleCard {
   border: 1px solid var(--border-light);
@@ -228,14 +205,14 @@
   margin: 0;
   font-size: 12px;
   text-transform: uppercase;
-  color: #6b7280;
+  color: var(--text-secondary);
   letter-spacing: 0.5px;
 }
 
 .cardTitle {
   margin: 4px 0 0 0;
   font-size: 18px;
-  color: #111827;
+  color: var(--text-primary);
 }
 
 .statusBadge {
@@ -247,18 +224,18 @@
 }
 
 .statusBadge.active {
-  background: #e8f7ef;
-  color: #18794e;
+  background: var(--color-success-light);
+  color: var(--color-success-dark);
 }
 
 .statusBadge.completed {
-  background: #e0f2fe;
-  color: #0c4a6e;
+  background: var(--color-primary-50);
+  color: var(--color-primary-dark);
 }
 
 .statusBadge.pending {
-  background: #fff4e5;
-  color: #92400e;
+  background: var(--color-warning-light);
+  color: var(--color-warning-dark);
 }
 
 .infoGrid {
@@ -270,18 +247,18 @@
 .infoLabel {
   margin: 0;
   font-size: 13px;
-  color: #6b7280;
+  color: var(--text-secondary);
 }
 
 .infoValue {
   margin: 4px 0 0 0;
   font-size: 15px;
   font-weight: 600;
-  color: #111827;
+  color: var(--text-primary);
 }
 
 .benefits {
-  border-top: 1px solid #e5e7eb;
+  border-top: 1px solid var(--border-medium);
   padding-top: 12px;
 }
 
@@ -297,7 +274,7 @@
 .benefits li {
   padding-left: 18px;
   position: relative;
-  color: #374151;
+  color: var(--text-primary);
   font-size: 14px;
 }
 
@@ -305,11 +282,11 @@
   content: '•';
   position: absolute;
   left: 4px;
-  color: #2563eb;
+  color: var(--color-primary);
 }
 
 .description {
-  color: #374151;
+  color: var(--text-primary);
   font-size: 14px;
   margin: 8px 0 0 0;
 }
@@ -342,30 +319,30 @@
 .roomHeader h3 {
   margin: 0;
   font-size: 18px;
-  color: #111827;
+  color: var(--text-primary);
 }
 
 .roomCapacity {
   padding: 4px 10px;
   border-radius: 999px;
-  background: #eef2ff;
-  color: #3730a3;
+  background: var(--color-primary-50);
+  color: var(--color-primary-dark);
   font-size: 13px;
   font-weight: 600;
 }
 
 .roomCardSelected {
-  border-color: #2563eb;
-  box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.2);
+  border-color: var(--color-primary-dark);
+  box-shadow: var(--shadow-colored);
 }
 
 .roomSelectButton {
   margin-top: 8px;
-  border: 1px solid #d1d5db;
+  border: 1px solid var(--border-medium);
   border-radius: 8px;
   padding: 8px 14px;
-  background: #f9fafb;
-  color: #111827;
+  background: var(--bg-secondary);
+  color: var(--text-primary);
   font-size: 14px;
   font-weight: 500;
   cursor: pointer;
@@ -373,13 +350,13 @@
 }
 
 .roomSelectButton:hover {
-  background: #f3f4f6;
+  background: var(--bg-primary);
 }
 
 .roomSelectButtonActive {
-  border-color: #2563eb;
-  background: #2563eb;
-  color: white;
+  border-color: var(--color-primary-dark);
+  background: var(--color-primary-dark);
+  color: var(--text-inverse);
 }
 
 .bookingForm {
@@ -393,9 +370,9 @@
   grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
   gap: 16px;
   padding: 16px;
-  background: #f9fafb;
+  background: var(--bg-secondary);
   border-radius: 12px;
-  border: 1px solid #e5e7eb;
+  border: 1px solid var(--border-medium);
 }
 
 .formGroup {
@@ -407,7 +384,7 @@
 .formLabel {
   font-size: 14px;
   font-weight: 600;
-  color: #374151;
+  color: var(--text-primary);
 }
 
 .formSelect,
@@ -415,11 +392,11 @@
 .formTextarea {
   width: 100%;
   padding: 12px 14px;
-  border: 1px solid #d1d5db;
+  border: 1px solid var(--border-medium);
   border-radius: 10px;
   font-size: 15px;
-  color: #111827;
-  background: white;
+  color: var(--text-primary);
+  background: var(--bg-primary);
 }
 
 .formTextarea {
@@ -429,8 +406,8 @@
 .formSelect:focus,
 .formInput:focus,
 .formTextarea:focus {
-  border-color: #2563eb;
-  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+  border-color: var(--color-primary);
+  box-shadow: var(--shadow-colored);
   outline: none;
 }
 
@@ -478,26 +455,26 @@
   margin: 0 0 8px 0;
   font-size: 24px;
   font-weight: 600;
-  color: #111827;
+  color: var(--text-primary);
 }
 
 .stepSubtitle {
   margin: 0;
   font-size: 14px;
-  color: #6b7280;
+  color: var(--text-secondary);
 }
 
 .scheduleCardSelected {
-  border-color: #2563eb;
-  box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.2);
-  background: #eff6ff;
+  border-color: var(--color-primary-dark);
+  box-shadow: var(--shadow-colored);
+  background: var(--color-primary-50);
 }
 
 .selectedIndicator {
   margin-top: 12px;
   padding: 8px 12px;
-  background: #2563eb;
-  color: white;
+  background: var(--color-primary-dark);
+  color: var(--text-inverse);
   border-radius: 8px;
   font-size: 14px;
   font-weight: 600;
@@ -559,22 +536,22 @@
 .selectedSlotInfo {
   margin-top: 12px;
   padding: 12px;
-  background: #f9fafb;
+  background: var(--bg-secondary);
   border-radius: 8px;
-  border: 1px solid #e5e7eb;
+  border: 1px solid var(--border-medium);
 }
 
 .confirmCard {
-  background: white;
+  background: var(--bg-primary);
   border-radius: 12px;
   padding: 24px;
-  border: 1px solid #e5e7eb;
+  border: 1px solid var(--border-medium);
 }
 
 .confirmSection {
   margin-bottom: 24px;
   padding-bottom: 24px;
-  border-bottom: 1px solid #e5e7eb;
+  border-bottom: 1px solid var(--border-medium);
 }
 
 .confirmSection:last-child {
@@ -587,7 +564,7 @@
   margin: 0 0 16px 0;
   font-size: 18px;
   font-weight: 600;
-  color: #111827;
+  color: var(--text-primary);
 }
 
 .confirmInfoGrid {
@@ -599,10 +576,10 @@
 .confirmNote {
   margin: 0;
   padding: 12px;
-  background: #f9fafb;
+  background: var(--bg-secondary);
   border-radius: 8px;
-  border: 1px solid #e5e7eb;
-  color: #374151;
+  border: 1px solid var(--border-medium);
+  color: var(--text-primary);
   font-size: 14px;
   line-height: 1.6;
   white-space: pre-wrap;
@@ -659,11 +636,11 @@
 
 /* Highlight selected date cell background */
 .calendarContainer :global(.fc-daygrid-day.fc-day-selected) {
-  background-color: #dcfce7 !important; /* Light green background */
+  background-color: var(--color-success-light) !important; /* Light green background */
 }
 
 .calendarContainer :global(.fc-daygrid-day.fc-day-selected .fc-daygrid-day-frame) {
-  background-color: #dcfce7 !important;
+  background-color: var(--color-success-light) !important;
 }
 
 .calendarContainer :global(.fc-day-disabled) {
@@ -694,7 +671,7 @@
 }
 
 .dateWithoutSlots :global(.fc-daygrid-day-frame) {
-  background-color: #f3f4f6 !important;
+  background-color: var(--bg-secondary) !important;
 }
 
 .dateLoading {
@@ -703,7 +680,7 @@
 }
 
 .dateLoading :global(.fc-daygrid-day-frame) {
-  background-color: #f9fafb !important;
+  background-color: var(--bg-secondary) !important;
 }
 
 .dateCellWithSlots {
@@ -720,7 +697,7 @@
 .dateCellWithSlots .dateNumber {
   font-weight: 600 !important;
   font-size: 14px !important;
-  color: #1f2937 !important;
+  color: var(--text-primary) !important;
 }
 
 .slotIndicator {
@@ -728,7 +705,7 @@
   align-items: center !important;
   justify-content: center !important;
   gap: 2px !important;
-  background: #dcfce7 !important;
+  background: var(--color-success-light) !important;
   border-radius: 12px !important;
   padding: 2px 6px !important;
   min-width: 32px !important;
@@ -736,13 +713,13 @@
 
 .slotIcon {
   font-size: 12px !important;
-  color: #16a34a !important;
+  color: var(--color-success-dark) !important;
 }
 
 .slotCount {
   font-size: 11px !important;
   font-weight: 700 !important;
-  color: #16a34a !important;
+  color: var(--color-success-dark) !important;
   line-height: 1 !important;
 }
 
@@ -750,8 +727,8 @@
   position: absolute !important;
   top: -4px !important;
   right: -4px !important;
-  background: #ef4444 !important;
-  color: white !important;
+  background: var(--color-error) !important;
+  color: var(--text-inverse) !important;
   border-radius: 50% !important;
   width: 18px !important;
   height: 18px !important;
@@ -760,13 +737,13 @@
   justify-content: center !important;
   font-size: 10px !important;
   font-weight: 700 !important;
-  border: 2px solid white !important;
+  border: 2px solid var(--bg-primary) !important;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2) !important;
 }
 
 .selectedDateCell {
-  background: #22c55e !important; /* Green color */
-  color: white !important;
+  background: var(--color-success) !important;
+  color: var(--text-inverse) !important;
   border-radius: 8px !important;
   min-width: 40px !important;
   min-height: 40px !important;
@@ -779,14 +756,14 @@
   padding: 6px 8px !important;
   margin: 0 auto !important;
   position: relative !important;
-  box-shadow: 0 2px 8px rgba(34, 197, 94, 0.3) !important;
+  box-shadow: var(--shadow-colored) !important;
   transition: all 0.2s ease !important;
   gap: 2px !important;
 }
 
 .selectedDateCell:hover {
-  background: #16a34a !important; /* Darker green on hover */
-  box-shadow: 0 4px 12px rgba(34, 197, 94, 0.4) !important;
+  background: var(--color-success-dark) !important;
+  box-shadow: 0 4px 12px rgba(92, 189, 185, 0.4) !important;
   transform: scale(1.05) !important;
 }
 
@@ -829,7 +806,7 @@
   margin: 0 0 16px 0;
   font-size: 18px;
   font-weight: 600;
-  color: #111827;
+  color: var(--text-primary);
 }
 
 .helperText {
