@@ -424,7 +424,7 @@ const ChildSchedule = () => {
   }, [location.pathname]);
 
   const handleBack = () => {
-    navigate('/user/management/children');
+    navigate('/user/management/schedule');
   };
 
   // Event handlers cho FullCalendar
