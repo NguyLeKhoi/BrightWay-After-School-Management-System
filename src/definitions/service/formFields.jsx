@@ -29,16 +29,7 @@ export const createServiceFormFields = (actionLoading) => [
     disabled: actionLoading,
     gridSize: 6
   },
-  {
-    name: 'stock',
-    label: 'Tồn kho',
-    type: 'number',
-    required: true,
-    placeholder: '0',
-    disabled: actionLoading,
-    helperText: 'Số lượng tồn kho (>= 0)',
-    gridSize: 6
-  },
+  
   {
     section: 'Hình ảnh',
     sectionDescription: 'Tải lên hình ảnh cho dịch vụ (tùy chọn). Kích thước tối đa 5MB.',

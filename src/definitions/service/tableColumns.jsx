@@ -30,15 +30,6 @@ export const createServiceColumns = () => [
     )
   },
   {
-    key: 'description',
-    header: 'Mô Tả',
-    render: (value) => (
-      <Typography variant="body2" color="text.secondary" sx={{ maxWidth: 300 }}>
-        {value || 'Không có mô tả'}
-      </Typography>
-    )
-  },
-  {
     key: 'serviceType',
     header: 'Loại Dịch Vụ',
     render: (value) => (
@@ -51,56 +42,49 @@ export const createServiceColumns = () => [
     )
   },
   {
-    key: 'branches',
-    header: 'Số Chi Nhánh',
-    align: 'center',
-    render: (value, item) => {
-      const count = Array.isArray(item?.branches) ? item.branches.length : (item.branchesCount ?? 0);
-      return (
-        <Chip
-          label={count}
-          color="primary"
-          size="small"
-          variant="outlined"
-        />
-      );
-    }
-  },
-  {
     key: 'price',
     header: 'Giá',
     align: 'right',
-    render: (value) => (
-      <Typography variant="body2" fontWeight="medium">
-        {value !== null && value !== undefined 
-          ? new Intl.NumberFormat('vi-VN', {
-              style: 'currency',
-              currency: 'VND'
-            }).format(value)
-          : 'N/A'}
-      </Typography>
-    )
+    render: (value, item) => {
+      const display = item?.priceOverride ?? item?.effectivePrice ?? value;
+      return (
+        <Typography variant="body2" fontWeight="medium">
+          {display !== null && display !== undefined 
+            ? new Intl.NumberFormat('vi-VN', {
+                style: 'currency',
+                currency: 'VND'
+              }).format(display)
+            : 'N/A'}
+        </Typography>
+      );
+    }
   },
   {
     key: 'stock',
     header: 'Tồn kho',
     align: 'right',
-    render: (value) => (
+    render: (value, item) => (
       <Typography variant="body2" fontWeight="medium">
-        {value !== null && value !== undefined ? value : 'N/A'}
+        {item?.stock !== null && item?.stock !== undefined ? item.stock : '—'}
       </Typography>
     )
   },
+  
   {
     key: 'status',
     header: 'Trạng Thái',
-    render: (value) => (
-      <Chip
-        label={value ? 'Hoạt động' : 'Không hoạt động'}
-        color={value ? 'success' : 'default'}
-        size="small"
-      />
-    )
+    render: (value, item) => {
+      const active = item?.isActive !== undefined && item?.isActive !== null
+        ? Boolean(item.isActive)
+        : (value !== undefined && value !== null ? Boolean(value) : false);
+      return (
+        <Chip
+          label={active ? 'Hoạt động' : 'Không hoạt động'}
+          color={active ? 'success' : 'default'}
+          size="small"
+        />
+      );
+    }
   }
 ];
 
