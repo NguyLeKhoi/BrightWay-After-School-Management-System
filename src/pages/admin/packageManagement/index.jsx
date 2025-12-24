@@ -24,6 +24,7 @@ import ContentLoading from '../../../components/Common/ContentLoading';
 import Form from '../../../components/Common/Form';
 import packageService from '../../../services/package.service';
 import packageTemplateService from '../../../services/packageTemplate.service';
+import authService from '../../../services/auth.service';
 import usePackageDependencies from '../../../hooks/usePackageDependencies';
 import useBaseCRUD from '../../../hooks/useBaseCRUD';
 import useFacilityBranchData from '../../../hooks/useFacilityBranchData';
@@ -376,7 +377,11 @@ const PackageManagement = () => {
       <ManagementPageHeader
         title={isTemplateTab ? 'Quản lý Mẫu Gói' : 'Quản lý Gói Bán'}
         createButtonText={isTemplateTab ? 'Thêm Mẫu Gói' : 'Thêm Gói Bán'}
-        onCreateClick={isTemplateTab ? handleCreateTemplate : handleCreatePackage}
+        onCreateClick={(() => {
+          const currentUser = authService.getCurrentUser();
+          const isAdmin = !!(currentUser && (currentUser.role || '').toString().toLowerCase() === 'admin');
+          return isTemplateTab ? handleCreateTemplate : isAdmin ? undefined : handleCreatePackage;
+        })()}
       />
 
       <Paper
