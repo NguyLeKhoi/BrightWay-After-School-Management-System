@@ -64,8 +64,8 @@ const BulkStep4Confirm = forwardRef(({ data, updateData, stepIndex, totalSteps }
   return (
     <Box sx={{ p: 3 }}>
       <Box sx={{ mb: 3, display: 'flex', alignItems: 'center', gap: 1 }}>
-        <ConfirmIcon sx={{ color: 'primary.main' }} />
-        <Typography variant="h6" sx={{ fontWeight: 600 }}>
+        <ConfirmIcon sx={{ color: 'var(--color-primary)' }} />
+        <Typography variant="h6" sx={{ fontWeight: 600, color: 'var(--text-primary)' }}>
           Bước {stepIndex}/{totalSteps}: Xác nhận đặt lịch
         </Typography>
       </Box>
@@ -76,9 +76,9 @@ const BulkStep4Confirm = forwardRef(({ data, updateData, stepIndex, totalSteps }
 
       <Grid container spacing={2} sx={{ mb: 3 }}>
         <Grid item xs={12} sm={6}>
-          <Card sx={{ backgroundColor: '#e3f2fd' }}>
+          <Card sx={{ backgroundColor: 'var(--color-primary-50)' }}>
             <CardContent>
-              <Typography color="textSecondary" gutterBottom>
+              <Typography sx={{ color: 'var(--text-secondary)' }} gutterBottom>
                 Khoảng thời gian
               </Typography>
               <Typography variant="body1" sx={{ fontWeight: 600 }}>
@@ -89,9 +89,9 @@ const BulkStep4Confirm = forwardRef(({ data, updateData, stepIndex, totalSteps }
         </Grid>
 
         <Grid item xs={12} sm={6}>
-          <Card sx={{ backgroundColor: '#f3e5f5' }}>
+          <Card sx={{ backgroundColor: 'var(--color-secondary-50)' }}>
             <CardContent>
-              <Typography color="textSecondary" gutterBottom>
+              <Typography sx={{ color: 'var(--text-secondary)' }} gutterBottom>
                 Ngày trong tuần đã chọn
               </Typography>
               <Typography variant="body1" sx={{ fontWeight: 600 }}>
@@ -102,7 +102,7 @@ const BulkStep4Confirm = forwardRef(({ data, updateData, stepIndex, totalSteps }
         </Grid>
 
         <Grid item xs={12} sm={6}>
-          <Card sx={{ backgroundColor: '#e8f5e9' }}>
+          <Card sx={{ backgroundColor: 'var(--color-success-light)' }}>
             <CardContent>
               <Typography color="textSecondary" gutterBottom>
                 Khung giờ
@@ -118,12 +118,12 @@ const BulkStep4Confirm = forwardRef(({ data, updateData, stepIndex, totalSteps }
         </Grid>
 
         <Grid item xs={12} sm={6}>
-          <Card sx={{ backgroundColor: '#fff3e0' }}>
+          <Card sx={{ backgroundColor: 'var(--color-warning-light)' }}>
             <CardContent>
               <Typography color="textSecondary" gutterBottom>
                 Số slot ước tính
               </Typography>
-              <Typography variant="body1" sx={{ fontWeight: 600, color: 'warning.main' }}>
+              <Typography variant="body1" sx={{ fontWeight: 600, color: 'var(--color-warning)' }}>
                 {estimatedSlots} slots
               </Typography>
             </CardContent>
@@ -150,7 +150,7 @@ const BulkStep4Confirm = forwardRef(({ data, updateData, stepIndex, totalSteps }
           helperText={`${parentNote.length}/1000 ký tự`}
           sx={{
             '& .MuiOutlinedInput-root': {
-              backgroundColor: '#fff'
+              backgroundColor: 'var(--bg-primary)'
             }
           }}
         />
@@ -161,7 +161,7 @@ const BulkStep4Confirm = forwardRef(({ data, updateData, stepIndex, totalSteps }
 
       <Divider sx={{ my: 3 }} />
 
-      <Box sx={{ p: 2, backgroundColor: '#f5f5f5', borderRadius: 1 }}>
+      <Box sx={{ p: 2, backgroundColor: 'var(--bg-secondary)', borderRadius: 1 }}>
         <Typography variant="subtitle2" sx={{ fontWeight: 600, mb: 2 }}>
           ✓ Thông tin xác nhận:
         </Typography>

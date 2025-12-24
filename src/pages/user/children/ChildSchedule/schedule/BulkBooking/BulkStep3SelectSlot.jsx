@@ -130,8 +130,8 @@ const BulkStep3SelectSlot = forwardRef(({ data, updateData, stepIndex, totalStep
   return (
     <Box sx={{ p: 3 }}>
       <Box sx={{ mb: 3, display: 'flex', alignItems: 'center', gap: 1 }}>
-        <SlotIcon sx={{ color: 'primary.main' }} />
-        <Typography variant="h6" sx={{ fontWeight: 600 }}>
+        <SlotIcon sx={{ color: 'var(--color-primary)' }} />
+        <Typography variant="h6" sx={{ fontWeight: 600, color: 'var(--text-primary)' }}>
           Bước {stepIndex}/{totalSteps}: Chọn khung giờ
         </Typography>
       </Box>
@@ -157,7 +157,7 @@ const BulkStep3SelectSlot = forwardRef(({ data, updateData, stepIndex, totalStep
       )}
 
       {!isLoading && slots.length > 0 && (
-        <Paper sx={{ p: 3, backgroundColor: '#f5f5f5' }}>
+        <Paper sx={{ p: 3, backgroundColor: 'var(--bg-primary)' }}>
           <Alert severity="info" sx={{ mb: 3 }}>
             Chọn khung giờ mà bạn muốn đặt lịch cho tất cả các ngày đã chọn.
           </Alert>
@@ -176,9 +176,9 @@ const BulkStep3SelectSlot = forwardRef(({ data, updateData, stepIndex, totalStep
                       <Card
                         sx={{
                           width: '100%',
-                          backgroundColor: selectedSlotId === slot.id ? '#e3f2fd' : '#fff',
+                          backgroundColor: selectedSlotId === slot.id ? 'var(--color-primary-50)' : 'var(--bg-primary)',
                           border: selectedSlotId === slot.id ? '2px solid' : '1px solid',
-                          borderColor: selectedSlotId === slot.id ? '#1976d2' : '#e0e0e0',
+                          borderColor: selectedSlotId === slot.id ? 'var(--color-primary-dark)' : 'var(--border-light)',
                           flex: 1,
                           ml: 1
                         }}
@@ -188,7 +188,7 @@ const BulkStep3SelectSlot = forwardRef(({ data, updateData, stepIndex, totalStep
                             <Typography variant="body1" sx={{ fontWeight: 600 }}>
                               {slot.branchName}
                             </Typography>
-                            <Typography variant="caption" sx={{ color: 'success.main', fontWeight: 600 }}>
+                            <Typography variant="caption" sx={{ color: 'var(--color-success)', fontWeight: 600 }}>
                               ✓ Có sẵn
                             </Typography>
                           </Box>
@@ -204,7 +204,7 @@ const BulkStep3SelectSlot = forwardRef(({ data, updateData, stepIndex, totalStep
                             </Typography>
                           )}
 
-                          <Typography variant="caption" sx={{ color: 'primary.main' }}>
+                          <Typography variant="caption" sx={{ color: 'var(--color-primary)', fontWeight: 600 }}>
                             📅 {slot.weekDaysAvailable.length} ngày: {slot.weekDaysAvailable.map(d => WEEKDAY_LABELS[d]).join(', ')}
                           </Typography>
                         </CardContent>
