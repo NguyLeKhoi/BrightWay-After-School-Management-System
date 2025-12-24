@@ -40,7 +40,7 @@ const ServiceManagement = () => {
     onConfirm: null
   });
 
-  const columns = useMemo(() => createServiceColumns(), []);
+  const columns = useMemo(() => createServiceColumns().filter(col => col.key !== 'stock'), []);
   const serviceFormFields = useMemo(() => createServiceFormFields(actionLoading), [actionLoading]);
 
   // Load services
@@ -250,7 +250,6 @@ const ServiceManagement = () => {
       formDataToSend.append('Name', formData.name || '');
       formDataToSend.append('Description', formData.description || '');
       formDataToSend.append('Price', formData.price ? String(formData.price) : '0');
-      formDataToSend.append('Stock', formData.stock !== undefined ? String(formData.stock) : '0');
       formDataToSend.append('Status', formData.status !== undefined ? String(formData.status) : 'true');
       formDataToSend.append('ServiceType', 'AddOn'); // Fixed value as per user requirement
       
@@ -362,7 +361,6 @@ const ServiceManagement = () => {
             name: selectedService?.name || '',
             description: selectedService?.description || '',
             price: selectedService?.price || 0,
-            stock: selectedService?.stock ?? 0,
             status: selectedService?.status !== undefined ? selectedService.status : true,
             imageFile: dialogMode === 'edit' && selectedService?.image ? selectedService.image : null
           }}
