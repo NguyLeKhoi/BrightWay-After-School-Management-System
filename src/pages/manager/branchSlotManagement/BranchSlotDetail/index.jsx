@@ -803,6 +803,7 @@ const BranchSlotDetail = () => {
     ? (WEEK_DAYS.find(day => day.value === branchSlot.weekDate)?.label || `Ngày ${branchSlot.weekDate}`)
     : '';
   const status = branchSlot?.status || 'Available';
+  const isFinal = ['completed', 'finished'].includes(String(status || '').toLowerCase());
   const staffList = branchSlot?.staff || [];
 
   // Group staff by room - staff info is already in each room object
@@ -1148,7 +1149,7 @@ const BranchSlotDetail = () => {
                     variant="outlined"
                     startIcon={<AssignRoomIcon />}
                     onClick={handleAssignRooms}
-                    disabled={loading || !branchSlot}
+                    disabled={loading || !branchSlot || ['completed','finished'].includes(String(branchSlot?.status || '').toLowerCase())}
                     size="small"
                   >
                     Gán Phòng
@@ -1157,7 +1158,7 @@ const BranchSlotDetail = () => {
                     variant="contained"
                     startIcon={<AssignStaffIcon />}
                     onClick={handleAssignStaff}
-                    disabled={loading || !branchSlot}
+                    disabled={loading || !branchSlot || ['completed','finished'].includes(String(branchSlot?.status || '').toLowerCase())}
                     size="small"
                   >
                     Gán Nhân Viên
@@ -1224,7 +1225,7 @@ const BranchSlotDetail = () => {
                                             size="small"
                                             color="error"
                                             onClick={() => handleUnassignStaff(staff)}
-                                            disabled={unassigning}
+                                            disabled={unassigning || isFinal}
                                             sx={{ ml: 1 }}
                                           >
                                             <DeleteIcon fontSize="small" />
@@ -1297,15 +1298,15 @@ const BranchSlotDetail = () => {
                                         ) : null}
                                       </Box>
                                       <Tooltip title="Gỡ nhân viên">
-                                        <IconButton
-                                          size="small"
-                                          color="error"
-                                          onClick={() => handleUnassignStaff(staff)}
-                                          disabled={unassigning}
-                                          sx={{ ml: 1 }}
-                                        >
-                                          <DeleteIcon fontSize="small" />
-                                        </IconButton>
+                                      <IconButton
+                                        size="small"
+                                        color="error"
+                                        onClick={() => handleUnassignStaff(staff)}
+                                        disabled={unassigning || isFinal}
+                                        sx={{ ml: 1 }}
+                                      >
+                                        <DeleteIcon fontSize="small" />
+                                      </IconButton>
                                       </Tooltip>
                                     </Box>
                                   ))}
@@ -1333,20 +1334,20 @@ const BranchSlotDetail = () => {
                                     size="small"
                                     color="primary"
                                     onClick={() => handleChangeRoom(item.room)}
-                                    disabled={unassigning || changeRoomLoading}
+                                    disabled={unassigning || changeRoomLoading || isFinal}
                                   >
                                     <SwapHoriz fontSize="small" />
                                   </IconButton>
                                 </Tooltip>
                                 <Tooltip title="Gỡ phòng">
-                                  <IconButton
-                                    size="small"
-                                    color="error"
-                                    onClick={() => handleUnassignRoom(item.room)}
-                                    disabled={unassigning || changeRoomLoading}
-                                  >
-                                    <DeleteIcon fontSize="small" />
-                                  </IconButton>
+                                <IconButton
+                                  size="small"
+                                  color="error"
+                                  onClick={() => handleUnassignRoom(item.room)}
+                                  disabled={unassigning || changeRoomLoading || isFinal}
+                                >
+                                  <DeleteIcon fontSize="small" />
+                                </IconButton>
                                 </Tooltip>
                               </Box>
                             </TableCell>

@@ -27,7 +27,8 @@ import {
   Event as SlotIcon,
   TrendingUp as TrendingUpIcon,
   CalendarToday as CalendarIcon,
-  ShowChart as ChartIcon
+  ShowChart as ChartIcon,
+  Notifications as NotificationIcon
 } from '@mui/icons-material';
 import {
   LineChart,
@@ -45,10 +46,13 @@ import {
 } from 'recharts';
 import AnimatedCard from '../../../components/Common/AnimatedCard';
 import overviewService from '../../../services/overview.service';
+import useManagerNotifications from '../../../hooks/useManagerNotifications';
+import { useNavigate } from 'react-router-dom';
 import { useApp } from '../../../contexts/AppContext';
 import { useLoading } from '../../../hooks/useLoading';
 import Loading from '../../../components/Common/Loading';
 import styles from './dashboard.module.css';
+import { parseAsUTC7, formatDateTimeUTC7, getCurrentTimeUTC7 } from '../../../utils/dateHelper';
 
 const ManagerDashboard = () => {
   const { showGlobalError } = useApp();
@@ -57,6 +61,49 @@ const ManagerDashboard = () => {
   const [error, setError] = useState(null);
   const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth() + 1);
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
+  const navigate = useNavigate();
+
+  // Notifications for manager (small widget on dashboard)
+  const {
+    notifications: managerNotifications,
+    unreadCount: managerUnreadCount,
+    isLoading: managerNotificationsLoading,
+    handleNotificationClick: handleManagerNotificationClick
+  } = useManagerNotifications();
+
+  const getNotificationIcon = (iconName) => {
+    const iconProps = { sx: { fontSize: 20, color: 'white' } };
+    const lower = (iconName || '').toLowerCase();
+    const paymentKeywords = ['payment','pay','paid','deposit','refund','package','subscription','wallet','transaction','billing','invoice'];
+    const isPayment = paymentKeywords.some(k => lower.includes(k));
+    if (isPayment) return <MoneyIcon {...iconProps} sx={{ fontSize: 20, color: 'white' }} />;
+    return <NotificationIcon {...iconProps} sx={{ fontSize: 20, color: 'white' }} />;
+  };
+
+  const getNotificationColor = (iconName) => {
+    const lower = (iconName || '').toLowerCase();
+    if (lower.includes('attendance')) return '#28a745';
+    if (lower.includes('payment')) return '#007bff';
+    if (lower.includes('schedule')) return '#ffc107';
+    if (lower.includes('allowance')) return '#17a2b8';
+    if (lower.includes('announcement')) return '#dc3545';
+    if (lower.includes('evaluation')) return '#6f42c1';
+    return '#6c757d';
+  };
+
+  const formatNotifTime = (timeString) => {
+    if (!timeString) return '';
+    const dateUTC7 = parseAsUTC7(timeString);
+    if (!dateUTC7) return '';
+    const nowUTC7Ms = getCurrentTimeUTC7();
+    const dateUTC7Ms = dateUTC7.getTime();
+    const diffInMs = nowUTC7Ms - dateUTC7Ms;
+    const diffInHours = diffInMs / (1000 * 60 * 60);
+    if (diffInHours < 1) return 'Vừa xong';
+    if (diffInHours < 24) return `${Math.floor(diffInHours)} giờ trước`;
+    if (diffInHours < 168) return `${Math.floor(diffInHours / 24)} ngày trước`;
+    return formatDateTimeUTC7(dateUTC7, { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' });
+  };
 
   useEffect(() => {
     loadDashboardData();
@@ -223,6 +270,76 @@ const ManagerDashboard = () => {
           </AnimatedCard>
         ))}
       </div>
+
+      {/* Notifications Widget */}
+      <Grid container spacing={3} sx={{ mt: 1 }}>
+        <Grid item xs={12} md={12}>
+          <AnimatedCard delay={0.6} className={styles.infoCard}>
+            <Box sx={{ display: 'flex', alignItems: 'center', mb: 2.5, pb: 1.5, borderBottom: '1px solid', borderColor: 'divider' }}>
+              <CalendarIcon sx={{ mr: 1.5, color: 'primary.main', fontSize: 28 }} />
+              <Typography variant="h6" fontWeight="bold" sx={{ color: 'text.primary' }}>
+                Thông báo
+              </Typography>
+              <Box sx={{ flex: 1 }} />
+              <Box>
+                <Typography variant="body2" color="text.secondary" sx={{ textAlign: 'right' }}>
+                  {managerUnreadCount || 0} chưa đọc
+                </Typography>
+              </Box>
+            </Box>
+
+            {managerNotificationsLoading ? (
+              <Box sx={{ display: 'flex', justifyContent: 'center', py: 6 }}>
+                <CircularProgress size={24} />
+              </Box>
+            ) : (
+              <Box>
+                {(managerNotifications || []).slice(0, 4).map((notif) => (
+                  <Paper
+                    key={notif.id}
+                    variant="outlined"
+                    sx={{ display: 'flex', gap: 2, p: 2, mb: 1, alignItems: 'center', cursor: 'pointer', borderColor: notif.isRead ? 'divider' : 'primary.main' }}
+                    onClick={() => handleManagerNotificationClick(notif, navigate)}
+                  >
+                    <Box sx={{ width: 44, height: 44, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', backgroundColor: getNotificationColor(notif.iconName) }}>
+                      {getNotificationIcon(notif.iconName)}
+                    </Box>
+
+                    <Box sx={{ flex: 1 }}>
+                      <Typography variant="subtitle1" fontWeight={!notif.isRead ? 600 : 500}>
+                        {notif.title || 'Thông báo'}
+                      </Typography>
+                      {notif.message && (
+                        <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
+                          {notif.message}
+                        </Typography>
+                      )}
+                    </Box>
+
+                    <Box sx={{ ml: 2, textAlign: 'right' }}>
+                      <Typography variant="caption" color="text.secondary">
+                        {formatNotifTime(notif.time)}
+                      </Typography>
+                    </Box>
+                  </Paper>
+                ))}
+
+                {(!managerNotifications || managerNotifications.length === 0) && (
+                  <Box sx={{ py: 3, textAlign: 'center' }}>
+                    <Typography variant="body2" color="text.secondary">Chưa có thông báo</Typography>
+                  </Box>
+                )}
+
+                <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 2 }}>
+                  <Typography variant="body2" sx={{ color: 'primary.main', cursor: 'pointer' }} onClick={() => navigate('/manager/notifications')}>
+                    Xem tất cả
+                  </Typography>
+                </Box>
+              </Box>
+            )}
+          </AnimatedCard>
+        </Grid>
+      </Grid>
 
       {/* Transaction Summary Chart */}
       {transactions && (transactions.countByType && Object.keys(transactions.countByType).length > 0) && (
