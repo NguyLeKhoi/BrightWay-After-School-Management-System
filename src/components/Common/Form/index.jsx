@@ -747,28 +747,47 @@ const Form = forwardRef(({
               const handleHourInput = (raw) => {
                 const cleaned = String(raw).replace(/\D/g, '').slice(0, 2); // only digits, max 2
                 // allow empty
-                const hh = cleaned === '' ? '' : String(Math.max(0, Math.min(23, parseInt(cleaned, 10) || 0))).padStart(2, '0');
-                const mm = minute || '00';
-                controllerField.onChange(hh ? `${hh}:${mm}` : '');
+                if (cleaned === '') {
+                  controllerField.onChange('');
+                  return;
+                }
+                // Accept 0-24 for hour but do NOT auto-pad or set minutes while typing
+                let parsed = parseInt(cleaned, 10) || 0;
+                parsed = Math.max(0, Math.min(24, parsed));
+                // Keep raw hour string so user can continue typing (no immediate padding)
+                controllerField.onChange(String(parsed));
               };
 
               const handleMinuteInput = (raw) => {
+                // If hour is 24, minute must remain 00
+                if (hour === '24') {
+                  controllerField.onChange('24:00');
+                  return;
+                }
                 const cleaned = String(raw).replace(/\D/g, '').slice(0, 2);
-                const mmVal = cleaned === '' ? '' : String(Math.max(0, Math.min(59, parseInt(cleaned, 10) || 0))).padStart(2, '0');
-                const hh = hour || '00';
-                controllerField.onChange(mmVal ? `${hh}:${mmVal}` : '');
+                const mmVal = cleaned === '' ? '' : String(Math.max(0, Math.min(59, parseInt(cleaned, 10) || 0)));
+                const hh = hour || '';
+                // Keep minute unpadded while typing; combine with current hour (could be empty)
+                controllerField.onChange(mmVal !== '' ? `${hh}:${mmVal}` : (hh ? `${hh}` : ''));
               };
 
               const handleHourBlur = (e) => {
                 const v = e.target.value.replace(/\D/g, '');
                 if (v === '') return;
-                const hh = String(Math.max(0, Math.min(23, parseInt(v, 10) || 0))).padStart(2, '0');
-                const mm = minute || '00';
+                let parsed = parseInt(v, 10) || 0;
+                parsed = Math.max(0, Math.min(24, parsed));
+                const hh = String(parsed).padStart(2, '0');
+                const mm = parsed === 24 ? '00' : (minute || '00');
                 controllerField.onChange(`${hh}:${mm}`);
                 if (fieldOnChange) fieldOnChange(`${hh}:${mm}`);
               };
 
               const handleMinuteBlur = (e) => {
+                if (hour === '24') {
+                  controllerField.onChange('24:00');
+                  if (fieldOnChange) fieldOnChange('24:00');
+                  return;
+                }
                 const v = e.target.value.replace(/\D/g, '');
                 if (v === '') return;
                 const mm = String(Math.max(0, Math.min(59, parseInt(v, 10) || 0))).padStart(2, '0');
@@ -802,6 +821,7 @@ const Form = forwardRef(({
                       error={!!fieldState.error}
                       placeholder="mm"
                       inputProps={{ inputMode: 'numeric', pattern: '[0-9]*', maxLength: 2 }}
+                      disabled={hour === '24'}
                     />
                   </Box>
                   {helperText && (
