@@ -17,6 +17,7 @@ import ConfirmDialog from '@components/Common/ConfirmDialog';
 import { useApp } from '../../../contexts/AppContext';
 import useContentLoading from '../../../hooks/useContentLoading';
 import packageService from '../../../services/package.service';
+import adminService from '../../../services/admin.service';
 import studentService from '../../../services/student.service';
 import serviceService from '../../../services/service.service';
 import orderService from '../../../services/order.service';
@@ -72,12 +73,24 @@ const MyPackages = () => {
   const [isUpgrading, setIsUpgrading] = useState(false);
   const [refundDialog, setRefundDialog] = useState({
     open: false,
-    package: null
+    package: null,
+    policy: null,
+    loading: false
   });
+  const [isRefunding, setIsRefunding] = useState(false);
+  const [renewDialog, setRenewDialog] = useState({
+    open: false,
+    package: null,
+    policy: null,
+    loading: false
+  });
+  const [isRenewing, setIsRenewing] = useState(false);
   const [upgradeDialog, setUpgradeDialog] = useState({
     open: false,
     package: null,
-    studentId: null
+    studentId: null,
+    policy: null,
+    loading: false
   });
 
   // Buy service dialog state
@@ -620,61 +633,98 @@ const MyPackages = () => {
   };
 
   const handleRefundClick = (pkg) => {
-    // Kiểm tra usedSlots === 0 trước khi cho phép refund
-    if (pkg.usedSlots !== undefined && pkg.usedSlots > 0) {
-      addNotification({
-        message: 'Không thể hoàn tiền gói đã sử dụng slot. Chỉ có thể hoàn tiền gói chưa sử dụng slot nào.',
-        severity: 'warning'
+    // Open refund dialog and fetch refund policy from admin endpoint
+    setRefundDialog({ open: true, package: pkg, policy: null, loading: true });
+
+    adminService.getPackageRefundSettings()
+      .then((res) => {
+        setRefundDialog((prev) => ({ ...prev, policy: res, loading: false }));
+      })
+      .catch((err) => {
+        setRefundDialog((prev) => ({ ...prev, policy: null, loading: false }));
+        addNotification({ message: 'Không thể tải chính sách hoàn tiền', severity: 'warning' });
       });
+  };
+
+  const handleRenewClick = (pkg) => {
+    // Open dialog and fetch renewal policy from admin endpoint
+    setRenewDialog({ open: true, package: pkg, policy: null, loading: true });
+
+    adminService.getPackageRenewalSettings()
+      .then((res) => {
+        setRenewDialog((prev) => ({ ...prev, policy: res, loading: false }));
+      })
+      .catch((err) => {
+        setRenewDialog((prev) => ({ ...prev, policy: null, loading: false }));
+        addNotification({ message: 'Không thể tải chính sách gia hạn', severity: 'warning' });
+      });
+  };
+
+  const handleConfirmRenew = async () => {
+    if (!renewDialog.package) return;
+
+    const pkg = renewDialog.package;
+    const studentId = pkg.studentId || selectedStudentId || childId;
+
+    if (!studentId) {
+      addNotification({ message: 'Không xác định học sinh để gia hạn', severity: 'error' });
+      setRenewDialog({ open: false, package: null });
       return;
     }
 
-    setRefundDialog({
-      open: true,
-      package: pkg
-    });
+    showLoading();
+    setIsRenewing(true);
+
+    try {
+      await packageService.renewSubscription(studentId);
+
+      addNotification({ message: 'Gia hạn gói thành công!', severity: 'success' });
+
+      setRenewDialog({ open: false, package: null });
+      await loadPurchasedPackages();
+    } catch (err) {
+      const errorMessage = typeof err === 'string' ? err : err?.message || err?.error || 'Không thể gia hạn gói';
+      showGlobalError(errorMessage);
+      addNotification({ message: errorMessage, severity: 'error' });
+    } finally {
+      setIsRenewing(false);
+      hideLoading();
+    }
   };
 
   const handleConfirmRefund = async () => {
     if (!refundDialog.package) return;
 
     const pkg = refundDialog.package;
+    const p = refundDialog.policy || {};
 
-    // Kiểm tra lại usedSlots === 0
-    if (pkg.usedSlots !== undefined && pkg.usedSlots > 0) {
-      addNotification({
-        message: 'Không thể hoàn tiền gói đã sử dụng slot.',
-        severity: 'error'
-      });
-      setRefundDialog({ open: false, package: null });
+    // Determine eligibility for full refund: usedSlots <= fullRefundMaxSlots (default 0)
+    const fullMax = Number(p.fullRefundMaxSlots ?? 0);
+    const usedSlots = Number(pkg.usedSlots ?? 0);
+    const eligibleFullRefund = usedSlots <= fullMax;
+
+    if (!eligibleFullRefund) {
+      addNotification({ message: 'Gói không đủ điều kiện hoàn tiền đầy đủ.', severity: 'error' });
+      setRefundDialog({ open: false, package: null, policy: null, loading: false });
       return;
     }
 
     showLoading();
+    setIsRefunding(true);
 
     try {
       await packageService.refundPackageSubscription(pkg.id);
 
-      addNotification({
-        message: 'Hoàn tiền gói thành công!',
-        severity: 'success'
-      });
+      addNotification({ message: 'Hoàn tiền gói thành công!', severity: 'success' });
 
-      setRefundDialog({ open: false, package: null });
-      
-      // Reload purchased packages to update the list
+      setRefundDialog({ open: false, package: null, policy: null, loading: false });
       await loadPurchasedPackages();
     } catch (err) {
-      const errorMessage = typeof err === 'string'
-        ? err
-        : err?.message || err?.error || 'Không thể hoàn tiền gói';
-      
+      const errorMessage = typeof err === 'string' ? err : err?.message || err?.error || 'Không thể hoàn tiền gói';
       showGlobalError(errorMessage);
-      addNotification({
-        message: errorMessage,
-        severity: 'error'
-      });
+      addNotification({ message: errorMessage, severity: 'error' });
     } finally {
+      setIsRefunding(false);
       hideLoading();
     }
   };
@@ -691,11 +741,16 @@ const MyPackages = () => {
       return;
     }
 
-    setUpgradeDialog({
-      open: true,
-      package: pkg,
-      studentId: studentId
-    });
+    // Open dialog and fetch upgrade policy
+    setUpgradeDialog({ open: true, package: pkg, studentId: studentId, policy: null, loading: true });
+    adminService.getPackageUpgradeSettings()
+      .then((res) => {
+        setUpgradeDialog((prev) => ({ ...prev, policy: res, loading: false }));
+      })
+      .catch(() => {
+        setUpgradeDialog((prev) => ({ ...prev, policy: null, loading: false }));
+        addNotification({ message: 'Không thể tải chính sách nâng cấp', severity: 'warning' });
+      });
   };
 
   const handleConfirmUpgrade = async () => {
@@ -1274,28 +1329,49 @@ const MyPackages = () => {
                       >
                         Xem chi tiết gói
                       </Button>
-                      {pkg.status === 'active' && pkg.usedSlots === 0 && (
-                        <Button
-                          variant="outlined"
-                          onClick={() => handleRefundClick(pkg)}
-                          sx={{
-                            textTransform: 'none',
-                            fontFamily: 'var(--font-family)',
-                            fontSize: 'var(--font-size-base)',
-                            fontWeight: 'var(--font-weight-semibold)',
-                            borderColor: 'var(--color-warning)',
-                            color: 'var(--color-warning)',
-                            padding: '12px 32px',
-                            '&:hover': {
-                              borderColor: 'var(--color-warning-dark)',
-                              backgroundColor: 'var(--color-warning-light)',
-                              color: 'var(--color-warning-dark)'
-                            }
-                          }}
-                        >
-                          Yêu cầu hoàn tiền
-                        </Button>
-                      )}
+                      <Button
+                        variant="outlined"
+                        onClick={() => handleRenewClick(pkg)}
+                        disabled={isRenewing}
+                        sx={{
+                          textTransform: 'none',
+                          fontFamily: 'var(--font-family)',
+                          fontSize: 'var(--font-size-base)',
+                          fontWeight: 'var(--font-weight-semibold)',
+                          borderColor: 'var(--color-primary)',
+                          color: 'var(--color-primary)',
+                          padding: '12px 32px',
+                          mr: 1,
+                          '&:hover': {
+                            borderColor: 'var(--color-primary-dark)',
+                            backgroundColor: 'var(--color-primary-50)',
+                            color: 'var(--color-primary-dark)'
+                          }
+                        }}
+                      >
+                        Gia hạn
+                      </Button>
+
+                      <Button
+                        variant="outlined"
+                        onClick={() => handleRefundClick(pkg)}
+                        sx={{
+                          textTransform: 'none',
+                          fontFamily: 'var(--font-family)',
+                          fontSize: 'var(--font-size-base)',
+                          fontWeight: 'var(--font-weight-semibold)',
+                          borderColor: 'var(--color-warning)',
+                          color: 'var(--color-warning)',
+                          padding: '12px 32px',
+                          '&:hover': {
+                            borderColor: 'var(--color-warning-dark)',
+                            backgroundColor: 'var(--color-warning-light)',
+                            color: 'var(--color-warning-dark)'
+                          }
+                        }}
+                      >
+                        Yêu cầu hoàn tiền
+                      </Button>
                     </div>
                   </div>
                 ))}
@@ -1443,34 +1519,207 @@ const MyPackages = () => {
         {/* Refund Confirm Dialog */}
         <ConfirmDialog
           open={refundDialog.open}
-          onClose={() => setRefundDialog({ open: false, package: null })}
+          onClose={() => setRefundDialog({ open: false, package: null, policy: null, loading: false })}
           onConfirm={handleConfirmRefund}
           title="Xác nhận hoàn tiền gói"
-          description={refundDialog.package 
-            ? `Bạn có chắc chắn muốn hoàn tiền gói "${refundDialog.package.name}"? Số tiền sẽ được hoàn lại vào ví của bạn.`
-            : ''}
           confirmText="Hoàn tiền"
           confirmColor="warning"
           highlightText={refundDialog.package?.name}
-        />
+          confirmDisabled={(() => {
+            const pkg = refundDialog.package;
+            const p = refundDialog.policy;
+            if (!pkg || !p) return false;
+            const fullMax = Number(p.fullRefundMaxSlots ?? 0);
+            const partialMax = Number(p.partialRefundMaxSlots ?? 0);
+            const usedSlots = Number(pkg.usedSlots ?? 0);
+            const refundCategory = (fullMax === 0) ? 'FULL' : (usedSlots <= fullMax ? 'FULL' : (usedSlots <= partialMax ? 'PARTIAL' : 'NONE'));
+            return refundDialog.loading || isRefunding || refundCategory === 'NONE';
+          })()}
+        >
+          {(() => {
+            if (!refundDialog.package) return null;
+            const pkg = refundDialog.package;
+            if (refundDialog.loading) {
+              return (
+                <Typography sx={{ color: 'var(--text-secondary)', whiteSpace: 'pre-line' }}>
+                  Đang tải chính sách hoàn tiền...
+                </Typography>
+              );
+            }
+
+            const p = refundDialog.policy || {};
+            const fullMax = Number(p.fullRefundMaxSlots ?? 0);
+            const partialMax = Number(p.partialRefundMaxSlots ?? 0);
+            const used = Number(pkg.usedSlots ?? 0);
+            const total = Number(pkg.totalSlots ?? 0);
+            const percentUsed = total > 0 ? Math.round((used / total) * 100) : 0;
+            const refundCategory = (fullMax === 0) ? 'FULL' : (used <= fullMax ? 'FULL' : (used <= partialMax ? 'PARTIAL' : 'NONE'));
+
+            return (
+              <>
+                <Typography sx={{ color: 'var(--text-secondary)', whiteSpace: 'pre-line' }}>
+                  Bạn có chắc chắn muốn hoàn tiền gói "{pkg.name}"? Số tiền sẽ được hoàn lại vào ví của bạn.
+                </Typography>
+
+                <Typography sx={{ mt: 1, color: 'var(--text-secondary)' }}>
+                  Chính sách hoàn tiền:
+                </Typography>
+
+                <Typography sx={{ mt: 1, color: 'var(--text-secondary)', whiteSpace: 'pre-line' }}>
+                  {`- Số ngày hoàn tiền 100% : ${p.fullRefundDays ?? 'N/A'}\n- Số slot tối đa hoàn tiền 50%: ${partialMax}\n- Số slot tối đa hoàn tiền 100%: ${fullMax}`}
+                </Typography>
+
+                <Typography sx={{ mt: 1, color: 'var(--text-secondary)' }}>
+                  Đã dùng: {used}/{total} slot
+                </Typography>
+
+                <Typography sx={{ mt: 0.5, color: 'var(--text-secondary)', display: 'flex', alignItems: 'center', gap: 1 }}>
+                  <span>Loại hoàn tiền hiện tại:</span>
+                  <Box component="span" sx={{ ml: 1, fontWeight: 700, color: refundCategory === 'FULL' ? 'success.main' : (refundCategory === 'PARTIAL' ? 'warning.main' : 'error.main') }}>
+                    {refundCategory === 'FULL' ? 'Hoàn 100%' : (refundCategory === 'PARTIAL' ? 'Hoàn 50%' : 'Không đủ điều kiện')}
+                  </Box>
+                </Typography>
+              </>
+            );
+          })()}
+        </ConfirmDialog>
+
+        {/* Renew Confirm Dialog */}
+        <ConfirmDialog
+          open={renewDialog.open}
+          onClose={() => setRenewDialog({ open: false, package: null, policy: null, loading: false })}
+          onConfirm={handleConfirmRenew}
+          title="Xác nhận gia hạn gói"
+          confirmText="Gia hạn"
+          confirmColor="primary"
+          highlightText={renewDialog.package?.name}
+          confirmDisabled={(() => {
+            const pkg = renewDialog.package;
+            const p = renewDialog.policy;
+            if (!pkg || !p) return false;
+            const minPercent = Number(p.minSlotsPercentage ?? 0);
+            const totalSlots = Number(pkg.totalSlots || 0);
+            const usedSlots = Number(pkg.usedSlots || 0);
+            const percentUsed = totalSlots > 0 ? Math.round((usedSlots / totalSlots) * 100) : 0;
+            return percentUsed < minPercent || renewDialog.loading || isRenewing;
+          })()}
+        >
+          {(() => {
+            if (!renewDialog.package) return null;
+            const pkg = renewDialog.package;
+            if (renewDialog.loading) {
+              return (
+                <Typography sx={{ color: 'var(--text-secondary)', whiteSpace: 'pre-line' }}>
+                  Đang tải chính sách gia hạn...
+                </Typography>
+              );
+            }
+            const p = renewDialog.policy || {};
+            const minPercent = Number(p.minSlotsPercentage ?? 0);
+            const totalSlots = Number(pkg.totalSlots || 0);
+            const usedSlots = Number(pkg.usedSlots || 0);
+            const percentUsed = totalSlots > 0 ? Math.round((usedSlots / totalSlots) * 100) : 0;
+            const meetsRequirement = percentUsed >= minPercent;
+
+            return (
+              <>
+                <Typography sx={{ color: 'var(--text-secondary)', whiteSpace: 'pre-line' }}>
+                  Bạn có chắc chắn muốn gia hạn gói "{pkg.name}" cho học sinh không?
+                </Typography>
+
+                <Typography sx={{ mt: 1, color: 'var(--text-secondary)' }}>
+                  Chính sách gia hạn:
+                </Typography>
+
+                <Typography sx={{ mt: 1, color: 'var(--text-secondary)', whiteSpace: 'pre-line' }}>
+                  {`- Phần trăm slot tối thiểu: ${minPercent}%\n- Hạn gia hạn (ngày): ${p.renewalDeadlineDays ?? 'N/A'}`}
+                </Typography>
+
+                <Typography sx={{ mt: 1, color: 'var(--text-secondary)' }}>
+                  Đã dùng: {usedSlots}/{totalSlots} slot ({percentUsed}%)
+                </Typography>
+
+                <Typography sx={{ mt: 0.5, color: 'var(--text-secondary)', display: 'flex', alignItems: 'center', gap: 1 }}>
+                  <span>Yêu cầu tối thiểu: {minPercent}%</span>
+                  <Box component="span" sx={{ ml: 1, fontWeight: 700, color: meetsRequirement ? 'success.main' : 'error.main' }}>
+                    {meetsRequirement ? 'ĐẠT' : 'CHƯA ĐẠT'}
+                  </Box>
+                </Typography>
+              </>
+            );
+          })()}
+        </ConfirmDialog>
 
 
 
         {/* Upgrade Confirm Dialog */}
         <ConfirmDialog
           open={upgradeDialog.open}
-          onClose={() => setUpgradeDialog({ open: false, package: null, studentId: null })}
+          onClose={() => setUpgradeDialog({ open: false, package: null, studentId: null, policy: null, loading: false })}
           onConfirm={handleConfirmUpgrade}
           title="Xác nhận nâng cấp gói"
-          description={upgradeDialog.package && currentActivePackage
-            ? `Bạn có chắc chắn muốn nâng cấp từ gói "${currentActivePackage.name}" (${formatCurrency(currentActivePackage.price || 0)}) lên gói "${upgradeDialog.package.name}" (${formatCurrency(upgradeDialog.package.price || 0)})? Bạn sẽ cần thanh toán chênh lệch ${formatCurrency((upgradeDialog.package.price || 0) - (currentActivePackage.price || 0))}.`
-            : upgradeDialog.package
-            ? `Bạn có chắc chắn muốn nâng cấp lên gói "${upgradeDialog.package.name}"?`
-            : ''}
           confirmText="Nâng cấp"
           confirmColor="primary"
           highlightText={upgradeDialog.package?.name}
-        />
+          confirmDisabled={upgradeDialog.loading || isUpgrading}
+        >
+          {(() => {
+            if (!upgradeDialog.package) return null;
+            const pkg = upgradeDialog.package;
+            if (upgradeDialog.loading) {
+              return (
+                <Typography sx={{ color: 'var(--text-secondary)', whiteSpace: 'pre-line' }}>
+                  Đang tải chính sách nâng cấp...
+                </Typography>
+              );
+            }
+
+            const p = upgradeDialog.policy || {};
+            const deadlineDays = Number(p.upgradeSlotValueDeadlineDays ?? 0);
+            const expiry = pkg.expiryDate ? new Date(pkg.expiryDate) : null;
+            const now = new Date();
+            const daysUntil = expiry ? Math.ceil((expiry - now) / (1000 * 60 * 60 * 24)) : null;
+            const meets = daysUntil !== null ? daysUntil >= deadlineDays : false;
+            const valuePercent = meets ? 100 : 50;
+
+            return (
+              <>
+                <Typography sx={{ color: 'var(--text-secondary)', whiteSpace: 'pre-line' }}>
+                  Bạn có chắc chắn muốn nâng cấp gói "{pkg.name}"?
+                </Typography>
+
+                <Typography sx={{ mt: 1, color: 'var(--text-secondary)' }}>
+                  Chính sách nâng cấp:
+                </Typography>
+
+                <Typography sx={{ mt: 1, color: 'var(--text-secondary)', whiteSpace: 'pre-line' }}>
+                  {`- Nếu còn ít nhất ${p.upgradeSlotValueDeadlineDays ?? 'N/A'} ngày trước khi gói hết hạn: slot giữ 100% giá trị.`}
+                </Typography>
+
+                <Typography sx={{ mt: 0.5, color: 'var(--text-secondary)', whiteSpace: 'pre-line' }}>
+                  {`- Nếu còn ít hơn ${p.upgradeSlotValueDeadlineDays ?? 'N/A'} ngày: slot giữ 50% giá trị.`}
+                </Typography>
+
+                {daysUntil !== null && (
+                  <Typography sx={{ mt: 1, color: 'var(--text-secondary)' }}>
+                    Ngày còn lại đến ngày hết hạn: {daysUntil} ngày
+                  </Typography>
+                )}
+
+                <Typography sx={{ mt: 0.5, color: 'var(--text-secondary)', display: 'flex', alignItems: 'center', gap: 1 }}>
+                  <span>Giá trị còn lại của slot:</span>
+                  <Box component="span" sx={{ ml: 1, fontWeight: 700, color: valuePercent === 100 ? 'success.main' : 'warning.main' }}>
+                    {valuePercent}%
+                  </Box>
+                </Typography>
+
+                <Typography sx={{ mt: 1, color: 'var(--text-secondary)' }}>
+                  Lưu ý: Nâng cấp vẫn được phép; phần chênh lệch giá sẽ tính theo giá trị còn lại của slot.
+                </Typography>
+              </>
+            );
+          })()}
+        </ConfirmDialog>
 
         {/* Buy Service Dialog */}
         <ManagementFormDialog

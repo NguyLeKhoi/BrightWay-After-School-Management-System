@@ -2,7 +2,7 @@ import React, { useEffect, useState, useImperativeHandle, forwardRef } from 'rea
 import ContentLoading from '../../../../../components/Common/ContentLoading';
 import packageService from '../../../../../services/package.service';
 import { useApp } from '../../../../../contexts/AppContext';
-import { Alert } from '@mui/material';
+import { Alert, Button } from '@mui/material';
 import styles from './Schedule.module.css';
 
 const Step3SelectRoom = forwardRef(({ data, updateData, stepIndex, totalSteps }, ref) => {
@@ -197,9 +197,9 @@ const Step3SelectRoom = forwardRef(({ data, updateData, stepIndex, totalSteps },
   return (
     <div className={styles.stepContainer}>
       <div className={styles.stepHeader}>
-        <h2 className={styles.stepTitle}>Bước {stepIndex + 1}/{totalSteps}: Chọn phòng</h2>
+        <h2 className={styles.stepTitle}>Bước {stepIndex + 1}/{totalSteps}: Chọn phòng <span style={{ color: 'var(--danger)', marginLeft: 8 }}>*</span></h2>
         <p className={styles.stepSubtitle}>
-          Chọn phòng cho ca giữ trẻ và kiểm tra gói hợp lệ
+          Chọn phòng cho ca giữ trẻ và kiểm tra gói hợp lệ. <strong style={{ color: 'var(--danger)' }}>Bắt buộc chọn phòng</strong>
         </p>
       </div>
 
@@ -274,6 +274,17 @@ const Step3SelectRoom = forwardRef(({ data, updateData, stepIndex, totalSteps },
                   ✓ Đã chọn
                 </div>
               )}
+              <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: 12 }}>
+                {selectedRoomId === room.id ? (
+                  <Button variant="outlined" size="small" disabled>
+                    Đã chọn
+                  </Button>
+                ) : (
+                  <Button variant="contained" size="small" onClick={() => handleRoomSelect(room.id)}>
+                    Chọn phòng
+                  </Button>
+                )}
+              </div>
             </div>
           ))}
         </div>

@@ -30,6 +30,7 @@ const ConfirmDialog = ({
   confirmDisabled = false
 }) => {
   const isDeleteAction = confirmColor === 'error' || title?.toLowerCase().includes('xóa');
+  const isWarningAction = confirmColor === 'warning';
   const IconComponent = isDeleteAction ? DeleteIcon : CheckCircleIcon;
 
   // Function to highlight text in description
@@ -53,8 +54,8 @@ const ConfirmDialog = ({
             sx={{
               fontWeight: 'var(--font-weight-bold)',
               fontFamily: 'var(--font-family)',
-              color: isDeleteAction ? 'var(--color-error-dark)' : 'var(--color-primary-dark)',
-              backgroundColor: isDeleteAction ? 'var(--color-error-50)' : 'var(--color-primary-50)',
+              color: isDeleteAction ? 'var(--color-error-dark)' : isWarningAction ? 'var(--color-warning-dark)' : 'var(--color-primary-dark)',
+              backgroundColor: isDeleteAction ? 'var(--color-error-50)' : isWarningAction ? 'var(--color-warning-50)' : 'var(--color-primary-50)',
               padding: '2px 8px',
               borderRadius: 'var(--radius-sm)',
               display: 'inline-block',
@@ -82,8 +83,8 @@ const ConfirmDialog = ({
             sx={{
               fontWeight: 'var(--font-weight-bold)',
               fontFamily: 'var(--font-family)',
-              color: isDeleteAction ? 'var(--color-error-dark)' : 'var(--color-primary-dark)',
-              backgroundColor: isDeleteAction ? 'var(--color-error-50)' : 'var(--color-primary-50)',
+              color: isDeleteAction ? 'var(--color-error-dark)' : isWarningAction ? 'var(--color-warning-dark)' : 'var(--color-primary-dark)',
+              backgroundColor: isDeleteAction ? 'var(--color-error-50)' : isWarningAction ? 'var(--color-warning-50)' : 'var(--color-primary-50)',
               padding: '2px 8px',
               borderRadius: 'var(--radius-sm)',
               display: 'inline-block',
@@ -120,7 +121,7 @@ const ConfirmDialog = ({
       <Box
         sx={{
           position: 'relative',
-          backgroundColor: isDeleteAction ? 'var(--color-error-50)' : 'var(--color-primary-50)',
+          backgroundColor: isDeleteAction ? 'var(--color-error-50)' : isWarningAction ? 'var(--color-warning-50)' : 'var(--color-primary-50)',
           padding: '24px 24px 16px 24px'
         }}
       >
@@ -157,9 +158,11 @@ const ConfirmDialog = ({
                 width: 56,
                 height: 56,
                 borderRadius: '50%',
-                background: isDeleteAction 
+                background: isDeleteAction
                   ? 'linear-gradient(135deg, var(--color-error-light) 0%, var(--color-error) 100%)'
-                  : 'linear-gradient(135deg, var(--color-primary-light) 0%, var(--color-primary) 100%)',
+                  : isWarningAction
+                    ? 'linear-gradient(135deg, var(--color-warning-light) 0%, var(--color-warning) 100%)'
+                    : 'linear-gradient(135deg, var(--color-primary-light) 0%, var(--color-primary) 100%)',
                 color: 'var(--bg-primary)',
                 flexShrink: 0,
                 boxShadow: 'var(--shadow-md)'
@@ -168,6 +171,7 @@ const ConfirmDialog = ({
               <IconComponent sx={{ fontSize: 32 }} />
             </Box>
           )}
+
           <Typography
             id="dialog-title"
             variant="h6"
@@ -189,19 +193,24 @@ const ConfirmDialog = ({
         paddingTop: '16px',
         backgroundColor: 'var(--bg-primary)'
       }}>
-        <Typography
-          id="dialog-description"
-          variant="body1"
-          component="div"
-          sx={{
-            color: 'var(--text-secondary)',
-            fontFamily: 'var(--font-family)',
-            lineHeight: 'var(--line-height-relaxed)',
-            fontSize: 'var(--font-size-base)'
-          }}
-        >
-          {renderHighlightedDescription()}
-        </Typography>
+        {children ? (
+          children
+        ) : (
+          <Typography
+            id="dialog-description"
+            variant="body1"
+            component="div"
+            sx={{
+              color: 'var(--text-secondary)',
+              fontFamily: 'var(--font-family)',
+              lineHeight: 'var(--line-height-relaxed)',
+              whiteSpace: 'pre-line',
+              fontSize: 'var(--font-size-base)'
+            }}
+          >
+            {renderHighlightedDescription()}
+          </Typography>
+        )}
       </DialogContent>
 
       <DialogActions
@@ -240,6 +249,7 @@ const ConfirmDialog = ({
           variant="contained"
           color={confirmColor}
           autoFocus
+          disabled={confirmDisabled}
           sx={{
             minWidth: 100,
             textTransform: 'none',
@@ -249,20 +259,28 @@ const ConfirmDialog = ({
             fontWeight: 'var(--font-weight-semibold)',
             background: isDeleteAction
               ? 'linear-gradient(135deg, var(--color-error) 0%, var(--color-error-dark) 100%)'
-              : 'linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-dark) 100%)',
+              : isWarningAction
+                ? 'linear-gradient(135deg, var(--color-warning) 0%, var(--color-warning-dark) 100%)'
+                : 'linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-dark) 100%)',
             color: 'var(--bg-primary)',
             boxShadow: isDeleteAction 
               ? 'var(--shadow-md), 0 2px 8px rgba(239, 68, 68, 0.3)' 
-              : 'var(--shadow-md), 0 2px 8px rgba(37, 99, 235, 0.3)',
+              : isWarningAction
+                ? 'var(--shadow-md), 0 2px 8px rgba(234, 88, 12, 0.25)'
+                : 'var(--shadow-md), 0 2px 8px rgba(37, 99, 235, 0.3)',
             transition: 'var(--transition-all)',
             '&:hover': {
               background: isDeleteAction
                 ? 'linear-gradient(135deg, var(--color-error-dark) 0%, var(--color-error) 100%)'
-                : 'linear-gradient(135deg, var(--color-primary-dark) 0%, var(--color-primary) 100%)',
+                : isWarningAction
+                  ? 'linear-gradient(135deg, var(--color-warning-dark) 0%, var(--color-warning) 100%)'
+                  : 'linear-gradient(135deg, var(--color-primary-dark) 0%, var(--color-primary) 100%)',
               transform: 'translateY(-2px)',
               boxShadow: isDeleteAction 
                 ? 'var(--shadow-lg), 0 4px 12px rgba(239, 68, 68, 0.4)' 
-                : 'var(--shadow-lg), 0 4px 12px rgba(37, 99, 235, 0.4)'
+                : isWarningAction
+                  ? 'var(--shadow-lg), 0 4px 12px rgba(234, 88, 12, 0.35)'
+                  : 'var(--shadow-lg), 0 4px 12px rgba(37, 99, 235, 0.4)'
             }
           }}
         >
