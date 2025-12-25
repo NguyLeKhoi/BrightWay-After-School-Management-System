@@ -282,12 +282,18 @@ const TimeframeManagement = () => {
           <Form
             fields={timeframeFormFields}
             initialValues={
-              selectedTimeframe || {
-                name: '',
-                description: '',
-                startTime: '',
-                endTime: '',
-              }
+              selectedTimeframe
+                ? {
+                    ...selectedTimeframe,
+                    startTime: selectedTimeframe.startTime ? selectedTimeframe.startTime.substring(0, 5) : '',
+                    endTime: selectedTimeframe.endTime ? selectedTimeframe.endTime.substring(0, 5) : ''
+                  }
+                : {
+                    name: '',
+                    description: '',
+                    startTime: '',
+                    endTime: ''
+                  }
             }
             onSubmit={handleFormSubmitWithValidation}
             onCancel={() => setOpenDialog(false)}
