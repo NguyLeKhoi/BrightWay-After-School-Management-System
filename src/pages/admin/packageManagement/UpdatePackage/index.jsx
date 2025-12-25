@@ -323,7 +323,7 @@ const Step5AssignSlotTypes = forwardRef(({ data, updateData, packageId }, ref) =
   );
 });
 
-const Step4AssignBenefits = forwardRef(({ data }, ref) => {
+const Step4AssignBenefits = forwardRef(({ data, updateData }, ref) => {
   const [loading, setLoading] = useState(true);
   const [options, setOptions] = useState([]);
   const [selected, setSelected] = useState([]);
@@ -345,11 +345,14 @@ const Step4AssignBenefits = forwardRef(({ data }, ref) => {
   useImperativeHandle(ref, () => ({
     async submit() {
       try {
-        await packageService.assignBenefitsToPackage({ packageId: data.packageId, benefitIds: selected });
-        toast.success('Cập nhật lợi ích cho gói thành công');
+        // Save selected benefit IDs into parent form data; actual assignment is handled by the update endpoint
+        if (updateData) {
+          updateData({ benefitIds: selected });
+        }
+        toast.success('Lưu lựa chọn lợi ích (sẽ được áp dụng khi cập nhật gói)');
         return true;
       } catch (err) {
-        toast.error(err.response?.data?.message || err.message || 'Cập nhật lợi ích thất bại');
+        toast.error(err.response?.data?.message || err.message || 'Lưu lựa chọn thất bại');
         return false;
       }
     }
@@ -464,20 +467,6 @@ const UpdatePackage = () => {
       };
 
       await packageService.updatePackage(id, updatePayload);
-      
-      // Assign benefits if any were selected (step 4 already handles this, but ensure it's done)
-      if (benefitIds && benefitIds.length > 0) {
-        try {
-          await packageService.assignBenefitsToPackage({ 
-            packageId: id, 
-            benefitIds: benefitIds 
-          });
-        } catch (benefitErr) {
-
-          // Don't fail the whole operation if benefits assignment fails
-          toast.warning('Gói đã được cập nhật nhưng có lỗi khi gán lợi ích');
-        }
-      }
       
       // Assign slot types if any were selected (step 5 already handles this, but ensure it's done)
       const slotTypeIds = finalData?.slotTypeIds || formData?.slotTypeIds || [];

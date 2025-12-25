@@ -424,22 +424,12 @@ const CreatePackage = () => {
         return;
       }
 
-      // Call API create once with all collected data
-      const created = await packageService.createPackage(packageForm);
-      
-      // Assign benefits if any were selected
-      if (benefitIds && benefitIds.length > 0) {
-        try {
-          await packageService.assignBenefitsToPackage({ 
-            packageId: created.id, 
-            benefitIds: benefitIds 
-          });
-        } catch (benefitErr) {
-
-          // Don't fail the whole operation if benefits assignment fails
-          toast.warning('Gói đã được tạo nhưng có lỗi khi gán lợi ích');
-        }
-      }
+      // Call API create once with all collected data (include benefitIds so backend will assign them)
+      const createPayload = {
+        ...packageForm,
+        benefitIds: Array.isArray(benefitIds) ? benefitIds : []
+      };
+      const created = await packageService.createPackage(createPayload);
       
       // Assign slot types if any were selected
       const slotTypeIds = finalData?.slotTypeIds || [];

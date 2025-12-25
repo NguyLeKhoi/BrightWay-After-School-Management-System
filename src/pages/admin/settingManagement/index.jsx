@@ -34,6 +34,10 @@ const SettingManagement = () => {
     minSlotsPercentage: '',
     renewalDeadlineDays: '',
     renewalDescription: ''
+    ,
+    // Package Upgrade Settings (fields match API)
+    upgradeSlotValueDeadlineDays: '',
+    upgradeDescription: ''
   });
   const [originalSettings, setOriginalSettings] = useState({});
   const [errors, setErrors] = useState({});
@@ -47,15 +51,17 @@ const SettingManagement = () => {
       setLoading(true);
 
       // Try to fetch real settings from API via adminService
-      const [slotRes, refundRes, renewalRes] = await Promise.allSettled([
+      const [slotRes, refundRes, renewalRes, upgradeRes] = await Promise.allSettled([
         adminService.getSlotCancellation(),
         adminService.getPackageRefundSettings(),
-        adminService.getPackageRenewalSettings()
+        adminService.getPackageRenewalSettings(),
+        adminService.getPackageUpgradeSettings()
       ]);
 
       const slotData = slotRes.status === 'fulfilled' ? slotRes.value : null;
       const refundData = refundRes.status === 'fulfilled' ? refundRes.value : null;
       const renewalData = renewalRes.status === 'fulfilled' ? renewalRes.value : null;
+      const upgradeData = upgradeRes.status === 'fulfilled' ? upgradeRes.value : null;
 
       const loaded = {
         deadlineHours: slotData?.deadlineHours ?? settings.deadlineHours,
@@ -69,6 +75,10 @@ const SettingManagement = () => {
         minSlotsPercentage: renewalData?.minSlotsPercentage ?? settings.minSlotsPercentage,
         renewalDeadlineDays: renewalData?.renewalDeadlineDays ?? settings.renewalDeadlineDays,
         renewalDescription: renewalData?.description ?? settings.renewalDescription
+        ,
+        // API returns `upgradeSlotValueDeadlineDays` (days) and `description`
+        upgradeSlotValueDeadlineDays: upgradeData?.upgradeSlotValueDeadlineDays ?? settings.upgradeSlotValueDeadlineDays,
+        upgradeDescription: upgradeData?.description ?? settings.upgradeDescription
       };
 
       setSettings(loaded);
@@ -96,8 +106,9 @@ const SettingManagement = () => {
       newErrors.partialRefundMaxSlots = 'Giá trị phải lớn hơn 0';
     }
 
-    if (!settings.fullRefundMaxSlots || settings.fullRefundMaxSlots <= 0) {
-      newErrors.fullRefundMaxSlots = 'Giá trị phải lớn hơn 0';
+    // `fullRefundMaxSlots` can be 0 (meaning allow zero max slots for full refund)
+    if (settings.fullRefundMaxSlots === '' || Number(settings.fullRefundMaxSlots) < 0) {
+      newErrors.fullRefundMaxSlots = 'Giá trị phải lớn hơn hoặc bằng 0';
     }
 
     if (!settings.minSlotsPercentage || settings.minSlotsPercentage < 0 || settings.minSlotsPercentage > 100) {
@@ -106,6 +117,10 @@ const SettingManagement = () => {
 
     if (!settings.renewalDeadlineDays || settings.renewalDeadlineDays <= 0) {
       newErrors.renewalDeadlineDays = 'Giá trị phải lớn hơn 0';
+    }
+
+    if (settings.upgradeSlotValueDeadlineDays !== '' && Number(settings.upgradeSlotValueDeadlineDays) < 0) {
+      newErrors.upgradeSlotValueDeadlineDays = 'Giá trị phải lớn hơn hoặc bằng 0';
     }
 
     setErrors(newErrors);
@@ -152,11 +167,17 @@ const SettingManagement = () => {
         description: settings.renewalDescription || ''
       };
 
+      const upgradePayload = {
+        upgradeSlotValueDeadlineDays: Number(settings.upgradeSlotValueDeadlineDays || 0),
+        description: settings.upgradeDescription || ''
+      };
+
       // Send requests in parallel via adminService
       await Promise.all([
         adminService.updateSlotCancellation(slotPayload),
         adminService.updatePackageRefundSettings(refundPayload),
-        adminService.updatePackageRenewalSettings(renewalPayload)
+        adminService.updatePackageRenewalSettings(renewalPayload),
+        adminService.updatePackageUpgradeSettings(upgradePayload)
       ]);
 
       setOriginalSettings(settings);
@@ -221,7 +242,7 @@ const SettingManagement = () => {
             </Typography>
             <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' }, gap: 2, mb: 2 }}>
               <TextField
-                label="Số ngày hoàn tiền toàn bộ"
+                label="Số ngày hoàn tiền"
                 type="number"
                 value={settings.fullRefundDays}
                 onChange={(e) => handleInputChange('fullRefundDays', e.target.value)}
@@ -231,7 +252,7 @@ const SettingManagement = () => {
                 inputProps={{ min: 1 }}
               />
               <TextField
-                label="Tối đa slot hoàn tiền một phần"
+                label="Tối đa slot hoàn tiền 50%"
                 type="number"
                 value={settings.partialRefundMaxSlots}
                 onChange={(e) => handleInputChange('partialRefundMaxSlots', e.target.value)}
@@ -243,14 +264,14 @@ const SettingManagement = () => {
             </Box>
             <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' }, gap: 2, mb: 2 }}>
               <TextField
-                label="Tối đa slot hoàn tiền toàn bộ"
+                label="Tối đa slot hoàn tiền 100%"
                 type="number"
                 value={settings.fullRefundMaxSlots}
                 onChange={(e) => handleInputChange('fullRefundMaxSlots', e.target.value)}
                 error={!!errors.fullRefundMaxSlots}
                 helperText={errors.fullRefundMaxSlots}
                 disabled={submitting}
-                inputProps={{ min: 1 }}
+                inputProps={{ min: 0 }}
               />
             </Box>
             <TextField
@@ -303,6 +324,36 @@ const SettingManagement = () => {
               disabled={submitting}
               sx={{ mb: 2 }}
             />
+            <Divider sx={{ my: 3 }} />
+
+            {/* Section 4: Package Upgrade Settings */}
+            <Box sx={{ mt: 2 }}>
+              <Typography variant="h6" sx={{ mb: 2, fontWeight: 600, color: 'var(--color-primary)' }}>
+                4. Cài Đặt Nâng Cấp Gói
+              </Typography>
+              <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' }, gap: 2, mb: 2 }}>
+                <TextField
+                  label="Số ngày trước khi hết hạn để cho phép nâng cấp (ngày)"
+                  type="number"
+                  value={settings.upgradeSlotValueDeadlineDays}
+                  onChange={(e) => handleInputChange('upgradeSlotValueDeadlineDays', e.target.value)}
+                  error={!!errors.upgradeSlotValueDeadlineDays}
+                  helperText={errors.upgradeSlotValueDeadlineDays}
+                  disabled={submitting}
+                  inputProps={{ min: 0 }}
+                />
+              </Box>
+              <TextField
+                fullWidth
+                multiline
+                rows={2}
+                label="Mô tả"
+                value={settings.upgradeDescription}
+                onChange={(e) => handleInputChange('upgradeDescription', e.target.value)}
+                disabled={submitting}
+                sx={{ mb: 2 }}
+              />
+            </Box>
           </Box>
 
           {/* Action Buttons */}
