@@ -16,6 +16,11 @@ const AdminService = {
     return res.data;
   },
 
+  getPackageUpgradeSettings: async () => {
+    const res = await axiosInstance.get('/Admin/package-upgrade-settings');
+    return res.data;
+  },
+
   updateSlotCancellation: async (payload) => {
     return axiosInstance.put('/Admin/slot-cancellation-deadline', payload);
   },
@@ -26,6 +31,10 @@ const AdminService = {
 
   updatePackageRenewalSettings: async (payload) => {
     return axiosInstance.put('/Admin/package-renewal-settings', payload);
+  }
+  ,
+  updatePackageUpgradeSettings: async (payload) => {
+    return axiosInstance.put('/Admin/package-upgrade-settings', payload);
   }
 };
 
