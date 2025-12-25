@@ -123,7 +123,7 @@ const DataTable = ({
             </MenuItem>
           )}
           {onEdit && (
-            <MenuItem onClick={() => handleMenuAction(onEdit)}>
+            <MenuItem onClick={() => handleMenuAction(onEdit)} disabled={Boolean(['completed','finished'].includes(String(item?.status || '').toLowerCase()))}>
               <ListItemIcon>
                 <EditIcon fontSize="small" color="primary" />
               </ListItemIcon>
@@ -173,6 +173,7 @@ const DataTable = ({
           {onDelete && (
             <MenuItem 
               onClick={() => handleMenuAction(onDelete)}
+              disabled={Boolean(['completed','finished'].includes(String(item?.status || '').toLowerCase()))}
               sx={{
                 color: 'error.main',
                 '&:hover': {
